@@ -1,0 +1,2 @@
+allowBuilds:
+  "@ast-grep/lang-python": true

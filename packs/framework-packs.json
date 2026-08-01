@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 1,
+  "packs": [
+    {
+      "id": "react-ui",
+      "kind": "framework",
+      "packages": ["react", "react-dom", "next", "remix", "@remix-run/react"],
+      "signals": ["browser-ui"],
+      "lenses": ["accessibility", "performance", "correctness", "user-experience"],
+      "investigations": [
+        "render and state ownership",
+        "server-client boundaries",
+        "effect lifecycle",
+        "loading/error/empty states",
+        "keyboard and focus behavior"
+      ]
+    },
+    {
+      "id": "vue-svelte-ui",
+      "kind": "framework",
+      "packages": ["vue", "nuxt", "svelte", "@sveltejs/kit"],
+      "signals": ["browser-ui"],
+      "lenses": ["accessibility", "performance", "correctness"],
+      "investigations": [
+        "reactivity ownership",
+        "hydration boundaries",
+        "effect cleanup",
+        "route data lifecycle"
+      ]
+    },
+    {
+      "id": "node-server",
+      "kind": "framework",
+      "packages": ["express", "fastify", "koa", "hapi", "@nestjs/core"],
+      "signals": ["server", "api"],
+      "lenses": ["security", "reliability", "performance"],
+      "investigations": [
+        "request trust boundary",
+        "middleware ordering",
+        "error propagation",
+        "backpressure and blocking work"
+      ]
+    },
+    {
+      "id": "python-server",
+      "kind": "framework",
+      "packages": ["django", "flask", "fastapi", "starlette", "litestar"],
+      "signals": ["server", "api"],
+      "lenses": ["security", "data-integrity", "performance"],
+      "investigations": [
+        "authentication and authorization path",
+        "request validation",
+        "ORM query shape",
+        "transaction lifetime"
+      ]
+    },
+    {
+      "id": "jvm-server",
+      "kind": "framework",
+      "packages": ["spring-boot", "spring-web", "quarkus", "micronaut"],
+      "signals": ["server", "api"],
+      "lenses": ["reliability", "security", "performance"],
+      "investigations": [
+        "dependency injection and proxy boundaries",
+        "transaction annotations",
+        "thread-pool use",
+        "serialization and validation"
+      ]
+    },
+    {
+      "id": "database-access",
+      "kind": "framework",
+      "packages": [
+        "prisma",
+        "typeorm",
+        "sequelize",
+        "mongoose",
+        "sqlalchemy",
+        "django",
+        "hibernate",
+        "entityframework",
+        "diesel",
+        "gorm"
+      ],
+      "signals": ["data-store"],
+      "lenses": ["data-integrity", "performance", "security"],
+      "investigations": [
+        "transaction ownership",
+        "N+1 and query fan-out",
+        "migration compatibility",
+        "tenant and authorization filters"
+      ]
+    },
+    {
+      "id": "distributed-messaging",
+      "kind": "framework",
+      "packages": [
+        "kafka",
+        "kafkajs",
+        "amqplib",
+        "celery",
+        "bullmq",
+        "nats",
+        "temporalio",
+        "masstransit"
+      ],
+      "signals": ["distributed-system", "background-jobs"],
+      "lenses": ["reliability", "operability", "data-integrity"],
+      "investigations": [
+        "delivery and ordering guarantees",
+        "idempotency",
+        "retry and poison-message policy",
+        "trace propagation"
+      ]
+    },
+    {
+      "id": "ml-ai",
+      "kind": "framework",
+      "packages": [
+        "torch",
+        "tensorflow",
+        "transformers",
+        "scikit-learn",
+        "langchain",
+        "llama-index",
+        "openai"
+      ],
+      "signals": ["ml", "ai-system"],
+      "lenses": ["data-integrity", "reproducibility", "cost", "security", "quality"],
+      "investigations": [
+        "prompt and data trust boundaries",
+        "evaluation coverage",
+        "model/version reproducibility",
+        "latency and token cost",
+        "fallback and hallucination containment"
+      ]
+    },
+    {
+      "id": "mobile",
+      "kind": "framework",
+      "packages": ["react-native", "expo", "flutter", "androidx", "swiftui"],
+      "signals": ["mobile"],
+      "lenses": ["privacy", "accessibility", "offline-behavior", "performance"],
+      "investigations": [
+        "app lifecycle",
+        "offline synchronization",
+        "permission flows",
+        "battery and network behavior",
+        "assistive technology"
+      ]
+    },
+    {
+      "id": "testing",
+      "kind": "framework",
+      "packages": ["vitest", "jest", "pytest", "playwright", "cypress", "junit", "xunit", "rspec"],
+      "signals": ["test-suite"],
+      "lenses": ["testability", "correctness"],
+      "investigations": [
+        "behavior versus implementation assertions",
+        "boundary and failure coverage",
+        "test isolation",
+        "production parity"
+      ]
+    }
+  ]
+}

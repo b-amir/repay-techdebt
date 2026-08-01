@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "lenses": [
+    {
+      "id": "correctness",
+      "questions": [
+        "Which invariants can be violated?",
+        "Which inputs and states are unrepresented?"
+      ],
+      "evidence": ["tests", "guards", "types", "error paths"]
+    },
+    {
+      "id": "security",
+      "questions": [
+        "Where do trust levels change?",
+        "Are authorization and validation enforced at the authoritative boundary?"
+      ],
+      "evidence": ["entry points", "auth flows", "data sinks", "dependency advisories"]
+    },
+    {
+      "id": "performance",
+      "questions": [
+        "What grows with users, records, payload, or concurrency?",
+        "Where are blocking, fan-out, allocation, or cache costs paid?"
+      ],
+      "evidence": ["hot paths", "queries", "benchmarks", "runtime profiles"]
+    },
+    {
+      "id": "reliability",
+      "questions": [
+        "How does each dependency fail?",
+        "Which operations require retries, idempotency, timeout, or rollback?"
+      ],
+      "evidence": ["timeouts", "retries", "queues", "transactions", "runbooks"]
+    },
+    {
+      "id": "maintainability",
+      "questions": [
+        "Do changes stay within one responsibility?",
+        "Where does knowledge have multiple sources of truth?"
+      ],
+      "evidence": ["coupling", "cycles", "duplication", "change history"]
+    },
+    {
+      "id": "testability",
+      "questions": [
+        "Can critical behavior be isolated and deterministically exercised?",
+        "Which failure modes lack regression evidence?"
+      ],
+      "evidence": ["test graph", "fixtures", "boundary seams"]
+    },
+    {
+      "id": "operability",
+      "questions": [
+        "Can operators detect, diagnose, and safely recover failures?",
+        "Are signals tied to user impact?"
+      ],
+      "evidence": ["logs", "metrics", "traces", "health checks", "runbooks"]
+    },
+    {
+      "id": "data-integrity",
+      "questions": [
+        "Who owns authoritative state?",
+        "Can partial, concurrent, duplicate, or reordered work corrupt it?"
+      ],
+      "evidence": ["schemas", "constraints", "transactions", "events", "migrations"]
+    },
+    {
+      "id": "privacy",
+      "questions": [
+        "Which personal or sensitive data crosses boundaries?",
+        "Are collection, retention, and disclosure minimized?"
+      ],
+      "evidence": ["data flows", "telemetry", "storage", "permissions"]
+    },
+    {
+      "id": "accessibility",
+      "questions": [
+        "Can the workflow be understood and operated without sight, color, pointer, or animation?",
+        "Are semantics and focus preserved?"
+      ],
+      "evidence": ["UI states", "semantics", "keyboard paths", "screen-reader checks"]
+    },
+    {
+      "id": "user-experience",
+      "questions": [
+        "Do users understand progress, failure, recovery, and consequences?",
+        "Are latency and partial success represented honestly?"
+      ],
+      "evidence": ["states", "copy", "analytics", "support signals"]
+    },
+    {
+      "id": "cost",
+      "questions": [
+        "Which usage dimension drives spend?",
+        "Where can unbounded fan-out or retention create surprise?"
+      ],
+      "evidence": ["billing dimensions", "resource requests", "retention", "traffic"]
+    },
+    {
+      "id": "portability",
+      "questions": [
+        "Which platform, locale, runtime, or architecture assumptions are implicit?",
+        "Are interfaces and builds reproducible?"
+      ],
+      "evidence": ["build matrix", "platform branches", "ABI", "locale handling"]
+    },
+    {
+      "id": "reproducibility",
+      "questions": [
+        "Can the result be recreated from versioned inputs?",
+        "Are randomness, environments, and external models captured?"
+      ],
+      "evidence": ["locks", "seeds", "datasets", "artifact metadata"]
+    },
+    {
+      "id": "memory-safety",
+      "questions": [
+        "Who owns each allocation and lifetime?",
+        "Can aliasing, concurrency, or bounds errors invalidate memory?"
+      ],
+      "evidence": ["unsafe blocks", "ownership paths", "sanitizers", "fuzzing"]
+    },
+    {
+      "id": "offline-behavior",
+      "questions": [
+        "What happens with stale, missing, duplicated, or conflicting local data?",
+        "Can synchronization be retried safely?"
+      ],
+      "evidence": ["local stores", "sync protocol", "conflict rules"]
+    },
+    {
+      "id": "quality",
+      "questions": [
+        "How is output quality measured against real use?",
+        "Which regressions escape deterministic tests?"
+      ],
+      "evidence": ["evals", "human review", "golden datasets", "drift monitors"]
+    }
+  ]
+}

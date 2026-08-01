@@ -1,0 +1,272 @@
+{
+  "schemaVersion": 1,
+  "packs": [
+    {
+      "id": "javascript-typescript",
+      "kind": "language",
+      "detect": {
+        "extensions": [".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".mts", ".cts"],
+        "manifests": ["package.json"]
+      },
+      "capabilities": ["browser-ui", "server", "library", "cli", "edge", "mobile"],
+      "lenses": ["correctness", "security", "performance", "maintainability", "testability"],
+      "investigations": [
+        "async ownership and cancellation",
+        "runtime versus static type boundaries",
+        "dependency and bundle boundaries",
+        "event-loop blocking",
+        "state and cache ownership"
+      ]
+    },
+    {
+      "id": "python",
+      "kind": "language",
+      "detect": {
+        "extensions": [".py", ".pyi"],
+        "manifests": ["pyproject.toml", "requirements.txt", "Pipfile", "setup.py"]
+      },
+      "capabilities": ["server", "cli", "data-pipeline", "ml", "automation", "library"],
+      "lenses": ["correctness", "security", "performance", "reliability", "data-integrity"],
+      "investigations": [
+        "sync work inside async flows",
+        "resource and transaction lifetime",
+        "dynamic typing boundaries",
+        "serialization and validation",
+        "query and vectorization behavior"
+      ]
+    },
+    {
+      "id": "go",
+      "kind": "language",
+      "detect": { "extensions": [".go"], "manifests": ["go.mod", "go.work"] },
+      "capabilities": ["server", "cli", "distributed-system", "library"],
+      "lenses": ["reliability", "performance", "correctness", "operability"],
+      "investigations": [
+        "goroutine and channel ownership",
+        "context cancellation propagation",
+        "error wrapping and classification",
+        "interface boundaries",
+        "allocation and contention hot paths"
+      ]
+    },
+    {
+      "id": "rust",
+      "kind": "language",
+      "detect": { "extensions": [".rs"], "manifests": ["Cargo.toml", "Cargo.lock"] },
+      "capabilities": ["systems", "server", "cli", "embedded", "library", "wasm"],
+      "lenses": ["correctness", "performance", "memory-safety", "reliability"],
+      "investigations": [
+        "ownership and clone pressure",
+        "unsafe boundaries",
+        "blocking work in async executors",
+        "error type design",
+        "lock scope and contention"
+      ]
+    },
+    {
+      "id": "jvm",
+      "kind": "language",
+      "detect": {
+        "extensions": [".java", ".kt", ".kts", ".scala", ".groovy"],
+        "manifests": [
+          "pom.xml",
+          "build.gradle",
+          "build.gradle.kts",
+          "settings.gradle",
+          "settings.gradle.kts",
+          "build.sbt"
+        ]
+      },
+      "capabilities": ["server", "mobile", "data-pipeline", "distributed-system", "library"],
+      "lenses": ["correctness", "performance", "reliability", "maintainability"],
+      "investigations": [
+        "thread and coroutine ownership",
+        "transaction boundaries",
+        "allocation and garbage-collection pressure",
+        "nullability boundaries",
+        "reflection and framework lifecycle"
+      ]
+    },
+    {
+      "id": "dotnet",
+      "kind": "language",
+      "detect": {
+        "extensions": [".cs", ".fs", ".vb"],
+        "manifests": ["*.csproj", "*.fsproj", "*.sln", "global.json"]
+      },
+      "capabilities": ["server", "desktop", "mobile", "game", "library"],
+      "lenses": ["correctness", "performance", "security", "reliability"],
+      "investigations": [
+        "async and cancellation propagation",
+        "dependency-injection lifetimes",
+        "disposable resource ownership",
+        "LINQ execution and allocation",
+        "serialization boundaries"
+      ]
+    },
+    {
+      "id": "native",
+      "kind": "language",
+      "detect": {
+        "extensions": [".c", ".h", ".cc", ".cpp", ".cxx", ".hpp", ".m", ".mm"],
+        "manifests": ["CMakeLists.txt", "Makefile", "meson.build", "conanfile.txt", "vcpkg.json"]
+      },
+      "capabilities": ["systems", "embedded", "desktop", "mobile", "game", "library"],
+      "lenses": ["memory-safety", "correctness", "performance", "portability", "security"],
+      "investigations": [
+        "object and buffer lifetime",
+        "undefined behavior boundaries",
+        "thread ownership and synchronization",
+        "ABI and platform assumptions",
+        "allocation and cache locality"
+      ]
+    },
+    {
+      "id": "apple-swift",
+      "kind": "language",
+      "detect": {
+        "extensions": [".swift"],
+        "manifests": ["Package.swift", "Podfile", "*.xcodeproj", "*.xcworkspace"]
+      },
+      "capabilities": ["mobile", "desktop", "server", "library"],
+      "lenses": ["correctness", "performance", "accessibility", "privacy"],
+      "investigations": [
+        "actor and task isolation",
+        "retain cycles and lifecycle",
+        "main-thread ownership",
+        "state restoration",
+        "platform permission and privacy flows"
+      ]
+    },
+    {
+      "id": "web-backend-dynamic",
+      "kind": "language",
+      "detect": {
+        "extensions": [".rb", ".php"],
+        "manifests": ["Gemfile", "composer.json"]
+      },
+      "capabilities": ["server", "cli", "library"],
+      "lenses": ["security", "correctness", "data-integrity", "performance"],
+      "investigations": [
+        "request and job lifecycle",
+        "ORM query shape",
+        "transaction and authorization boundaries",
+        "dynamic dispatch and type assumptions",
+        "cache invalidation"
+      ]
+    },
+    {
+      "id": "elixir-beam",
+      "kind": "language",
+      "detect": {
+        "extensions": [".ex", ".exs"],
+        "manifests": ["mix.exs"]
+      },
+      "capabilities": ["server", "distributed-system", "cli", "library"],
+      "lenses": ["correctness", "reliability", "operability", "performance"],
+      "investigations": [
+        "process ownership and supervision boundaries",
+        "message ordering, mailbox growth, and backpressure",
+        "pattern matching and tagged error propagation",
+        "GenServer call versus cast failure semantics",
+        "application configuration and release-time behavior"
+      ]
+    },
+    {
+      "id": "mobile-cross-platform",
+      "kind": "language",
+      "detect": { "extensions": [".dart"], "manifests": ["pubspec.yaml"] },
+      "capabilities": ["mobile", "browser-ui", "desktop"],
+      "lenses": ["correctness", "performance", "accessibility", "offline-behavior"],
+      "investigations": [
+        "widget and state lifecycle",
+        "async cancellation",
+        "rebuild scope",
+        "offline persistence and synchronization",
+        "platform channel boundaries"
+      ]
+    },
+    {
+      "id": "data-science",
+      "kind": "language",
+      "detect": {
+        "extensions": [".r", ".R", ".jl", ".m", ".ipynb"],
+        "manifests": ["DESCRIPTION", "Project.toml", "renv.lock"]
+      },
+      "capabilities": ["data-pipeline", "ml", "research", "automation"],
+      "lenses": ["data-integrity", "reproducibility", "performance", "correctness"],
+      "investigations": [
+        "data leakage and train-test boundaries",
+        "determinism and environment capture",
+        "vectorization and memory shape",
+        "missing-value semantics",
+        "statistical assumptions"
+      ]
+    },
+    {
+      "id": "gleam-beam",
+      "kind": "language",
+      "detect": {
+        "extensions": [".gleam"],
+        "manifests": ["gleam.toml"]
+      },
+      "capabilities": ["server", "cli", "distributed-system", "library"],
+      "lenses": ["correctness", "reliability", "data-integrity", "performance"],
+      "investigations": [
+        "Result-based error propagation and exhaustive pattern matching",
+        "BEAM process ownership, supervision, and mailbox behavior",
+        "request and actor lifecycle across Erlang interoperability",
+        "persistent data structures and message-copy costs",
+        "compiler-enforced types versus runtime boundary validation"
+      ]
+    },
+    {
+      "id": "functional",
+      "kind": "language",
+      "detect": {
+        "extensions": [".hs", ".lhs", ".ml", ".mli", ".fs", ".clj", ".cljs", ".erl", ".hrl"],
+        "manifests": ["stack.yaml", "cabal.project", "dune-project", "deps.edn", "rebar.config"]
+      },
+      "capabilities": ["server", "distributed-system", "compiler", "library"],
+      "lenses": ["correctness", "performance", "reliability", "maintainability"],
+      "investigations": [
+        "effect boundaries",
+        "strictness and laziness",
+        "message and supervision semantics",
+        "type-driven invariants",
+        "persistent data-structure costs"
+      ]
+    },
+    {
+      "id": "shell-and-automation",
+      "kind": "language",
+      "detect": { "extensions": [".sh", ".bash", ".zsh", ".fish", ".ps1"], "manifests": [] },
+      "capabilities": ["automation", "cli", "delivery"],
+      "lenses": ["security", "portability", "reliability", "correctness"],
+      "investigations": [
+        "quoting and word splitting",
+        "failure propagation",
+        "temporary-file safety",
+        "platform assumptions",
+        "credential exposure"
+      ]
+    },
+    {
+      "id": "infrastructure-data",
+      "kind": "language",
+      "detect": {
+        "extensions": [".tf", ".hcl", ".sql", ".graphql", ".proto"],
+        "manifests": ["Chart.yaml", "Pulumi.yaml", "serverless.yml"]
+      },
+      "capabilities": ["infrastructure", "data-store", "api-contract", "delivery"],
+      "lenses": ["security", "reliability", "cost", "data-integrity", "operability"],
+      "investigations": [
+        "privilege and trust boundaries",
+        "migration compatibility",
+        "state drift and idempotency",
+        "rollback and disaster recovery",
+        "cost and capacity constraints"
+      ]
+    }
+  ]
+}
