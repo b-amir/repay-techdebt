@@ -15,8 +15,10 @@ turn the response into a generic review or programming course.
 - Do not change application code unless the user separately requests implementation.
 - Default to zero target writes: no analysis dependencies, lockfile edits, caches, indexes, memory,
   ignore rules, hooks, or agent instructions in the application repository.
-- Store durable private output and disposable tool artifacts outside the target. Create
-  `.repay-techdebt/` only when the user explicitly selects project-local or team storage.
+- Keep configuration, decisions, and disposable tool artifacts in private user storage by default.
+  Put human-facing lessons in the separately approved workbook root, normally a discoverable
+  `repay-<project>-techdebt` sister folder outside the Git repository. Create `.repay-techdebt/`
+  inside the target only when the user explicitly selects project-local or team memory.
 - Do not install user-scoped tools or edit agent/MCP configuration without explicit permission.
   Never install analysis tools into the target's dependency environment.
 - Do not expose secrets, environment values, credentials, or customer data.
@@ -52,12 +54,15 @@ node <skill-root>/scripts/project-memory.js status <target-root> --format json
 If status returns `first-run`, present the first-run consent wizard using the
 `<skill-root>/templates/introduction-wizard.md` template. Read `<skill-root>/references/project-memory.md`
 to understand storage resolution. Ask whether to create persistent memory, its storage mode, the
-default mode, lesson depth, and save policy. Recommend `private`, `ask`, `balanced`, and `ask`.
+lesson output location, default mode, lesson depth, and save policy. Recommend private memory,
+sister workbook output, `ask`, `balanced`, and `ask`. Preview the exact `outputRoot`; a sister
+workbook must be next to the Git root, never nested inside it.
 Private memory lives in user application-data storage and must report `targetWrites: []`. If the
 user declines persistence, continue session-only and leave both target and durable state unchanged.
 
-When memory exists, use the returned `memoryRoot`; never assume it is inside the target. Load only
-`config.json`, `decisions.md`, `curriculum.md`, `lessons/index.md`,
+When memory exists, use the returned `memoryRoot` for machine state and `outputRoot` for the book;
+never infer either from the target. Load only `config.json`, `decisions.md`, `curriculum.json`, the
+workbook `INDEX.md`,
 and the typed-artifact index when schema v2 is active. Load an individual artifact only when its
 scope and evidence IDs are relevant. Use memory as preferences and historical context, never as
 current code evidence. Exclude any legacy or opted-in target-local `.repay-techdebt/` directory
@@ -73,6 +78,10 @@ node <skill-root>/scripts/project-memory.js migrate <target-root> --yes
 If status reports `broken`, `busy-or-interrupted`, or `ready-with-warning`, disclose the condition
 and follow its required action before relying on memory. Never repair, migrate, unlock, or replace
 memory without approval.
+
+If an existing project still reports private lesson output and the user wants a visible workbook,
+preview `project-memory.js configure-output <target-root> --output-location sister`, disclose the
+exact destination and preserved backup, and run it with `--yes` only after approval.
 
 The scripts require the pinned packages in `<skill-root>/package.json`. Run the dependency-free
 bootstrap first:
@@ -336,19 +345,37 @@ dependencies, tests, configuration, and effects or naming the missing relationsh
 
 1. Confirm or explicitly leave unresolved the program's purpose, users, critical workflows,
    authoritative state, and operational constraints.
-2. Select representative critical flows across detected capabilities instead of summarizing every
-   directory.
-3. Map each flow across entry points, domains, modules, symbols, state, integrations, failure paths,
-   tests, deployment, and runtime signals.
-4. Apply the ranked lens plan and ecosystem packs. Use jscpd, security analysis, documentation, and
-   runtime evidence only where they can change a conclusion or lesson.
-5. Use Repomix only if size prevents useful coverage.
-6. Organize lessons by dependency of understanding: purpose and flow, ownership and architecture,
-   then exact mechanisms, algorithms, syntax, and trade-offs.
-7. Generate a system atlas when it materially improves orientation. Keep it on stdout or in an
-   agent temporary file unless the user approves persistence.
+2. Before drafting any lesson, generate the complete ranked subject inventory:
 
-If the scope is too large for one useful response, provide the prioritized first module and a curriculum outline instead of compressing everything into shallow notes.
+   ```text
+   node <skill-root>/scripts/plan-curriculum.js <target-root> --format json
+   ```
+
+   Small repositories should normally expose 12–30 subjects, medium repositories 25–70, and large
+   repositories 60–150. Use fewer only when the evidence-backed candidate pool is genuinely
+   smaller; report that limitation. Never compress a large repository into a handful of omnibus
+   lessons.
+
+3. Save the approved curriculum through `project-memory.js save-curriculum`. Its human-facing
+   `INDEX.md` is the book index and durable lesson queue. Every written lesson must use its stable
+   `topic-id`, and saving it must turn that subject into a link.
+4. Rank product purpose, critical workflows, runtime entrypoints, central relationships, ownership,
+   data, trust, and user impact ahead of analyzer novelty, generated code, barrels, or build/test
+   plumbing. Confirm uncertain business priority with the user instead of inventing it.
+5. Map selected flows across entry points, domains, modules, symbols, state, integrations, failure
+   paths, tests, deployment, and runtime signals. Apply enhanced tools only when they can change a
+   conclusion or lesson.
+6. Write one to three focused lessons per run unless the user asks for a batch. Let the learner pick
+   the next subject by rank or topic ID from the index. Do not regenerate completed lessons when the
+   curriculum can be resumed.
+7. Organize study order by dependency of understanding: purpose and flow, ownership and
+   architecture, data and trust, then exact mechanisms, algorithms, syntax, operations, and
+   verification. Testing and tooling support the product story; they do not replace it.
+8. Generate a system atlas when it materially improves orientation. Keep it in private memory or
+   the approved workbook output, never the target repository by default.
+
+If the scope is too large for one useful response, persist the full prioritized index and write the
+first focused lesson. Do not replace the index with shallow notes.
 
 ## Calibrate and write lessons
 
@@ -371,13 +398,14 @@ node <skill-root>/scripts/plan-lesson.js <target-root> [--focus <path-question-o
 ```
 
 Read `<skill-root>/templates/lesson-format.md` and
-`<skill-root>/references/lesson-composition.md`. Use the selected shape's required modules and only
+`<skill-root>/references/lesson-composition.md`, then read
+`<skill-root>/references/lesson-writing.md`. Use the selected shape's required modules and only
 the optional modules activated by strong focus-related signals. Inspect signal evidence and
 limitations, then verify claims in live source. The planner is a composition aid, not current-code
 truth and not proof of a defect. Enhanced tool evidence may strengthen or remove modules after a
 successful operation; failed tools still follow the transparent fallback gate.
 
-Keep the visible lesson simple: normally four to eight plain-language sections, no empty
+Keep the visible lesson simple: one subject, normally three to eight plain-language sections, no empty
 placeholders, score tables, reason codes, or internal selection machinery. Apply PRIMM through the
 chosen shape: Predict in the opening, Read and Run verified evidence, Investigate the mechanism,
 Modify in the challenge, and Make in the recap. These are teaching moves, not fixed headings.
@@ -397,7 +425,8 @@ For a workbook, begin with a compact contents table and study order. End every m
 
 When initialized memory has `output.savePolicy: automatic` and the user explicitly requested a
 lesson, save it as Markdown through `project-memory.js save-lesson`. Otherwise ask before saving.
-The helper Secretlint-checks the draft and updates the lesson index. Record only user-confirmed
+Pass the curriculum `--topic-id`. The helper enforces the configured size and writing floor,
+Secretlint-checks the draft, and updates the book index with a link. Record only user-confirmed
 durable decisions, and update the curriculum with meaningful completed or next topics. Never store
 raw analyzer output or unverified findings.
 

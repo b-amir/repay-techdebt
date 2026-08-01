@@ -1,4 +1,4 @@
 interface:
   display_name: "Repay Tech Debt"
   short_description: "Adaptive program intelligence and teaching"
-  default_prompt: "Use $repay-techdebt to build an evidence-qualified system atlas and teach me the highest-value architecture, flow, security, performance, and code-mechanics lessons from the current target repository with transparent tool reporting."
+  default_prompt: "Use $repay-techdebt to build a ranked learning index for the current target repository, then teach one focused, evidence-qualified lesson at a time with transparent tool reporting."

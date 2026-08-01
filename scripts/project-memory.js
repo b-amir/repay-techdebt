@@ -12,17 +12,24 @@ import {
   rm,
   writeFile,
 } from "node:fs/promises";
-import { dirname, relative, resolve } from "node:path";
+import { basename, dirname, relative, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 import { promisify } from "node:util";
-import { formatTargetError, resolveTargetRoot, skillRoot } from "./lib/targeting.js";
+import {
+  formatTargetError,
+  isSameOrInside,
+  resolveTargetRoot,
+  skillRoot,
+} from "./lib/targeting.js";
 import {
   LOCAL_MEMORY_DIRECTORY,
   locateProjectMemory,
   pathExists,
   projectStoragePaths,
 } from "./lib/private-storage.js";
+import { renderCurriculumMarkdown } from "./lib/curriculum-planning.js";
+import { inspectLesson } from "./lib/lesson-quality.js";
 
 const MEMORY_DIRECTORY = LOCAL_MEMORY_DIRECTORY;
 const CONFIG_FILE = "config.json";
@@ -31,20 +38,23 @@ const STORAGE_MODES = new Set(["private", "project-local", "team"]);
 const MODES = new Set(["ask", "pr", "workbook"]);
 const DEPTHS = new Set(["concise", "balanced", "deep"]);
 const SAVE_POLICIES = new Set(["ask", "automatic"]);
+const OUTPUT_LOCATIONS = new Set(["sister", "private", "custom"]);
 const execute = promisify(execFile);
 
 function printHelp() {
   process.stdout.write(`Usage:
   node project-memory.js status <target-root> [--storage private|project-local|team] [--format table|json]
-  node project-memory.js init <target-root> [--storage private|project-local|team] [--mode ask|pr|workbook] [--depth concise|balanced|deep] [--save-policy ask|automatic] [--boundary-hints <csv>] [--critical-workflows <csv>] [--max-files <count>] [--max-manifest-files <count>] [--max-relation-files <count>] [--max-relation-bytes <count>] [--allow-non-git] [--yes|--interactive]
-  node project-memory.js save-lesson <target-root> --title <title> --input <markdown-file> --yes
+  node project-memory.js init <target-root> [--storage private|project-local|team] [--output-location sister|private|custom] [--output-root <path>] [--mode ask|pr|workbook] [--depth concise|balanced|deep] [--save-policy ask|automatic] [--boundary-hints <csv>] [--critical-workflows <csv>] [--max-files <count>] [--max-manifest-files <count>] [--max-relation-files <count>] [--max-relation-bytes <count>] [--allow-non-git] [--yes|--interactive]
+  node project-memory.js save-curriculum <target-root> --input <curriculum.json> --yes
+  node project-memory.js save-lesson <target-root> --topic-id <id> --title <title> --input <markdown-file> --yes
+  node project-memory.js configure-output <target-root> --output-location sister|custom [--output-root <path>] --yes
   node project-memory.js record-decision <target-root> --decision <text> [--reason <text>] [--scope <text>] --yes
   node project-memory.js save-artifact <target-root> --type atlas|snapshot|notebook --title <title> --input <file> [--verified] --yes
   node project-memory.js migrate <target-root> --yes
   node project-memory.js repair-index <target-root> --yes
 
-Private-external storage is the default and leaves the target unchanged. --sharing team|local is a
-legacy alias for --storage team|project-local. Status is read-only. Mutations require consent.
+Private-external machine memory plus a discoverable sister workbook is the default and leaves the
+target unchanged. --sharing team|local is a legacy alias for --storage team|project-local. Status is read-only. Mutations require consent.
 Agents should ask in conversation and pass --yes; --interactive is for human terminal use.
 `);
 }
@@ -77,6 +87,7 @@ function memoryPaths(root) {
     root,
     config: resolve(root, CONFIG_FILE),
     curriculum: resolve(root, "curriculum.md"),
+    curriculumData: resolve(root, "curriculum.json"),
     decisions: resolve(root, "decisions.md"),
     lessonIndex: resolve(root, "lessons", "index.md"),
     lessonLock: resolve(root, ".lesson-index.lock"),
@@ -84,6 +95,18 @@ function memoryPaths(root) {
     artifacts: resolve(root, "artifacts"),
     artifactIndex: resolve(root, "artifacts", "index.json"),
     artifactLock: resolve(root, ".artifact-index.lock"),
+  };
+}
+
+function workbookPaths(memory, config) {
+  const location = config.output?.location ?? "private";
+  const root = location === "private" ? memory.root : resolve(config.output.root);
+  return {
+    location,
+    root,
+    lessons: resolve(root, "lessons"),
+    lessonIndex:
+      location === "private" ? resolve(root, "lessons", "index.md") : resolve(root, "INDEX.md"),
   };
 }
 
@@ -114,6 +137,16 @@ function validateConfig(config) {
     throw new Error("Markdown lessons in lessons/ must remain the default output");
   const compatibilityWarnings = [];
   const normalized = structuredClone(config);
+  if (normalized.output.location === undefined) {
+    normalized.output.location = "private";
+    compatibilityWarnings.push(
+      "output.location is absent; existing lessons remain in private project memory. Preview configure-output --output-location sister to create a discoverable workbook.",
+    );
+  }
+  if (!OUTPUT_LOCATIONS.has(normalized.output.location))
+    throw new Error("output.location must be sister, private, or custom");
+  if (normalized.output.location !== "private" && typeof normalized.output.root !== "string")
+    throw new Error("Discoverable lesson output requires output.root");
   if (normalized.output?.savePolicy === undefined) {
     normalized.output.savePolicy = "ask";
     compatibilityWarnings.push(
@@ -199,6 +232,34 @@ async function gitRepositoryStatus(targetRoot, candidate = `${MEMORY_DIRECTORY}/
   }
 }
 
+async function repositoryRootFor(targetRoot) {
+  try {
+    const result = await execute("git", ["rev-parse", "--show-toplevel"], {
+      cwd: targetRoot,
+      timeout: 10_000,
+    });
+    return await realpath(result.stdout.trim());
+  } catch {
+    return targetRoot;
+  }
+}
+
+async function proposedOutputRoot(targetRoot, options, memoryRoot) {
+  const location = options["output-location"] ?? "sister";
+  if (!OUTPUT_LOCATIONS.has(location))
+    throw new Error("--output-location must be sister, private, or custom");
+  if (location === "private") return { location, root: memoryRoot };
+  if (location === "custom") {
+    if (!options["output-root"]) throw new Error("--output-root is required for custom output");
+    return { location, root: resolve(options["output-root"]) };
+  }
+  if (options["output-root"])
+    throw new Error("--output-root can be used only with --output-location custom");
+  const repositoryRoot = await repositoryRootFor(targetRoot);
+  const projectName = basename(targetRoot).replace(/[^A-Za-z0-9._-]+/g, "-");
+  return { location, root: resolve(dirname(repositoryRoot), `repay-${projectName}-techdebt`) };
+}
+
 async function readConfig(paths) {
   await requireSafePath(paths.root, "directory");
   await requireSafePath(paths.config, "file");
@@ -211,12 +272,17 @@ function emit(value, format = "json") {
     process.stdout.write(`Project memory: ${value.status}\n`);
     process.stdout.write(`Target: ${value.targetRoot}\n`);
     process.stdout.write(`Location: ${value.memoryRoot}\n`);
+    if (value.outputRoot) process.stdout.write(`Workbook: ${value.outputRoot}\n`);
     if (value.config)
       process.stdout.write(
         `Sharing: ${value.config.sharing}; mode: ${value.config.defaults.mode}; lesson depth: ${value.config.defaults.lessonDepth}; save policy: ${value.config.output.savePolicy}\n`,
       );
     if (typeof value.lessonCount === "number")
       process.stdout.write(`Saved lessons: ${value.lessonCount}\n`);
+    if (typeof value.curriculumTopicCount === "number")
+      process.stdout.write(
+        `Curriculum: ${value.curriculumTopicCount} subjects; ${value.pendingTopicCount} planned\n`,
+      );
     for (const warning of value.warnings ?? []) process.stdout.write(`Warning: ${warning}\n`);
   }
 }
@@ -252,6 +318,7 @@ async function status(targetRoot, options) {
       memoryRoot: paths.root,
       choices: {
         storage: ["private", "session-only", "project-local", "team"],
+        lessonOutput: ["sister", "private", "custom"],
         mode: ["ask", "pr", "workbook"],
         lessonDepth: ["balanced", "concise", "deep"],
         savePolicy: ["ask", "automatic"],
@@ -259,20 +326,35 @@ async function status(targetRoot, options) {
       },
       git,
       requiredAction:
-        "Recommend private-external storage, then ask whether to persist memory and collect mode, depth, and save-policy preferences.",
+        "Recommend private memory with a discoverable sister workbook, preview its exact path, then ask whether to persist it and collect mode, depth, and save-policy preferences.",
       targetMutationPolicy: "deny",
       privateCacheRoot: paths.location.cacheRoot,
+      suggestedOutputRoot: (await proposedOutputRoot(targetRoot, {}, paths.root)).root,
     };
     emit(result, format);
     return;
   }
 
   const { config, compatibilityWarnings } = await readConfig(paths);
+  const workbook = workbookPaths(paths, config);
   let artifactCount = 0;
+  let curriculumTopicCount = 0;
+  let pendingTopicCount = 0;
   await requireSafePath(paths.curriculum, "file");
   await requireSafePath(paths.decisions, "file");
-  await requireSafePath(paths.lessons, "directory");
-  await requireSafePath(paths.lessonIndex, "file");
+  await requireSafePath(workbook.root, "directory");
+  await requireSafePath(workbook.lessons, "directory");
+  await requireSafePath(workbook.lessonIndex, "file");
+  if (await pathExists(paths.curriculumData)) {
+    await requireSafePath(paths.curriculumData, "file");
+    const curriculum = JSON.parse(await readFile(paths.curriculumData, "utf8"));
+    if (Array.isArray(curriculum.topics) && curriculum.topics.length > 0) {
+      curriculumTopicCount = curriculum.topics.length;
+      pendingTopicCount = curriculum.topics.filter((topic) => !topic.lessonPath).length;
+    } else if (!Array.isArray(curriculum.topics)) {
+      throw new Error("Curriculum state must contain a topics array");
+    }
+  }
   if (config.schemaVersion === 2) {
     await requireSafePath(paths.artifacts, "directory");
     await requireSafePath(paths.artifactIndex, "file");
@@ -325,17 +407,22 @@ async function status(targetRoot, options) {
     process.exitCode = 2;
     return;
   }
-  const lessons = (await readdir(paths.lessons, { withFileTypes: true })).filter(
+  const lessons = (await readdir(workbook.lessons, { withFileTypes: true })).filter(
     (entry) => entry.isFile() && entry.name.endsWith(".md") && entry.name !== "index.md",
   );
-  const lessonIndex = await readFile(paths.lessonIndex, "utf8");
+  const lessonIndex = await readFile(workbook.lessonIndex, "utf8");
   const orphanedLessons = lessons
     .map((entry) => entry.name)
-    .filter((name) => !lessonIndex.includes(`](./${name})`));
+    .filter(
+      (name) =>
+        !lessonIndex.includes(`](./${name})`) &&
+        !lessonIndex.includes(`](lessons/${name})`) &&
+        !lessonIndex.includes(`](./lessons/${name})`),
+    );
   const lessonNames = new Set(lessons.map((entry) => entry.name));
-  const indexedLessons = [...lessonIndex.matchAll(/\]\(\.\/([^)]+\.md)\)/g)].map(
-    (match) => match[1],
-  );
+  const indexedLessons = [
+    ...lessonIndex.matchAll(/\]\((?:\.\/)?(?:lessons\/)?([^)/]+\.md)\)/g),
+  ].map((match) => match[1]);
   const missingLessons = indexedLessons.filter((name) => !lessonNames.has(name));
   if (orphanedLessons.length > 0 || missingLessons.length > 0) {
     emit(
@@ -366,11 +453,14 @@ async function status(targetRoot, options) {
       initialized: true,
       targetRoot,
       memoryRoot: paths.root,
+      outputRoot: workbook.root,
       storageMode: config.storage?.mode ?? paths.location.mode,
       privateCacheRoot: paths.location.cacheRoot,
       config,
       git,
       lessonCount: lessons.length,
+      curriculumTopicCount,
+      pendingTopicCount,
       artifactCount,
       warnings,
     },
@@ -389,6 +479,14 @@ async function askHumanWizard(options) {
     options.storage = storage || "private";
     if (options.storage === "session-only")
       throw new Error("Session-only mode creates no project memory; continue without init");
+    const outputLocation = (
+      await prompt.question("Lesson output (sister/private/custom) [sister]: ")
+    ).trim();
+    options["output-location"] = outputLocation || "sister";
+    if (options["output-location"] === "custom")
+      options["output-root"] = (
+        await prompt.question("Absolute or current-directory-relative output path: ")
+      ).trim();
     const mode = (await prompt.question("Default mode (ask/pr/workbook) [ask]: ")).trim();
     options.mode = mode || "ask";
     const depth = (
@@ -432,7 +530,7 @@ function storageModeFor(options) {
   return requested;
 }
 
-function configFor(options, targetRoot) {
+function configFor(options, targetRoot, output) {
   const storageMode = storageModeFor(options);
   const sharing = storageMode === "private" ? "private" : storageMode === "team" ? "team" : "local";
   const mode = options.mode ?? "ask";
@@ -466,7 +564,10 @@ function configFor(options, targetRoot) {
     output: {
       format: "markdown",
       directory: "lessons",
+      location: output.location,
+      ...(output.location === "private" ? {} : { root: output.root }),
       savePolicy,
+      lessonQuality: "strict",
       artifactTypes: ["atlas", "snapshot", "notebook"],
     },
     memory: { recordDecisions: true, maintainCurriculum: true, typedArtifacts: true },
@@ -506,7 +607,10 @@ async function init(targetRoot, initialOptions) {
     : initialOptions;
   const storageMode = storageModeFor(options);
   const paths = await resolveMemoryPaths(targetRoot, { storage: storageMode });
-  const config = configFor(options, targetRoot);
+  const output = await proposedOutputRoot(targetRoot, options, paths.root);
+  if (output.root === targetRoot) throw new Error("Lesson output cannot replace the target root");
+  const outputInsideTarget = isSameOrInside(output.root, targetRoot);
+  const config = configFor(options, targetRoot, output);
   const git = await gitRepositoryStatus(targetRoot);
   if (paths.location.competingReady) {
     emit({
@@ -514,6 +618,7 @@ async function init(targetRoot, initialOptions) {
       status: "not-created",
       targetRoot,
       memoryRoot: paths.root,
+      outputRoot: output.root,
       requiredAction:
         "Choose the authoritative existing memory location; do not create a second store.",
     });
@@ -560,17 +665,22 @@ async function init(targetRoot, initialOptions) {
       proposedConfig: config,
       writes:
         storageMode === "private"
-          ? [paths.root]
+          ? [paths.root, ...(output.root === paths.root ? [] : [output.root])]
           : [
               `${MEMORY_DIRECTORY}/${CONFIG_FILE}`,
               `${MEMORY_DIRECTORY}/decisions.md`,
               `${MEMORY_DIRECTORY}/curriculum.md`,
+              `${MEMORY_DIRECTORY}/curriculum.json`,
               `${MEMORY_DIRECTORY}/lessons/index.md`,
               `${MEMORY_DIRECTORY}/artifacts/index.json`,
               `.graphifyignore: add ${MEMORY_DIRECTORY}/`,
               ...(config.sharing === "local" ? [`.gitignore: add ${MEMORY_DIRECTORY}/`] : []),
+              ...(output.root === paths.root ? [] : [output.root]),
             ],
-      targetWrites: storageMode === "private" ? [] : [MEMORY_DIRECTORY],
+      targetWrites: [
+        ...(storageMode === "private" ? [] : [MEMORY_DIRECTORY]),
+        ...(outputInsideTarget ? [relative(targetRoot, output.root).replaceAll("\\", "/")] : []),
+      ],
       futureToolArtifactRoot: storageMode === "private" ? paths.location.cacheRoot : undefined,
       requiredAction: "Obtain user approval, then rerun with the selected options and --yes.",
     });
@@ -580,6 +690,7 @@ async function init(targetRoot, initialOptions) {
 
   await mkdir(dirname(paths.root), { recursive: true });
   const stagingRoot = await mkdtemp(resolve(dirname(paths.root), ".repay-techdebt-init-"));
+  let outputStaging = null;
   let gitignoreUpdated = false;
   let graphifyIgnoreUpdated = false;
   try {
@@ -597,6 +708,11 @@ async function init(targetRoot, initialOptions) {
       writeFile(
         resolve(stagingRoot, "curriculum.md"),
         "# Learning Curriculum\n\nTrack concepts worth revisiting without treating coverage as a quota.\n\n| Topic | Status | Evidence | Next step |\n| --- | --- | --- | --- |\n",
+        "utf8",
+      ),
+      writeFile(
+        resolve(stagingRoot, "curriculum.json"),
+        `${JSON.stringify({ schemaVersion: 1, topics: [] }, null, 2)}\n`,
         "utf8",
       ),
       writeFile(
@@ -618,9 +734,22 @@ async function init(targetRoot, initialOptions) {
       config.sharing === "local"
         ? await appendIgnoreEntry(targetRoot, ".gitignore", `${MEMORY_DIRECTORY}/`)
         : false;
+    if (output.root !== paths.root) {
+      await mkdir(dirname(output.root), { recursive: true });
+      outputStaging = await mkdtemp(resolve(dirname(output.root), ".repay-techdebt-output-"));
+      await mkdir(resolve(outputStaging, "lessons"));
+      await writeFile(
+        resolve(outputStaging, "INDEX.md"),
+        "# Learning index\n\nNo curriculum has been generated yet. Run `plan-curriculum.js`, then save it with `project-memory.js save-curriculum`.\n",
+        "utf8",
+      );
+    }
     await rename(stagingRoot, paths.root);
+    if (outputStaging) await rename(outputStaging, output.root);
   } catch (error) {
     await rm(stagingRoot, { force: true, recursive: true });
+    if (outputStaging) await rm(outputStaging, { force: true, recursive: true });
+    if (await pathExists(paths.root)) await rm(paths.root, { force: true, recursive: true });
     throw error;
   }
 
@@ -629,8 +758,12 @@ async function init(targetRoot, initialOptions) {
     status: "ready",
     targetRoot,
     memoryRoot: paths.root,
+    outputRoot: output.root,
     privateCacheRoot: paths.location.cacheRoot,
-    targetWrites: storageMode === "private" ? [] : [MEMORY_DIRECTORY],
+    targetWrites: [
+      ...(storageMode === "private" ? [] : [MEMORY_DIRECTORY]),
+      ...(outputInsideTarget ? [relative(targetRoot, output.root).replaceAll("\\", "/")] : []),
+    ],
     config,
     git,
     graphifyIgnoreUpdated,
@@ -667,7 +800,7 @@ async function appendLessonIndex(paths, line) {
 
 async function replaceLessonIndex(paths, content) {
   const temporary = resolve(
-    paths.lessons,
+    dirname(paths.lessonIndex),
     `.index-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.tmp`,
   );
   await writeFile(temporary, content, { encoding: "utf8", flag: "wx" });
@@ -677,6 +810,194 @@ async function replaceLessonIndex(paths, content) {
     await rm(temporary, { force: true });
     throw error;
   }
+}
+
+function validateCurriculum(value, targetRoot) {
+  if (!value || value.schemaVersion !== 1 || !Array.isArray(value.topics))
+    throw new Error("Curriculum input must be a schema-v1 plan with a topics array");
+  if (resolve(value.target?.root ?? "") !== targetRoot)
+    throw new Error("Curriculum target does not match the requested target root");
+  const ids = new Set();
+  const focuses = new Set();
+  for (const topic of value.topics) {
+    if (!/^topic-[a-f0-9]{12}$/.test(topic.id) || ids.has(topic.id))
+      throw new Error("Curriculum topic IDs must be unique planner-generated IDs");
+    ids.add(topic.id);
+    if (
+      !topic.title ||
+      !topic.focus ||
+      !topic.learnerOutcome ||
+      !topic.chapter ||
+      !Array.isArray(topic.evidencePaths)
+    )
+      throw new Error(`Curriculum topic ${topic.id} is incomplete`);
+    if (focuses.has(topic.focus)) throw new Error(`Curriculum repeats the focus ${topic.focus}`);
+    focuses.add(topic.focus);
+    topic.status = "planned";
+    topic.lessonPath = null;
+    delete topic.writtenAt;
+  }
+  const modeledFiles = Number(value.coverage?.modeledFiles ?? 0);
+  const expectedMinimum = modeledFiles >= 1000 ? 60 : modeledFiles >= 100 ? 25 : 12;
+  const available = Number(value.scale?.availableCandidates ?? value.topics.length);
+  const required = Math.min(expectedMinimum, available);
+  if (value.topics.length < required)
+    throw new Error(
+      `Curriculum has ${value.topics.length} topics; ${modeledFiles} modeled files and ${available} candidates require at least ${required}. Do not compress the repository into omnibus lessons.`,
+    );
+  if (value.topics.length > 150) throw new Error("Curriculum cannot exceed 150 focused topics");
+  if (
+    modeledFiles >= 1000 &&
+    available >= 60 &&
+    new Set(value.topics.map((topic) => topic.chapter)).size < 5
+  )
+    throw new Error(
+      "A large-repository curriculum must cover at least five distinct learning chapters",
+    );
+  return value;
+}
+
+async function saveCurriculum(targetRoot, options) {
+  if (!options.input) throw new Error("--input is required");
+  const paths = await resolveMemoryPaths(targetRoot, options);
+  const { config } = await readConfig(paths);
+  const workbook = workbookPaths(paths, config);
+  await requireSafePath(workbook.root, "directory");
+  await requireSafePath(workbook.lessons, "directory");
+  await requireSafePath(workbook.lessonIndex, "file");
+  if (!options.yes) {
+    emit({
+      type: "consent-required",
+      status: "not-saved",
+      targetRoot,
+      outputRoot: workbook.root,
+      requiredAction:
+        "Confirm the ranked learning index should be persisted, then rerun with --yes.",
+    });
+    process.exitCode = 2;
+    return;
+  }
+  const input = validateCurriculum(
+    JSON.parse(await readFile(await realpath(resolve(options.input)), "utf8")),
+    targetRoot,
+  );
+  if (await pathExists(paths.curriculumData)) {
+    const prior = JSON.parse(await readFile(paths.curriculumData, "utf8"));
+    const completed = new Map(
+      (prior.topics ?? []).filter((topic) => topic.lessonPath).map((topic) => [topic.id, topic]),
+    );
+    for (const topic of input.topics) {
+      const existing = completed.get(topic.id);
+      if (existing) Object.assign(topic, { status: "written", lessonPath: existing.lessonPath });
+    }
+  }
+  const markdown = renderCurriculumMarkdown(input);
+  const checked = await secretCheck(markdown, workbook.lessonIndex);
+  if (!checked.ok) {
+    emit({
+      type: "secret-risk",
+      status: "not-saved",
+      targetRoot,
+      diagnostics: checked.output.trim(),
+      requiredAction: "Remove or redact the detected value and retry.",
+    });
+    process.exitCode = 2;
+    return;
+  }
+  await acquireLessonLock(paths);
+  try {
+    await replaceJsonFile(paths.curriculumData, input);
+    await replaceLessonIndex(workbook, markdown);
+  } finally {
+    await rm(paths.lessonLock, { force: true, recursive: true });
+  }
+  emit({
+    type: "curriculum-saved",
+    status: "saved",
+    targetRoot,
+    memoryRoot: paths.root,
+    outputRoot: workbook.root,
+    index: workbook.lessonIndex,
+    topicCount: input.topics.length,
+  });
+}
+
+async function configureOutput(targetRoot, options) {
+  const paths = await resolveMemoryPaths(targetRoot, options);
+  const { config } = await readConfig(paths);
+  const current = workbookPaths(paths, config);
+  const destination = await proposedOutputRoot(targetRoot, options, paths.root);
+  if (destination.location === "private")
+    throw new Error("configure-output is for a discoverable sister or custom workbook");
+  if (destination.root === current.root) {
+    emit({
+      type: "output-configuration-not-needed",
+      status: "ready",
+      targetRoot,
+      outputRoot: current.root,
+    });
+    return;
+  }
+  if (await pathExists(destination.root))
+    throw new Error(`Refusing to merge with an existing output path: ${destination.root}`);
+  const lessonNames = (await readdir(current.lessons, { withFileTypes: true }))
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".md") && entry.name !== "index.md")
+    .map((entry) => entry.name);
+  if (!options.yes) {
+    emit({
+      type: "consent-required",
+      status: "not-configured",
+      targetRoot,
+      currentOutputRoot: current.root,
+      proposedOutputRoot: destination.root,
+      lessonCount: lessonNames.length,
+      writes: [destination.root, paths.config],
+      preservedBackup: current.root,
+      requiredAction:
+        "Approve the visible workbook export and configuration update, then rerun with --yes.",
+    });
+    process.exitCode = 2;
+    return;
+  }
+  await mkdir(dirname(destination.root), { recursive: true });
+  const staging = await mkdtemp(resolve(dirname(destination.root), ".repay-techdebt-output-"));
+  try {
+    await mkdir(resolve(staging, "lessons"));
+    for (const name of lessonNames)
+      await writeFile(
+        resolve(staging, "lessons", name),
+        await readFile(resolve(current.lessons, name)),
+      );
+    const oldIndex = await readFile(current.lessonIndex, "utf8");
+    const visibleIndex = oldIndex
+      .replace(/^# Saved Lessons/m, "# Learning index")
+      .replaceAll("](./", "](lessons/");
+    await writeFile(resolve(staging, "INDEX.md"), visibleIndex, "utf8");
+    await rename(staging, destination.root);
+    await replaceJsonFile(paths.config, {
+      ...config,
+      output: {
+        ...config.output,
+        location: destination.location,
+        root: destination.root,
+        lessonQuality: "strict",
+      },
+      outputConfiguredAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    await rm(staging, { recursive: true, force: true });
+    if (await pathExists(destination.root))
+      await rm(destination.root, { recursive: true, force: true });
+    throw error;
+  }
+  emit({
+    type: "output-configured",
+    status: "ready",
+    targetRoot,
+    outputRoot: destination.root,
+    copiedLessons: lessonNames.length,
+    preservedBackup: current.root,
+  });
 }
 
 async function acquireLessonLock(paths) {
@@ -704,12 +1025,51 @@ async function secretCheck(content, filePath) {
   return engine.executeOnContent({ content, filePath });
 }
 
+async function verifyLessonEvidence(targetRoot, citations) {
+  const problems = [];
+  for (const citation of citations) {
+    const match = citation.match(/^(.*):([1-9]\d*)$/);
+    if (!match) continue;
+    const requested = resolve(targetRoot, match[1]);
+    try {
+      const canonical = await realpath(requested);
+      if (!isSameOrInside(canonical, targetRoot)) {
+        problems.push(`${citation} resolves outside the target`);
+        continue;
+      }
+      const details = await lstat(canonical);
+      if (!details.isFile()) problems.push(`${citation} is not a source file`);
+      else {
+        const lineCount = (await readFile(canonical, "utf8")).split(/\r?\n/).length;
+        if (Number(match[2]) > lineCount)
+          problems.push(`${citation} exceeds the file's ${lineCount} lines`);
+      }
+    } catch {
+      problems.push(`${citation} does not resolve to a current target file`);
+    }
+  }
+  return problems;
+}
+
 async function saveLesson(targetRoot, options) {
   const paths = await resolveMemoryPaths(targetRoot, options);
   const { config } = await readConfig(paths);
-  await requireSafePath(paths.lessons, "directory");
-  await requireSafePath(paths.lessonIndex, "file");
+  const workbook = workbookPaths(paths, config);
+  await requireSafePath(workbook.root, "directory");
+  await requireSafePath(workbook.lessons, "directory");
+  await requireSafePath(workbook.lessonIndex, "file");
   if (!options.title || !options.input) throw new Error("--title and --input are required");
+  let curriculum = null;
+  if (await pathExists(paths.curriculumData)) {
+    curriculum = JSON.parse(await readFile(paths.curriculumData, "utf8"));
+    if (curriculum.topics?.length > 0 && !options["topic-id"])
+      throw new Error("--topic-id is required so the lesson can be linked from the learning index");
+  }
+  const topic = options["topic-id"]
+    ? curriculum?.topics?.find((item) => item.id === options["topic-id"])
+    : null;
+  if (options["topic-id"] && !topic)
+    throw new Error(`Unknown curriculum topic: ${options["topic-id"]}`);
   if (!options.yes) {
     emit({
       type: "consent-required",
@@ -725,9 +1085,30 @@ async function saveLesson(targetRoot, options) {
   const inputPath = await realpath(resolve(options.input));
   const body = await readFile(inputPath, "utf8");
   const content = `# ${title}\n\n${body.trim()}\n`;
+  const quality = inspectLesson(content, {
+    depth: config.defaults.lessonDepth,
+    expectedEvidencePaths: topic?.evidencePaths ?? [],
+  });
+  quality.evidenceProblems = await verifyLessonEvidence(targetRoot, quality.citations);
+  if (quality.evidenceProblems.length > 0) {
+    quality.ok = false;
+    quality.errors.push("Every source citation must resolve to a current target file and line.");
+  }
+  if (!quality.ok) {
+    emit({
+      type: "lesson-quality-failed",
+      status: "not-saved",
+      targetRoot,
+      quality,
+      requiredAction:
+        "Keep one subject, strengthen its project evidence, and fix every error before saving.",
+    });
+    process.exitCode = 2;
+    return;
+  }
   await acquireLessonLock(paths);
   try {
-    const candidate = await uniqueLessonPath(paths, title);
+    const candidate = await uniqueLessonPath(workbook, title);
     const checked = await secretCheck(content, candidate.path);
     if (!checked.ok) {
       emit({
@@ -743,10 +1124,24 @@ async function saveLesson(targetRoot, options) {
     await writeFile(candidate.path, content, { encoding: "utf8", flag: "wx" });
     const date = new Date().toISOString().slice(0, 10);
     try {
-      await appendLessonIndex(
-        paths,
-        `| ${date} | [${markdownLabel(title)}](./${candidate.name}) | ${config.defaults.mode} |\n`,
-      );
+      if (topic) {
+        const previousCurriculum = structuredClone(curriculum);
+        topic.status = "written";
+        topic.lessonPath = `lessons/${candidate.name}`;
+        topic.writtenAt = new Date().toISOString();
+        try {
+          await replaceJsonFile(paths.curriculumData, curriculum);
+          await replaceLessonIndex(workbook, renderCurriculumMarkdown(curriculum));
+        } catch (error) {
+          await replaceJsonFile(paths.curriculumData, previousCurriculum);
+          throw error;
+        }
+      } else {
+        await appendLessonIndex(
+          workbook,
+          `| ${date} | [${markdownLabel(title)}](./${candidate.name}) | ${config.defaults.mode} |\n`,
+        );
+      }
     } catch (error) {
       await rm(candidate.path, { force: true });
       throw error;
@@ -756,7 +1151,9 @@ async function saveLesson(targetRoot, options) {
       status: "saved",
       targetRoot,
       memoryRoot: paths.root,
-      file: relative(paths.root, candidate.path).replaceAll("\\", "/"),
+      outputRoot: workbook.root,
+      topicId: topic?.id ?? null,
+      file: relative(workbook.root, candidate.path).replaceAll("\\", "/"),
     });
   } finally {
     await rm(paths.lessonLock, { force: true, recursive: true });
@@ -781,8 +1178,9 @@ function markdownLabel(value) {
 async function repairIndex(targetRoot, options) {
   const paths = await resolveMemoryPaths(targetRoot, options);
   const { config } = await readConfig(paths);
-  await requireSafePath(paths.lessons, "directory");
-  await requireSafePath(paths.lessonIndex, "file");
+  const workbook = workbookPaths(paths, config);
+  await requireSafePath(workbook.lessons, "directory");
+  await requireSafePath(workbook.lessonIndex, "file");
   if (!options.yes) {
     emit({
       type: "consent-required",
@@ -795,9 +1193,35 @@ async function repairIndex(targetRoot, options) {
   }
   await acquireLessonLock(paths);
   try {
-    const current = await readFile(paths.lessonIndex, "utf8");
+    if (await pathExists(paths.curriculumData)) {
+      const curriculum = JSON.parse(await readFile(paths.curriculumData, "utf8"));
+      if ((curriculum.topics ?? []).length > 0) {
+        const files = new Set(
+          (await readdir(workbook.lessons)).filter((name) => name.endsWith(".md")),
+        );
+        for (const topic of curriculum.topics) {
+          const name = topic.lessonPath?.split("/").at(-1);
+          if (name && files.has(name)) topic.status = "written";
+          else {
+            topic.status = "planned";
+            topic.lessonPath = null;
+            delete topic.writtenAt;
+          }
+        }
+        await replaceJsonFile(paths.curriculumData, curriculum);
+        await replaceLessonIndex(workbook, renderCurriculumMarkdown(curriculum));
+        emit({
+          type: "lesson-index-repaired",
+          status: "ready",
+          targetRoot,
+          indexedLessons: curriculum.topics.filter((topic) => topic.lessonPath).length,
+        });
+        return;
+      }
+    }
+    const current = await readFile(workbook.lessonIndex, "utf8");
     const existingLines = current.split(/\r?\n/).filter((line) => line.startsWith("| "));
-    const files = (await readdir(paths.lessons, { withFileTypes: true }))
+    const files = (await readdir(workbook.lessons, { withFileTypes: true }))
       .filter((entry) => entry.isFile() && entry.name.endsWith(".md") && entry.name !== "index.md")
       .sort((left, right) => left.name.localeCompare(right.name));
     const rows = [];
@@ -807,7 +1231,7 @@ async function repairIndex(targetRoot, options) {
         rows.push(existing);
         continue;
       }
-      const content = await readFile(resolve(paths.lessons, file.name), "utf8");
+      const content = await readFile(resolve(workbook.lessons, file.name), "utf8");
       const title = content.match(/^#\s+(.+)$/m)?.[1]?.trim() || file.name.replace(/\.md$/, "");
       const date = /^\d{4}-\d{2}-\d{2}/.test(file.name)
         ? file.name.slice(0, 10)
@@ -817,7 +1241,7 @@ async function repairIndex(targetRoot, options) {
       );
     }
     await replaceLessonIndex(
-      paths,
+      workbook,
       `# Saved Lessons\n\n| Date | Lesson | Scope |\n| --- | --- | --- |\n${rows.length > 0 ? `${rows.join("\n")}\n` : ""}`,
     );
     emit({
@@ -1106,6 +1530,8 @@ try {
       "status",
       "init",
       "save-lesson",
+      "save-curriculum",
+      "configure-output",
       "save-artifact",
       "record-decision",
       "repair-index",
@@ -1114,12 +1540,14 @@ try {
   ) {
     printHelp();
     throw new Error(
-      "Expected status, init, save-lesson, save-artifact, record-decision, migrate, or repair-index",
+      "Expected status, init, configure-output, save-curriculum, save-lesson, save-artifact, record-decision, migrate, or repair-index",
     );
   }
   const { targetRoot } = await resolveTargetRoot(targetInput);
   if (action === "status") await status(targetRoot, options);
   else if (action === "init") await init(targetRoot, options);
+  else if (action === "configure-output") await configureOutput(targetRoot, options);
+  else if (action === "save-curriculum") await saveCurriculum(targetRoot, options);
   else if (action === "save-lesson") await saveLesson(targetRoot, options);
   else if (action === "save-artifact") await saveArtifact(targetRoot, options);
   else if (action === "record-decision") await recordDecision(targetRoot, options);

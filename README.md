@@ -98,7 +98,7 @@ testing, and UI interaction.
 Optional sections appear only when they are relevant to the focus and supported by either two
 independent target signals or one authoritative source. A framework package, suggestive filename,
 or generic “best practice” is not enough. The internal plan can be complex; the lesson stays clear,
-usually four to eight sections with no empty template headings.
+usually one focused subject in three to eight sections with no empty template headings.
 
 ### The target application stays clean
 
@@ -109,7 +109,8 @@ separate concerns. Private external storage is the default.
 | ---------------------------------------------------------------------------------- | ------------------------------------------------- |
 | Target dependencies, manifests, lockfiles, hooks, agent instructions, ignore files | Denied                                            |
 | Graphs, indexes, analyzer caches                                                   | External private cache or temporary storage       |
-| Durable lessons and configuration                                                  | External private state, created only with consent |
+| Configuration, decisions, curriculum state                                         | External private state, created only with consent |
+| Human-facing workbook                                                              | Named sister folder outside the Git repository    |
 | User-scoped tools and MCP configuration                                            | Ask before installation or modification           |
 | Application code changes                                                           | Out of scope unless separately requested          |
 
@@ -131,10 +132,12 @@ Session-only operation creates no durable memory.
    lenses, parser coverage, and uncertainty.
 4. **Rank the investigation.** Questions are prioritized by request, focus, program type, graph
    evidence, and impact—not by a universal checklist.
-5. **Use stronger tools when they matter.** Each phase has an explicit capability ladder and failure
+5. **Create the book index.** A whole-app run records 12–30 subjects for a small repository, 25–70
+   for a medium one, or 60–150 for a large one before it writes any lesson.
+6. **Use stronger tools when they matter.** Each phase has an explicit capability ladder and failure
    gate.
-6. **Verify and teach.** The agent confirms source, composes the right lesson shape, and keeps the
-   visible explanation simpler than the analysis behind it.
+7. **Verify and teach.** The agent confirms source, writes one small lesson per subject, checks its
+   prose and evidence, and links it from the durable index.
 
 The bundled registry currently includes 16 program/language packs, 10 framework packs, and 17
 cross-cutting lenses spanning correctness, security, performance, reliability, data integrity,
@@ -223,9 +226,9 @@ Use $repay-techdebt to explain why this state-management module exists,
 how data reaches it, who consumes it, and what would break if I changed its contract.
 ```
 
-On the first run, the skill asks whether it should remember preferences, lessons, curriculum, and
-confirmed decisions. The recommended defaults are private storage, balanced depth, ask-before-save,
-and ask-before-fallback.
+On the first run, the skill asks where private memory and the readable workbook should live. The
+recommended defaults are private machine memory, a discoverable `repay-<project>-techdebt` sister
+workbook, balanced depth, ask-before-save, and ask-before-fallback.
 
 ## What the bundled runtime understands
 
@@ -237,9 +240,12 @@ and ask-before-fallback.
   critical-workflow hints, and ranked analysis lenses.
 - Pattern discovery, architecture scans, dependency intelligence, duplication, secret scanning,
   PR diffs, system atlases, and permission-gated runtime-evidence plans.
-- Dynamic lesson plans with evidence-qualified optional modules and explicit omission reasons.
-- Private lesson memory, curriculum, confirmed decisions, verified snapshots, atlases, and
-  sanitized notebooks.
+- A ranked, resumable Markdown book index with 12–150 evidence-backed subjects based on repository
+  scale; completed lessons become links without regenerating the plan.
+- Dynamic single-subject lessons with evidence-qualified modules, explicit omission reasons, and a
+  writing-quality gate for length, headings, citations, paragraph focus, and generic filler.
+- Private curriculum state, confirmed decisions, verified snapshots, atlases, and sanitized
+  notebooks, plus a separately approved human-facing workbook.
 
 ## Limits are part of the result
 

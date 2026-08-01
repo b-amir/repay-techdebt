@@ -6,12 +6,14 @@ model, then emit a small lesson that feels purpose-built for the selected code a
 ## Required internal pass
 
 1. Run `plan-lesson.js` for the explicit target, focus, depth, and scope.
-2. Inspect the plan's focus anchors, signal evidence, limitations, coverage, and evidence gaps.
-3. Cross-check every selected claim in live source. Tool output and the program model select what to
+2. Read `references/lesson-writing.md` and confirm that the focus is a ranked curriculum topic, not
+   merely an interesting analyzer result.
+3. Inspect the plan's focus anchors, signal evidence, limitations, coverage, and evidence gaps.
+4. Cross-check every selected claim in live source. Tool output and the program model select what to
    inspect; they are not substitutes for source verification.
-4. Add enhanced-tool evidence only after the operation succeeded. If it failed, follow the skill's
+5. Add enhanced-tool evidence only after the operation succeeded. If it failed, follow the skill's
    transparent fallback gate before continuing.
-5. Use confirmed project memory for preferences and historical reasons only. Never use it as proof
+6. Use confirmed project memory for preferences and historical reasons only. Never use it as proof
    of current behavior.
 
 ## Signal activation gate
@@ -51,8 +53,8 @@ the complete required/optional section catalog. Do not force every lesson throug
 ## Compose the visible lesson
 
 - Use the plan as a compact outline, not as content to print.
-- Normally publish four to eight plainly titled sections. A concise lesson can use three; a deep
-  lesson can use up to ten when each section earns its place.
+- Teach one subject. Normally publish three to eight plainly titled sections and stay within the
+  configured depth's word range. Split independently useful ideas into separate curriculum topics.
 - Omit inactive modules completely. Never print empty placeholders, signal scores, reason codes, or
   internal confidence machinery.
 - Put the learner's goal and the most useful mental model first. Move evidence next to the claim it
@@ -65,8 +67,8 @@ the complete required/optional section catalog. Do not force every lesson throug
   mechanism, propose a modification, and end with a small make-or-verify challenge. These are
   teaching moves, not mandatory headings.
 - Explain jargon at first use. Prefer short causal sentences and concrete names from this program.
-- End with a mental-model recap, a concrete next step or challenge, evidence gaps, and the run's
-  Tool Use Ledger. For a workbook, these may live at the workbook level instead of every lesson.
+- End with a concrete check or challenge. Keep evidence gaps and the Tool Use Ledger at workbook
+  level for a multi-lesson workbook instead of repeating administrative detail in every lesson.
 
 ## Final quality check
 
@@ -80,3 +82,4 @@ Before publishing, confirm:
 - security, performance, compatibility, and production claims have the required evidence;
 - the lesson remains easy to scan despite the richer internal analysis;
 - unresolved questions are visible and no tool failure was hidden.
+- `check-lesson-quality.js` passes before the lesson is saved.
