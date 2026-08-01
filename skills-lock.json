@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "repay-techdebt": {
+      "source": "b-amir/repay-techdebt",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "203ebc50eb51ee60ebab10f406276bd1ea2e638b1d231286b9c5371e86bf225d"
+    }
+  }
+}
