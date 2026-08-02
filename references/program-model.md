@@ -33,6 +33,10 @@ modified or executed.
 | `capability`                              | A possible executable role such as server, UI, pipeline, or mobile app |
 | `domain`, `flow`, `module`                | Extension nodes supplied by verified architecture/runtime tools        |
 | `symbol`, `function`, `expression`        | Progressively narrower executable/source constructs                    |
+| `route`, `screen`, `command`, `endpoint`  | User and API surface boundaries                                        |
+| `job`, `event`                            | Background and asynchronous execution units                            |
+| `state-owner`, `database-entity`          | Data persistence and state management constructs                       |
+| `config-key`                              | Configuration options affecting runtime behavior                       |
 | `data-store`, `integration`, `deployment` | Operational boundaries and external effects                            |
 | `runtime-observation`                     | A sanitized test, trace, profile, metric, or observed execution fact   |
 

@@ -84,6 +84,15 @@ Use these constraints to weight lenses. A compiler, mobile banking app, game loo
 embedded controller, CLI, UI library, ML experiment, and background worker should not receive the
 same plan merely because they share a language.
 
+## Workflow Discovery
+
+Infer likely user and operator workflows from route registration, navigation, labels, API contracts,
+commands, jobs, permissions, documentation, tests, and deployment configuration.
+A workflow candidate requires multiple independent signals or one authoritative declaration.
+- Navigation-only, filename-only, and framework-default leads are labeled weak.
+- Every inferred workflow explains which clues raised or lowered its confidence.
+- Consolidate converging clues (e.g., a file named `routes.js` matching a React navigation tree) to form high-confidence workflows.
+
 ## Runtime evidence boundary
 
 Static evidence explains possibility and structure. Runtime evidence explains actual execution,

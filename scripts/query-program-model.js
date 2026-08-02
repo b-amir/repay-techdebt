@@ -1,5 +1,6 @@
 import { formatTargetError, resolveTargetRoot } from "./lib/targeting.js";
 import { buildProgramModel } from "./lib/program-intelligence.js";
+import { buildWorkflowGraph } from "./lib/workflow-graph.js";
 
 function help() {
   process.stdout.write(`Usage:
@@ -21,6 +22,7 @@ function parse(argv) {
   let limit = 100;
   let format = "json";
   let scope;
+  let workflow = false;
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === "--depth") {
       depth = Number(argv[index + 1]);
@@ -35,6 +37,8 @@ function parse(argv) {
       scope = argv[index + 1];
       if (!scope || scope.startsWith("--")) throw new Error("Missing value for --scope");
       index += 1;
+    } else if (argv[index] === "--workflow") {
+      workflow = true;
     } else if (argv[index].startsWith("--")) throw new Error(`Unknown option: ${argv[index]}`);
     else positional.push(argv[index]);
   }
@@ -44,7 +48,7 @@ function parse(argv) {
   if (!Number.isInteger(limit) || limit < 1 || limit > 500)
     throw new Error("--limit must be an integer from 1 to 500");
   if (!new Set(["json", "table"]).has(format)) throw new Error("--format must be json or table");
-  return { targetInput: positional[0], query: positional[1], depth, limit, format, scope };
+  return { targetInput: positional[0], query: positional[1], depth, limit, format, scope, workflow };
 }
 
 function renderTable(result) {
@@ -108,6 +112,26 @@ try {
       : semanticRelations.length === 0
         ? "partial-no-semantic-relations"
         : "succeeded";
+
+  if (workflow) {
+    const wfGraph = buildWorkflowGraph(model, seedNodes.map((n) => n.id));
+    const wfResult = {
+      schemaVersion: 1,
+      target: model.target,
+      query,
+      workflow: true,
+      status: wfGraph.isCompleteTrace ? "complete-trace" : "incomplete-trace",
+      matches: seedNodes,
+      nodes: wfGraph.nodes,
+      edges: wfGraph.edges,
+      unresolvedHops: wfGraph.unresolvedHops,
+    };
+    process.stdout.write(
+      format === "json" ? `${JSON.stringify(wfResult, null, 2)}\n` : `Workflow graph for ${query}:\nNodes: ${wfGraph.nodes.length}, Edges: ${wfGraph.edges.length}, Complete: ${wfGraph.isCompleteTrace}\n`
+    );
+    process.exit(0);
+  }
+
   const result = {
     schemaVersion: 1,
     target: model.target,

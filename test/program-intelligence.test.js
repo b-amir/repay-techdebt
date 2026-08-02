@@ -12,6 +12,7 @@ import {
   buildProgramModel,
   loadPackRegistry,
   planAnalysis,
+  programNodeSchema,
   programModelSchema,
   summarizeModel,
 } from "../scripts/lib/program-intelligence.js";
@@ -158,9 +159,24 @@ test("coverage limits and unknown ecosystems remain explicit", async () => {
 test("uses canonical cryptographic identities and detects injected collisions", () => {
   assert.equal(stableId("file", "src/app.ts"), stableId("file", "src/app.ts"));
   assert.notEqual(stableId("file", "src/app.ts"), stableId("test", "src/app.ts"));
+  
+  // Test new semantic entity kinds
+  assert.equal(stableId("route", "GET /api"), stableId("route", "GET /api"));
+  assert.notEqual(stableId("route", "GET /api"), stableId("endpoint", "GET /api"));
+  
   const registry = createIdentityRegistry(() => "forced:collision");
   assert.equal(registry.id("file", "a.ts"), "forced:collision");
   assert.throws(() => registry.id("file", "b.ts"), /Identity collision detected/);
+});
+
+test("programNodeSchema accepts new semantic entity kinds", () => {
+  const kinds = ["route", "screen", "command", "endpoint", "job", "event", "state-owner", "database-entity", "config-key"];
+  for (const kind of kinds) {
+    const node = { id: `test-id-${kind}`, kind, name: `Test ${kind}` };
+    assert.doesNotThrow(() => {
+      programNodeSchema.parse(node);
+    }, `Schema should accept node kind: ${kind}`);
+  }
 });
 
 test("structured manifest adapters preserve scopes, workspaces, and diagnostics", () => {
