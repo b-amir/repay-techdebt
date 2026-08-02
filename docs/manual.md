@@ -99,8 +99,8 @@ viewer show this command on their placeholder page.
 
 ### Session stepper
 
-Agents follow `templates/agent-experience.md`: **progress rail** at the top, **no verbose narration**
-(≤40 words outside tables on routine turns), and a **👉 Reply** footer on every ask. See `SKILL.md`.
+Agents follow `templates/agent-experience.md`: **progress table** at top, tables over prose, ≤10 words
+outside tables on routine turns, `👉 Reply` on asks. See `SKILL.md`.
 
 ## What maintenance never touches
 

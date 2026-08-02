@@ -6,8 +6,8 @@ description: Analyze a codebase, pull request, branch, commit, or whole applicat
 # Repay Tech Debt
 
 Act as a senior engineering mentor. Teach from verified project evidence. Do not turn the response
-into a generic review or programming course. **In chat, stay terse:** progress rail + tables + one
-ask — never narrate scripts or pad with filler (`templates/agent-experience.md`).
+into a generic review or programming course. **In chat:** tables + emojis — ≤10 words outside tables on
+routine turns (`templates/agent-experience.md`).
 
 Scripts and the agent take turns from 0→100. Read
 `<skill-root>/references/script-agent-dialogue.md` and
@@ -54,13 +54,12 @@ Modifiers: `--keep-lessons`, `--keep-config`, `--revert-target-markers`, `--dry-
 
 ## Agent experience (required every user turn)
 
-Copy system: `templates/agent-experience.md`. **Do not be verbose:** no narrating scripts, no
-preambles (“I’ll now…”), no repeating tables in prose. Routine turns = rail + one line; ask turns =
-rail + table + `👉 Reply`. ≤40 words outside tables on routine turns; ≤80 on asks.
+Copy system: `templates/agent-experience.md`. **Tables over prose.** No narration. Routine: progress
+table + ≤10 words. Ask: progress table + ask table + `👉 Reply`. ≤40 words outside tables.
 
-At the **top** of every user-visible message, paste the **2-column progress rail** from
-`templates/session-status.md` (markdown table — never a code block). Use 🔵 / ✅ / ⬜ in the first
-column; exactly one 🔵 row. End every ask with a **👉 Reply** footer.
+At the **top** of every user-visible message, paste the **progress table** from
+`templates/session-status.md` (markdown table — never a code block). Row 1 = `{done}/{total}` · current
+step. Exactly one 🔵. End asks with **👉 Reply**.
 
 | Phase name (user-facing) | Internal only             |
 | ------------------------ | ------------------------- |

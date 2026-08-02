@@ -66,6 +66,20 @@ function sidebarToggleButton(className, expanded) {
   </button>`;
 }
 
+function viewSettingsPanel() {
+  return `<div class="ds-settings-root">
+  <button type="button" class="ds-settings-gear" aria-expanded="false" aria-controls="ds-settings-panel" aria-label="View settings">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path d="M9 11.2a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4Z" stroke="currentColor" stroke-width="1.4"/>
+      <path d="M14.1 10.4a1.2 1.2 0 0 0 .24 1.32l.04.04a1.46 1.46 0 1 1-2.06 2.06l-.04-.04a1.2 1.2 0 0 0-1.32-.24 1.2 1.2 0 0 0-.73 1.1v.12a1.46 1.46 0 0 1-2.92 0v-.06a1.2 1.2 0 0 0-.79-1.1 1.2 1.2 0 0 0-1.32.24l-.04.04a1.46 1.46 0 1 1-2.06-2.06l.04-.04a1.2 1.2 0 0 0 .24-1.32 1.2 1.2 0 0 0-1.1-.73h-.12a1.46 1.46 0 0 1 0-2.92h.06a1.2 1.2 0 0 0 1.1-.79 1.2 1.2 0 0 0-.24-1.32l-.04-.04a1.46 1.46 0 1 1 2.06-2.06l.04.04a1.2 1.2 0 0 0 1.32.24h.06a1.2 1.2 0 0 0 1.1-.79 1.46 1.46 0 0 1 2.92 0v.06a1.2 1.2 0 0 0 .79 1.1 1.2 1.2 0 0 0 1.32-.24l.04-.04a1.46 1.46 0 1 1 2.06 2.06l-.04.04a1.2 1.2 0 0 0-.24 1.32v.06a1.2 1.2 0 0 0 .73 1.1 1.2 1.2 0 0 0 1.1.73h.12a1.46 1.46 0 0 1 0 2.92h-.06a1.2 1.2 0 0 0-1.1.79Z" stroke="currentColor" stroke-width="1.2"/>
+    </svg>
+  </button>
+  <div class="ds-settings-panel" id="ds-settings-panel" role="dialog" aria-label="View settings">
+    ${viewSettingsMarkup()}
+  </div>
+</div>`;
+}
+
 function viewSettingsMarkup() {
   return `<div class="ds-settings" aria-label="Reading settings">
     <p class="ds-settings-title">View</p>
@@ -129,7 +143,6 @@ function renderSidebar(sidebar, workbookTitle) {
     ${header}
     <div class="ds-rail-progress">${progressStats(sidebar.counts)}</div>
     <nav class="ds-nav-list" aria-label="Lessons">${chapters || '<p class="ds-empty">No curriculum yet.</p>'}</nav>
-    <div class="ds-rail-footer">${viewSettingsMarkup()}</div>
   </aside>`;
 }
 
@@ -178,25 +191,115 @@ ${fontLinks()}
 ${sidebarHtml}
 <main class="ds-main">${sidebarToggleButton("ds-sidebar-toggle-float", false)}<div class="ds-main-inner">${mainHtml}</div></main>
 </div>
+${viewSettingsPanel()}
 <script>${CLIENT_SCRIPT}</script>
 </body>
 </html>`;
 }
 
 export function renderHome({ workbookTitle, sidebar }) {
-  const next = firstOpenLesson(sidebar);
+  const { written, planned } = collectSidebarItems(sidebar);
+  const continueItem = findContinueLesson(sidebar);
   const { project } = parseWorkbookBrand(workbookTitle);
-  const main = `<header class="ds-home">
-    <h1 class="ds-home-title">${escapeHtml(project)}</h1>
-    <p class="ds-home-lead"><strong>${sidebar.counts.written}</strong> ${sidebar.counts.written === 1 ? "lesson" : "lessons"} written · <strong>${sidebar.counts.done}</strong> marked done · <strong>${sidebar.counts.planned}</strong> planned.</p>
+  const { counts, total } = sidebar;
+  const readPct =
+    counts.written > 0 ? Math.round((counts.done / counts.written) * 100) : 0;
+
+  const continueCard = continueItem
+    ? `<a class="ds-home-continue" href="${lessonHref(continueItem.lessonKey)}">
+    <span class="ds-home-continue-label">Continue</span>
+    <span class="ds-home-continue-title">${escapeHtml(continueItem.title)}</span>
+    <span class="ds-home-continue-cta">Open lesson →</span>
+  </a>`
+    : counts.written > 0
+      ? `<div class="ds-home-continue ds-home-continue-done">
+    <span class="ds-home-continue-label">All caught up</span>
+    <span class="ds-home-continue-title">Every written lesson is marked done</span>
+    <span class="ds-home-continue-hint">Pick any lesson below or from the sidebar</span>
+  </div>`
+      : `<div class="ds-home-continue ds-home-continue-empty">
+    <span class="ds-home-continue-label">No lessons yet</span>
+    <span class="ds-home-continue-title">Pick a planned topic to create your first lesson</span>
+  </div>`;
+
+  const writtenCards = written
+    .slice(0, 9)
+    .map((item) => {
+      const status =
+        item.state === "done"
+          ? '<span class="ds-lesson-card-status ds-lesson-card-done">Done</span>'
+          : '<span class="ds-lesson-card-status">Open</span>';
+      return `<a class="ds-lesson-card" href="${lessonHref(item.lessonKey)}">
+    <span class="ds-lesson-card-title">${escapeHtml(item.title)}</span>
+    ${status}
+  </a>`;
+    })
+    .join("");
+
+  const plannedCards = planned
+    .slice(0, 6)
+    .map(
+      (item) =>
+        `<a class="ds-lesson-card ds-lesson-card-planned" href="${plannedHref(item.id)}">
+    <span class="ds-lesson-card-title">${escapeHtml(item.title)}</span>
+    <span class="ds-lesson-card-status">Planned</span>
+  </a>`,
+    )
+    .join("");
+
+  const main = `<div class="ds-home-dashboard">
+    <header class="ds-home-hero">
+      <h1 class="ds-home-title">${escapeHtml(project)}</h1>
+      <p class="ds-home-sub">${escapeHtml(total)} topics in this workbook</p>
+    </header>
+
+    <div class="ds-home-top">
+      ${continueCard}
+      <div class="ds-home-metrics">
+        <div class="ds-home-metric">
+          <span class="ds-home-metric-value">${counts.done}</span>
+          <span class="ds-home-metric-label">Done</span>
+        </div>
+        <div class="ds-home-metric">
+          <span class="ds-home-metric-value">${counts.written}</span>
+          <span class="ds-home-metric-label">Written</span>
+        </div>
+        <div class="ds-home-metric">
+          <span class="ds-home-metric-value">${counts.planned}</span>
+          <span class="ds-home-metric-label">Planned</span>
+        </div>
+        <div class="ds-home-progress">
+          <div class="ds-home-progress-head">
+            <span>Marked done</span>
+            <span class="ds-home-progress-pct">${readPct}%</span>
+          </div>
+          <div class="ds-home-progress-track" role="progressbar" aria-valuenow="${readPct}" aria-valuemin="0" aria-valuemax="100">
+            <span class="ds-home-progress-fill" style="width: ${readPct}%"></span>
+          </div>
+          <p class="ds-home-progress-note">${counts.done} of ${counts.written} written lessons</p>
+        </div>
+      </div>
+    </div>
+
     ${
-      next
-        ? `<p class="ds-home-next"><a class="ds-btn-primary" href="${lessonHref(next)}">Continue next lesson</a></p>`
-        : sidebar.counts.written > 0
-          ? `<p class="ds-home-next ds-muted">All written lessons are done. Pick any subject from the sidebar.</p>`
-          : `<p class="ds-home-next ds-muted">No lessons yet. Select a planned topic in the sidebar to create one.</p>`
+      written.length
+        ? `<section class="ds-home-section">
+      <h2 class="ds-home-section-title">Written lessons</h2>
+      <div class="ds-home-card-grid">${writtenCards}</div>
+    </section>`
+        : ""
     }
-  </header>`;
+
+    ${
+      planned.length
+        ? `<section class="ds-home-section">
+      <h2 class="ds-home-section-title">Planned topics</h2>
+      <div class="ds-home-card-grid">${plannedCards}</div>
+    </section>`
+        : ""
+    }
+  </div>`;
+
   return renderShell({
     documentTitle: workbookTitle,
     sidebarHtml: renderSidebar(sidebar, workbookTitle),
@@ -204,10 +307,27 @@ export function renderHome({ workbookTitle, sidebar }) {
   });
 }
 
-function firstOpenLesson(sidebar) {
+function collectSidebarItems(sidebar) {
+  const written = [];
+  const planned = [];
   for (const chapter of sidebar.chapters) {
     for (const item of chapter.items) {
-      if (item.state === "written") return item.lessonKey;
+      if (item.state === "planned") planned.push(item);
+      else if (item.lessonKey) written.push(item);
+    }
+  }
+  return { written, planned };
+}
+
+function findContinueLesson(sidebar) {
+  for (const chapter of sidebar.chapters) {
+    for (const item of chapter.items) {
+      if (item.state === "written") return item;
+    }
+  }
+  for (const chapter of sidebar.chapters) {
+    for (const item of chapter.items) {
+      if (item.lessonKey && item.state === "done") return item;
     }
   }
   return null;

@@ -19,8 +19,7 @@ Every major script return includes:
 
 Prefer `--format summary-json` / compact tables on agent turns.
 
-**User chat:** terse by default. Follow `templates/agent-experience.md` — no narrating script runs,
-no filler, no prose after tables. One ask per message. Depth only when the user asks.
+**User chat:** tables over prose. Follow `templates/agent-experience.md` — ≤10 words outside tables on routine turns.
 
 **Caps:** ≤1 extra investigate turn per phase; ≤1 lesson rewrite; then ship with gaps or ask the user.
 
@@ -40,7 +39,7 @@ consent, secrets, or capability-failure prompts.
 ## Agent reply forms (internal, tiny)
 
 **Never paste these tokens in user-facing chat.** User copy: `templates/agent-experience.md`
-(rail, reply footers, ask templates), `templates/session-status.md`, `templates/introduction-wizard.md`.
+(progress table, reply footers, ask tables), `templates/session-status.md`, `templates/introduction-wizard.md`.
 
 - `ACCEPT purpose | UNRESOLVED purpose + questions` (B0; set `purposeStatus` on approval)
 - `NEED tools: […] | SKIP tool X because […]`
@@ -53,11 +52,11 @@ consent, secrets, or capability-failure prompts.
 Checkpoint cards: `bottleneck-checkpoints.md` (B0–B6). Complete them in trajectory order.
 Validate ask fidelity with `scripts/check-trajectory.js` (workbook: B0→B1→B2→B5→B3→B4a→B4b→B6).
 
-## User-facing progress rail (mandatory)
+## User-facing progress table (mandatory)
 
-Every turn: **2-column rail** from `templates/session-status.md` first (🔵 now · ✅ done · ⬜ later).
-Never a code block. Exactly one 🔵. Last line: **👉 Reply:** … from `agent-experience.md`. First-run:
-only **Get ready** is 🔵 until `init --yes`.
+Every turn: **progress table** from `templates/session-status.md` first. Row 1 = `{done}/{total}` ·
+current step; 🔵/✅/⬜ rows below. **Never** bullets or prose above the table. Ask turns add more
+tables + `👉 Reply`. First-run: only **Get ready** is 🔵 until `init --yes`.
 
 ## Plain-language asks (user chat)
 

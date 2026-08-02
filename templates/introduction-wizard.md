@@ -6,25 +6,24 @@ Follow `templates/agent-experience.md`. **Message 1 = paths + progress + Express
 
 ## Message 1
 
-Your code → **short lessons** → **browser workbook**. I read the repo; I don’t change your app.
-
-| 📁 **Project** | `<target-root>` |
-| 📖 **Lessons** | `<suggested-workbook>` _(beside Git)_ |
-| 🔒 **Your repo** | Untouched — notes live on your machine |
+| | |
+| 📖 | Short lessons from your repo → browser workbook |
+| 📁 Project | `<target-root>` |
+| 📖 Lessons | `<suggested-workbook>` _(beside Git)_ |
+| 🔒 | Repo untouched |
 
 | | Step |
-| 🔵 | **Get ready** — pick setup style |
-| ⬜ | **What matters** |
-| ⬜ | **Study list** |
-| ⬜ | **Write lessons** |
-| ⬜ | **Open workbook** |
-| ⬜ | **Wrap up** |
-
-### Setup
+| **0/6** | get ready |
+| 🔵 | **Get ready** |
+| ⬜ | What matters |
+| ⬜ | Study list |
+| ⬜ | Write lessons |
+| ⬜ | Open workbook |
+| ⬜ | Wrap up |
 
 | | Mode | Reply |
-| ⚡ | **Express** — recommended defaults, one confirm | `express` |
-| 🎛️ | **Control** — choose every setting | `control` |
+| ⚡ | Express — one confirm | `express` |
+| 🎛️ | Control — all settings | `control` |
 
 👉 **Reply:** `express` or `control`
 
@@ -34,18 +33,16 @@ Do **not** paste Express summary or Control tables until they pick.
 
 ## Message 2a — Express
 
-### Express — confirm & start
-
 | | Setting | Value |
-| ✅ | Notes | Private on your machine |
-| ✅ | Lessons | Beside repo (path above) |
+| ✅ | Notes | Private |
+| ✅ | Lessons | Beside repo |
 | ✅ | Depth | Balanced |
-| ✅ | Saves | Ask before each lesson |
-| ✅ | Mode | Ask each run (workbook / PR / focused) |
+| ✅ | Saves | Ask each |
+| ✅ | Mode | Ask each run |
 
-Optional: priority areas — e.g. `auth, chat` in your `yes` reply.
+| Optional | e.g. `auth, chat` in `yes` reply |
 
-👉 **Reply:** `yes` to save settings and start
+👉 **Reply:** `yes`
 
 After `yes` → `init` with flags in Agent notes → mark **Get ready** ✅.
 
@@ -53,21 +50,18 @@ After `yes` → `init` with flags in Agent notes → mark **Get ready** ✅.
 
 ## Message 2b — Control
 
-### Control — your settings
+### Control — settings
 
-| Topic | Pick one | Default |
-| ----- | -------- | ------- |
+| Topic | Options | Default |
 | Notes | `private` · `session-only` · `project-local` · `team` | `private` |
 | Lessons | `sister` · `private` · `custom` | `sister` |
 | Depth | `concise` · `balanced` · `deep` | `balanced` |
 | Saves | `ask` · `automatic` | `ask` |
 | Mode | `ask` · `pr` · `workbook` | `ask` |
 
-| Optional | Example |
-| -------- | ------- |
-| Priority areas | auth, chat, permissions |
+| Optional | auth, chat, permissions |
 
-👉 **Reply:** e.g. `private, sister, balanced, ask, workbook` or `yes` for all defaults
+👉 **Reply:** tuple or `yes` for defaults
 
 ---
 

@@ -1,61 +1,83 @@
-# Session progress rail (mandatory)
+# Session progress table (mandatory)
 
-Paste at the **top** of every user-visible turn. **2-column markdown table** — never a code block.
+Paste at the **top** of every user-visible turn. **Markdown table** — never a code block, never bullets.
 
-## Emoji rules
+## Format
+
+```markdown
+| | Step |
+| **{done}/{total}** | {current step name} |
+| ✅ | {done step} |
+| 🔵 | **{current step}** |
+| ⬜ | {future step} |
+```
+
+- **Row 1:** fraction in col 1 · plain current step name in col 2 (no emoji on row 1).
+- **Rows 2+:** emoji in col 1 · step in col 2. **Bold only the 🔵 row.**
+- Notes after em dash, ≤6 words. Exactly one 🔵. Before = ✅. After = ⬜.
+- **No headline above the table.** The table is the progress UI.
+
+## Emoji
 
 | Emoji | Meaning |
 | ----- | ------- |
-| 🔵 | You are here (exactly **one** per message) |
+| 🔵 | Now (one per message) |
 | ✅ | Done |
-| ⬜ | Not started |
+| ⬜ | Later |
 
-Steps before current = ✅. Current = 🔵. After = ⬜.
-
-## Workbook rail (copy each turn)
+## Workbook template
 
 | | Step |
-| ⬜ | **Get ready** — setup & tools |
-| ⬜ | **What matters** — product purpose |
-| ⬜ | **Study list** — topics you approve |
-| ⬜ | **Write lessons** — batch count e.g. 2/3 |
-| ⬜ | **Open workbook** — browser reader |
-| ⬜ | **Wrap up** — pause or next |
+| **0/6** | get ready |
+| 🔵 | **Get ready** |
+| ⬜ | What matters |
+| ⬜ | Study list |
+| ⬜ | Write lessons |
+| ⬜ | Open workbook |
+| ⬜ | Wrap up |
 
-Edit emojis each turn. Bold step name; note after em dash, ≤8 words.
-
-### When to mark ✅
+### ✅ when
 
 | Step | ✅ when |
 | ---- | ------- |
-| Get ready | Memory initialized; runtime OK |
-| What matters | Purpose recorded or skipped with reason |
-| Study list | Curriculum saved with approval |
-| Write lessons | 🔵 while drafting; show honest count |
-| Open workbook | 🔵 then run `view-lessons.js --open` after 3rd save or batch done |
-| Wrap up | Viewer opened or `--view` explained |
+| Get ready | Memory OK |
+| What matters | Purpose recorded or skipped |
+| Study list | Curriculum approved |
+| Write lessons | 🔵 while drafting; count e.g. 2/3 |
+| Open workbook | 🔵 → `view-lessons.js --open` |
+| Wrap up | Viewer opened or `--view` given |
 
-## Focused / PR rail
-
-| | Step |
-| ⬜ | **Get ready** |
-| ⬜ | **Investigate & teach** |
-| ⬜ | **Save lesson** |
-| ⬜ | **Open workbook** |
-| ⬜ | **Wrap up** |
-
-Skip study-list row unless full workbook.
-
-## Example (lesson 2 of 3)
+## Focused / PR template
 
 | | Step |
-| ✅ | **Get ready** |
-| ✅ | **What matters** — chat + permissions |
-| ✅ | **Study list** — 12 topics, 3 this session |
-| 🔵 | **Write lessons** — 2/3 saved |
-| ⬜ | **Open workbook** |
-| ⬜ | **Wrap up** |
+| **0/5** | get ready |
+| 🔵 | **Get ready** |
+| ⬜ | Investigate & teach |
+| ⬜ | Save lesson |
+| ⬜ | Open workbook |
+| ⬜ | Wrap up |
 
-One line after the rail: what you’re doing next.
+## Example — workbook lesson 2/3
 
-See `templates/agent-experience.md` for reply footers and ask templates.
+| | Step |
+| **3/6** | write lessons |
+| ✅ | Get ready |
+| ✅ | What matters — chat |
+| ✅ | Study list — 12 topics |
+| 🔵 | **Write lessons** — 2/3 |
+| ⬜ | Open workbook |
+| ⬜ | Wrap up |
+
+## Example — focused wrap up
+
+| | Step |
+| **4/5** | wrap up |
+| ✅ | Get ready |
+| ✅ | Investigate & teach — Auth Layout |
+| ✅ | Save lesson |
+| ✅ | Open workbook |
+| 🔵 | **Wrap up** |
+
+Routine turn: table only, or table + **≤10 words** after. No prose before the table.
+
+See `templates/agent-experience.md` for ask tables and reply footers.

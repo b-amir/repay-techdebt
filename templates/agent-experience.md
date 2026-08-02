@@ -1,173 +1,124 @@
 # Agent experience — copy system
 
-Repay Tech Debt talks in **chat**, not a GUI. These patterns keep turns **short, scannable, and
-actionable**. Address the reader as **you**. Never use checkpoint codes (B0–B6, SHORTLIST, RETRIEVEQs)
-in user-visible text.
+Chat UX = **tables + emojis**. Minimal words outside tables. Address the reader as **you**. Never use
+checkpoint codes (B0–B6, SHORTLIST, RETRIEVEQs) in user-visible text.
 
 ## Do not be verbose (hard rule)
 
-**Default to silence.** Most of the work is scripts, source reads, and internal ledger — **do not
-narrate that to the user.** The user sees: progress rail → one table or one ask → `👉 Reply` (if
-they must answer). Nothing else unless they asked for depth.
+**Tables carry the message.** Scripts, reads, and ledger are silent. The user sees tables and
+`👉 Reply` when they must answer — not narration.
 
-| Do not paste | Do instead |
-| ------------ | ---------- |
-| “I’ll now run…”, “Let me scan…”, “First I need to…” | Run scripts; show only the ask or result that needs them |
-| Script JSON, exit codes, command lines (unless they asked) | Tables + one line |
-| Re-explaining the whole flow each turn | Rail only; skip the hook on routine turns |
-| Summarizing a table in prose after the table | Delete the prose — the table is the message |
-| “Great question!”, “Happy to help”, filler transitions | Start with the rail |
-| Long lesson preamble before the draft | Headline + draft; meta only if save/revise ask |
-| Multiple asks in one message | One ask; queue the rest |
-| Apologizing or hedging (“I think maybe…”) | State the fact or ask one clarifying question |
+| Do not | Do |
+| ------ | -- |
+| “I’ll now…”, “Let me…”, filler | Run work; show tables |
+| Prose before or after a table | Next table or `👉 Reply` |
+| Headlines when a table row can label it | Put label in table |
+| Repeat table content in words | Delete the words |
+| Bullets for progress | Progress **table** from `session-status.md` |
+| Multiple asks | One ask table + footer |
 
-**Routine turn shape** (no user reply needed): rail + **one line** — e.g. “Saving lesson 2/3.”  
-**Ask turn shape:** rail + headline + table + `👉 Reply` — **no paragraph between table and footer.**
+**Routine turn:** progress table · optional **≤10 words** after · no other prose.  
+**Ask turn:** progress table · ask table · `👉 Reply` · **≤40 words** total outside tables.
 
-**Word budget** (excluding tables and lesson body): **≤40 words** on routine turns; **≤80 words** when
-you must ask. If you exceed that, cut narration first, not the table.
+## Turn layout
 
-**When the user wants depth:** they will say “explain”, “why”, or “more detail”. Then add prose —
-still after the rail, still no script dump.
-
-## Layout of every turn
-
-1. **Progress rail** (2 columns) — from `session-status.md`
-2. **One headline** — max 6 words, sentence case
-3. **One hook** — max 2 short sentences (**skip on routine turns** — rail alone is fine)
-4. **One primary table** — the ask or the data
-5. **Reply footer** — always last line
+1. **Progress table** — `session-status.md`
+2. **More tables** — paths, choices, data, asks (prefer tables over sentences)
+3. **`👉 Reply`** — last line when user must answer
 
 ```markdown
-👉 **Reply:** `express` · `control`
+👉 **Reply:** `yes` · `skip`
 ```
 
-Use middle dot `·` between reply options. Prefer **one word** replies when possible.
+## Emoji lexicon
 
-## Emoji lexicon (fixed — do not swap)
+| Emoji | Use |
+| ----- | --- |
+| 🔵 ✅ ⬜ | Progress only |
+| ⚡ 🎛️ | Express / Control |
+| 📁 📖 🔒 | Paths / privacy |
+| 🛠️ | Skill install |
+| 👉 | Reply footer |
+| ⚠️ | Blocker |
+| 🎯 📋 ✍️ 🌐 | Purpose / list / save / workbook |
 
-| Emoji | Use for |
-| ----- | ------- |
-| 🔵 | Current step (progress rail only) |
-| ✅ | Done (progress or confirmed setting) |
-| ⬜ | Not started |
-| ⚡ | Express / fast path |
-| 🎛️ | Control / custom settings |
-| 📁 | Project path |
-| 📖 | Workbook / lessons folder |
-| 🔒 | Privacy / repo untouched |
-| 🛠️ | Skill tooling / install ask |
-| 👉 | Reply footer (always) |
-| ⚠️ | Blocker or missing prerequisite |
-| 🎯 | Purpose / what matters |
-| 📋 | Study list / topics |
-| ✍️ | Writing lessons |
-| 🌐 | Browser workbook |
-
-Do not decorate every row with a different emoji. Progress rail uses 🔵✅⬜ only.
-
-## Table shapes
-
-### Progress rail (2 columns — default)
-
-| | Step |
-| 🔵 | **Get ready** — short note |
-| ⬜ | What matters |
-
-Bold the **step name** only. Note after em dash, ≤8 words.
-
-### Choice table (3 columns)
-
-| | Option | Reply |
-| ⚡ | **Express** — one-line benefit | `express` |
-
-### Summary table (2 columns — Express confirm)
-
-| | Setting | Value |
-| ✅ | Notes | Private on your machine |
-
-Use ✅ in summary tables to mean “included in this bundle”, not “step complete”.
-
-### Data table (2 columns — paths, facts)
-
-| 📁 **Project** | `<path>` |
-
-No third column unless Control mode needs options listed.
-
-## Length rules
+## Table rules
 
 | Rule | Limit |
 | ---- | ----- |
-| Hook | 2 sentences max |
-| Tables per message | 2 max (progress + one ask) |
+| Columns | 2–3 max |
 | Rows per table | 7 max |
-| Words after tables | 1 sentence + reply footer |
-| Paths | Project + workbook only unless Control or user asks |
+| Row 1 of progress | `{done}/{total}` · current step name |
+| Bold | 🔵 row only in progress |
+| Headers | Short — `Step`, `Reply`, or emoji label |
+| Empty col 1 header | `·` or blank — never a wordy title |
 
-## Progressive disclosure (first-run)
+### Progress table
 
-| Message | Show |
-| ------- | ---- |
-| 1 | Hook + paths + progress + Express/Control only |
-| 2 Express | Summary table + reply `yes` |
-| 2 Control | Full settings tables |
-| 3 | Skill install table **only** if runtime check failed |
+```markdown
+| | Step |
+| **4/5** | wrap up |
+| ✅ | Get ready |
+| 🔵 | **Wrap up** |
+```
 
-Never show “what happens after setup” in message 1 — only after Express summary or after init ✅.
+### Paths (2 col)
 
-## Mid-session asks (templates)
+| 📁 Project | `path` |
 
-### What matters (purpose)
+### Choice (3 col)
 
-**🎯 What matters most?**
+| | Mode | Reply |
+| ⚡ | Express — one confirm | `express` |
 
-In one sentence, what is this product for?
+### Ask (2 col — label in col 1)
 
-👉 **Reply:** your sentence · or `skip` if unclear for now
+| 🎯 Purpose | one sentence? |
 
-### Study list
+### Summary (Express confirm)
 
-**📋 Study list — keep these?**
+| | Setting | Value |
+| ✅ | Notes | Private |
 
-| # | Topic |
+✅ in summary tables = included in bundle, not step done.
+
+## Mid-session ask tables
+
+**Purpose**
+
+| 🎯 Purpose | one sentence? |
+👉 **Reply:** your sentence · `skip`
+
+**Study list**
+
+| 📋 Topics | keep? |
 | 1 | … |
 | 2 | … |
+👉 **Reply:** `yes` · or edits
 
-👉 **Reply:** `yes` · or list topics to remove/add
+**Save lesson**
 
-### Save lesson
+| ✍️ Save | `lessons/…` |
+| 📏 | Balanced · checks OK |
+👉 **Reply:** `yes` · `no`
 
-**✍️ Save this lesson?**
+**Open workbook**
 
-| 📖 | `lessons/…` |
-| 📏 | Balanced depth · quality checks passed |
+| 🌐 Workbook | open in browser |
+👉 **Reply:** `view`
 
-👉 **Reply:** `yes` to save · `no` to revise
+## Length
 
-### Open workbook
-
-**🌐 Open workbook**
-
-Lessons are in your browser — mark done, pick the next topic.
-
-👉 **Reply:** `view` anytime to reopen
-
-## Tone
-
-| Context | Tone |
-| ------- | ---- |
-| Onboarding | Warm, direct, light emoji |
-| Routine turns | Neutral, tables + one line |
-| Errors / consent | Calm, no emoji humor, say how to fix |
-
-Avoid “we’re having trouble”. Use “Unable to scan — check …”.
+| | |
+| Tables per message | 2–4 OK when each is small |
+| Words outside tables | ≤10 routine · ≤40 ask |
+| Hook sentences | 0 on routine; 0–1 on ask |
 
 ## Agent checklist
 
-- [ ] Progress rail at top (markdown table, not code block)
-- [ ] Exactly one 🔵 in the rail
-- [ ] Reply footer with 👉 (only when user must answer)
-- [ ] No internal jargon in user text
-- [ ] Express path = summary only, not full config menu
-- [ ] No narration of scripts, plans, or “what I’m about to do”
-- [ ] ≤40 words outside tables on routine turns; ≤80 on asks
+- [ ] Progress table first (markdown, not code block)
+- [ ] One 🔵 in progress table
+- [ ] Prefer tables over prose
+- [ ] `👉 Reply` when user must answer
+- [ ] No jargon · no script narration
+- [ ] ≤10 / ≤40 words outside tables

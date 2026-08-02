@@ -83,6 +83,36 @@ export const CLIENT_SCRIPT = `
     }
   }
 
+  function bindSettingsPanel() {
+    var gear = document.querySelector(".ds-settings-gear");
+    var panel = document.querySelector(".ds-settings-panel");
+    if (!gear || !panel) return;
+    function close() {
+      panel.classList.remove("ds-settings-panel-open");
+      gear.setAttribute("aria-expanded", "false");
+    }
+    function open() {
+      panel.classList.add("ds-settings-panel-open");
+      gear.setAttribute("aria-expanded", "true");
+    }
+    gear.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (panel.classList.contains("ds-settings-panel-open")) close();
+      else open();
+    });
+    panel.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+    document.addEventListener("click", function (e) {
+      if (!panel.classList.contains("ds-settings-panel-open")) return;
+      if (panel.contains(e.target) || gear.contains(e.target)) return;
+      close();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") close();
+    });
+  }
+
   function bindSidebarToggle() {
     document.querySelectorAll(".ds-sidebar-toggle").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -137,6 +167,7 @@ export const CLIENT_SCRIPT = `
 
   ready(function () {
     bindPrefs();
+    bindSettingsPanel();
     bindSidebarToggle();
     bindCopyButtons();
 
