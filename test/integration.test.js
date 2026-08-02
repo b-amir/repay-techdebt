@@ -350,33 +350,37 @@ test("baseline analyzers load private external preferences without target memory
   }
 });
 
-test("analysis entry points refuse the skill repository as their target", async () => {
-  const invocations = [
-    ["check-capabilities.js", [root, "--format", "json"]],
-    ["scan-architecture.js", [root, "--format", "json"]],
-    ["find-patterns.js", [root, "--all"]],
-    ["scan-duplication.js", [root]],
-    ["scan-security.js", [root]],
-    ["get-pr-changes.js", [root]],
-    ["check-snippet-secrets.js", [root, resolve(root, "SKILL.md")]],
-    ["profile-project.js", [root]],
-    ["build-program-model.js", [root]],
-    ["plan-analysis.js", [root]],
-    ["query-program-model.js", [root, "SKILL"]],
-    ["render-system-atlas.js", [root]],
-    ["run-graphify.js", ["paths", root]],
-    ["plan-runtime-evidence.js", [root]],
-    ["scan-dependencies.js", [root]],
-  ];
+test(
+  "analysis entry points refuse the skill repository as their target",
+  { timeout: 60_000 },
+  async () => {
+    const invocations = [
+      ["check-capabilities.js", [root, "--format", "json"]],
+      ["scan-architecture.js", [root, "--format", "json"]],
+      ["find-patterns.js", [root, "--all"]],
+      ["scan-duplication.js", [root]],
+      ["scan-security.js", [root]],
+      ["get-pr-changes.js", [root]],
+      ["check-snippet-secrets.js", [root, resolve(root, "SKILL.md")]],
+      ["profile-project.js", [root]],
+      ["build-program-model.js", [root]],
+      ["plan-analysis.js", [root]],
+      ["query-program-model.js", [root, "SKILL"]],
+      ["render-system-atlas.js", [root]],
+      ["run-graphify.js", ["paths", root]],
+      ["plan-runtime-evidence.js", [root]],
+      ["scan-dependencies.js", [root]],
+    ];
 
-  for (const [script, args] of invocations) {
-    const result = await runScript(script, args);
-    assert.equal(result.code, 1, `${script} should reject the skill root`);
-    const failure = JSON.parse(result.stderr);
-    assert.equal(failure.type, "target-error", script);
-    assert.equal(failure.code, "TARGET_IS_SKILL", script);
-  }
-});
+    for (const [script, args] of invocations) {
+      const result = await runScript(script, args);
+      assert.equal(result.code, 1, `${script} should reject the skill root`);
+      const failure = JSON.parse(result.stderr);
+      assert.equal(failure.type, "target-error", script);
+      assert.equal(failure.code, "TARGET_IS_SKILL", script);
+    }
+  },
+);
 
 test("analysis never falls back to the current directory when target is omitted", async () => {
   const result = await runScript("check-capabilities.js", ["--format", "json"]);
