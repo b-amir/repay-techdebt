@@ -106,11 +106,14 @@ test("pattern output records explicit target provenance", async () => {
   const directory = await mkdtemp(resolve(tmpdir(), "repay-techdebt-patterns-"));
   try {
     await writeFile(resolve(directory, "app.js"), "export const values = await Promise.all([]);\n");
-    const result = await runScript("find-patterns.js", [directory]);
+    const result = await runScript("find-patterns.js", [directory, "--all"]);
     assert.equal(result.code, 0);
     const output = JSON.parse(result.stdout);
     assert.equal(output.projectRoot, await realpath(directory));
     assert.equal(output.scannedFiles, 1);
+    assert.equal(output.notExhaustive, true);
+    assert.equal(output.role, "retrieve");
+    assert.ok(output.teachingLeads.length >= 1);
     assert.equal(output.findings[0].pattern, "Promise.all aggregation");
   } finally {
     await rm(directory, { recursive: true, force: true });
@@ -350,7 +353,7 @@ test("analysis entry points refuse the skill repository as their target", async 
   const invocations = [
     ["check-capabilities.js", [root, "--format", "json"]],
     ["scan-architecture.js", [root, "--format", "json"]],
-    ["find-patterns.js", [root]],
+    ["find-patterns.js", [root, "--all"]],
     ["scan-duplication.js", [root]],
     ["scan-security.js", [root]],
     ["get-pr-changes.js", [root]],
@@ -386,7 +389,7 @@ test("unsupported-language fallbacks are explicit", async () => {
   const directory = await mkdtemp(resolve(tmpdir(), "repay-techdebt-rust-"));
   try {
     await writeFile(resolve(directory, "main.rs"), "fn main() {}\n");
-    const patterns = await runScript("find-patterns.js", [directory]);
+    const patterns = await runScript("find-patterns.js", [directory, "--all"]);
     assert.equal(patterns.code, 2);
     assert.equal(JSON.parse(patterns.stderr).type, "tool-failure");
 

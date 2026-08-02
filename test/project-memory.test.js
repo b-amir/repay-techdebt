@@ -487,7 +487,7 @@ test("memory files are excluded from application pattern evidence", async () => 
     );
     const patterns = await execute(
       process.execPath,
-      [resolve(root, "scripts", "find-patterns.js"), target],
+      [resolve(root, "scripts", "find-patterns.js"), target, "--all"],
       { cwd: root, maxBuffer: 20 * 1024 * 1024, timeout: 120_000 },
     );
     const output = JSON.parse(patterns.stdout);
@@ -564,12 +564,20 @@ test("discoverable workbook saves a curriculum first and links each lesson from 
               importanceReasons: ["Runtime entry"],
               evidencePaths: ["src/routes/admin.ts", "src/auth/permission.ts"],
               relationCount: 0,
+              signalClass: "naming-heuristic",
               status: "planned",
               lessonPath: null,
               prerequisites: [],
             },
           ],
           unresolved: [],
+          agentApproval: {
+            approvedAt: "2026-08-01T00:00:00.000Z",
+            note: "test shortlist",
+            corroboratedTopicIds: ["topic-123456789abc"],
+            demotedTopicIds: [],
+            acceptedPartialScope: null,
+          },
         },
         null,
         2,

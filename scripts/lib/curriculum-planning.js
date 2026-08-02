@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { basename, dirname } from "node:path";
+import { buildDialogueEnvelope, topicSignalClass } from "./dialogue-envelope.js";
 import { rankCandidate } from "./curriculum-ranking.js";
 import { deduplicateAndSplitTopics } from "./topic-decomposition.js";
 import { buildStudyOrder } from "./curriculum-graph.js";
@@ -130,6 +131,7 @@ function makeCandidate({ kind, focus, paths, importance, reasons, relationCount 
     importanceReasons: [...new Set(finalReasons)].slice(0, 4),
     evidencePaths,
     relationCount,
+    signalClass: topicSignalClass({ kind, relationCount, reasons: finalReasons }),
     status: "planned",
     lessonPath: null,
     prerequisites: [],
@@ -357,6 +359,30 @@ export function planCurriculum(model) {
           ? "core"
           : "deep-dive";
   });
+  const dialogue = buildDialogueEnvelope({
+    role: "propose",
+    coverage: model.coverage,
+    unresolved: model.profile.uncertainties,
+    mode: "workbook",
+    extraBlindSpots: [
+      "nonstandard-package-layouts",
+      "dependency-injection-and-events",
+      "naming-heuristic-chapter-bias",
+    ],
+    extraMustNotClaim: ["complete-subject-inventory"],
+    extraNextAsks: [
+      {
+        who: "agent",
+        do: "corroborate-or-demote-naming-heuristic-topics",
+        why: "signalClass-naming-heuristic",
+      },
+      {
+        who: "tool",
+        do: "graphify-query-hubs",
+        why: "recover-subjects-regex-may-miss",
+      },
+    ],
+  });
   return {
     schemaVersion: 1,
     generatedAt: model.generatedAt,
@@ -366,6 +392,7 @@ export function planCurriculum(model) {
     coverage: model.coverage,
     topics: selected,
     unresolved: model.profile.uncertainties,
+    ...dialogue,
   };
 }
 
@@ -407,6 +434,8 @@ export function renderCurriculumMarkdown(curriculum) {
     "## Coverage notes",
     "",
     `Repository scale: **${curriculum.repositorySize}** (${curriculum.coverage.modeledFiles} modeled files).`,
+    "",
+    "This index is a **proposal** until the agent approves the shortlist. Naming-heuristic topics need corroboration before save.",
     "",
     ...curriculum.unresolved.map((item) => `- ${item}`),
     "",

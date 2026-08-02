@@ -1,77 +1,88 @@
 # Analysis Execution Protocol
 
-Read this reference before executing a generated plan.
+Read with `script-agent-dialogue.md`. Scripts and the agent alternate; script JSON is a proposal.
 
-## Phase 1: establish scope
+## Phase 1: establish scope (gate → agent)
 
-Resolve the explicit target and requested scope: PR/change, whole program, or focused question.
-Load project memory as preferences only. Confirm product purpose and constraints when they would
-materially change priorities. Unanswered questions remain in the evidence ledger.
+Resolve target and mode: PR/change, whole program, or focused question. Load project memory as
+preferences only. **Agent turn:** confirm or leave unresolved product purpose and constraints.
+Unanswered questions stay in the evidence ledger.
 
-## Phase 2: build the baseline model
-
-Run:
+## Phase 2: inventory + propose (script → agent)
 
 ```text
 node <skill-root>/scripts/profile-project.js <target-root> [--scope <relative-path>] --format json
-node <skill-root>/scripts/plan-analysis.js <target-root> --mode <pr|workbook|focused> --depth <concise|balanced|deep> [--focus <question>] [--scope <relative-path>] --format <json|summary-json>
+node <skill-root>/scripts/plan-analysis.js <target-root> --mode <pr|workbook|focused> --depth <concise|balanced|deep> [--focus <question>] [--scope <relative-path>] --format summary-json
 ```
 
-These bundled operations are read-only and are the baseline, not fallbacks for a failed enhanced
-tool. Inspect coverage, packs, entry points, boundaries, top lenses, evidence states, and
-uncertainties. If an unknown language dominates, pause ecosystem-specific claims until its tooling
-and semantics are established.
+These are read-only baseline inventory/propose turns, not fallbacks for a failed enhanced tool.
+Inspect `role`, `coverage` / `coverageStatus`, `blindSpots`, `mustNotClaim`, `nextAsks`, packs,
+entry points, lenses, and uncertainties. **Agent turn:** follow `nextAsks` (purpose, retrieve
+questions, need/skip tools). Prefer `summary-json` on agent turns; full JSON when provenance is
+required.
 
-Apply `--scope` before increasing budgets when the requested component is known. The model reports
-`scoped-analysis` and remains partial relative to the whole target. Use full JSON when provenance
-and rationale are needed; use `summary-json` for an execution-oriented plan payload.
+Apply `--scope` before raising budgets when the component is known. Partial/scoped models remain
+partial relative to the whole target — honor `mustNotClaim`.
 
-## Phase 3: select capabilities
+## Phase 3: capabilities (gate → agent/user)
 
-Use the plan to mark enhanced capabilities as needed or not needed. Run the standard capability
-preflight, then functionally attempt only needed tools. A missing irrelevant tool is not a failure.
-On a needed tool failure, use the failure prompt from `tool-integrations.md` and wait for the user's
-choice before using the named fallback.
+Mark enhanced capabilities needed or not needed from the plan. Run `check-capabilities.js`, then
+functionally attempt only needed tools. On failure, use the prompt in `tool-integrations.md` and
+wait for setup / fallback / skip.
 
-The bundled relationship query is:
+Bundled relationship query (after approval when Graphify/Serena fail):
 
 ```text
 node <skill-root>/scripts/query-program-model.js <target-root> <path-or-name> --depth 1 --format table
 ```
 
-Use it after approval when Graphify/Serena relationship retrieval fails. Its result is conservative
-and incomplete for dynamic behavior.
+Conservative and incomplete for dynamic behavior — state that limitation in the ledger.
 
-## Phase 4: trace relationships
+## Phase 4: retrieve + verify (agent ask → tool/script → agent)
 
 For each selected concern:
 
-1. start at a user/system input or a concrete changed symbol;
-2. identify registration and configuration;
-3. follow incoming consumers;
-4. follow outgoing dependencies and side effects;
-5. inspect normal, failure, retry, cancellation, concurrency, and rollback paths as applicable;
-6. connect tests and runtime signals;
-7. return to the user/system outcome.
+1. Agent phrases the question (or starts from a changed symbol / critical workflow).
+2. Preferred retrieve tool runs (Graphify, Serena, PR extractor, …).
+3. Agent verifies 2–3 anchors in current source.
+4. At most one gap-fill script/tool turn if a blind spot blocks teaching.
+5. Trace registration → consumers → dependencies/effects → failure paths → tests/runtime as
+   applicable.
 
-Record unsupported relation classes. Search results and graph edges are leads until verified in
-current source.
+Search hits and graph edges are leads until verified. Record unsupported relation classes.
 
-## Phase 5: execute lenses
+## Phase 5: lenses (agent; script proposals optional)
 
-Apply the highest-ranked lens to the critical flow first. Stop when further evidence would not
-change the mental model or next safe action. Move to lower-ranked lenses only when the scope and
-lesson depth justify it. A whole-app workbook should choose representative flows across major
-capabilities; it should not summarize every directory.
+Apply the highest-ranked relevant lens to the critical flow first. Stop when further evidence would
+not change the mental model or next safe action. Workbooks choose representative flows — not every
+directory.
 
-## Phase 6: gather runtime evidence
+## Phase 6: runtime evidence (permission-gated)
 
-Use existing tests and read-only artifacts first. Ask before starting services, writing profiles,
-using credentials, reaching production, replaying data, or running stateful commands. Sanitize tool
-output. Static conclusions must not imply observed production behavior.
+Prefer existing tests and read-only artifacts. Ask before mutating target state, using credentials,
+reaching production, starting services, writing profiles, or sending network traffic. Static
+conclusions must not imply observed production behavior. See `runtime-evidence.md`.
 
-## Phase 7: teach and report
+## Phase 7: curriculum approve (workbook only)
 
-Build lessons from verified source using the lesson template. Connect at least two adjacent zoom
-levels. Include confidence, unresolved evidence, and modification consequences. End with the tool
-ledger and the next highest-value investigations.
+```text
+node <skill-root>/scripts/plan-curriculum.js <target-root> --format json
+```
+
+**Agent turn:** SHORTLIST approve/demote/add; corroborate `naming-heuristic` topics into
+`agentApproval.corroboratedTopicIds`. Set `acceptedPartialScope` when coverage is partial. Save only
+with that block present:
+
+```text
+node <skill-root>/scripts/project-memory.js save-curriculum <target-root> --input <approved.json> --yes
+```
+
+Focused/PR modes skip this phase unless the user asks for a workbook.
+
+## Phase 8: teach handshake (propose → draft → check → semantic → save)
+
+1. `plan-lesson.js` — advisory composition.
+2. Agent drafts from verified anchors.
+3. `check-lesson-quality.js` (+ secrets check as needed).
+4. Agent semantic checklist (`script-agent-dialogue.md`); ≤1 rewrite.
+5. Save per memory policy; end with tool ledger, gaps, and next concepts.

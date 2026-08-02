@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "name": "unconventional-layout",
+  "description": "Domain code lives under bounded-contexts/billing-core instead of familiar app/features paths. Curriculum must surface billing via inventory/dialogue, not only auth/routes regexes.",
+  "topics": [
+    {
+      "id": "billing-core",
+      "intent": "must-find",
+      "matchFocus": "billing",
+      "description": "Payment capture/settlement must appear in the subject inventory."
+    },
+    {
+      "id": "fake-auth-chapter",
+      "intent": "forbidden",
+      "description": "Do not invent an auth topic when none exists in the fixture."
+    }
+  ],
+  "workflows": [
+    {
+      "id": "capture-to-settle",
+      "mustIncludeNodes": ["capturePayment", "settle"],
+      "mustIncludeEdges": [{ "from": "capturePayment", "to": "settle" }]
+    }
+  ],
+  "lessons": {},
+  "allowedSideEffects": [],
+  "dialogue": {
+    "requireNamingHeuristicDemotion": true,
+    "forbidSaveWithoutApproval": true,
+    "requireProposalEnvelope": true
+  }
+}

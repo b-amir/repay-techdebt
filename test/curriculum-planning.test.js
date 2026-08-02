@@ -33,6 +33,10 @@ test("large repositories receive a complete ranked subject inventory without arb
   assert.ok(curriculum.topics.length > 150); // Ceilings are removed, so it can be 305
   assert.equal(curriculum.topics[0].focus, "customer checkout");
   assert.ok(curriculum.topics.every((topic) => topic.learnerOutcome && topic.evidencePaths));
+  assert.equal(curriculum.role, "propose");
+  assert.ok(curriculum.nextAsks.some((item) => item.do === "approve-curriculum-shortlist"));
+  assert.ok(curriculum.topics[0].signalClass === "user");
+  assert.ok(curriculum.topics.some((topic) => topic.signalClass === "naming-heuristic" || topic.signalClass === "ast"));
   const markdown = renderCurriculumMarkdown(curriculum);
   assert.match(markdown, /focused subjects/); // Don't match the exact number, it varies
   assert.match(markdown, /Purpose and critical workflows/);

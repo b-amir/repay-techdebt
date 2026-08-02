@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "name": "dialogue-handshake",
+  "description": "Meta fixture: curriculum proposals must expose dialogue envelopes and refuse save without agentApproval.",
+  "topics": [],
+  "workflows": [],
+  "lessons": {},
+  "allowedSideEffects": [],
+  "dialogue": {
+    "requireNamingHeuristicDemotion": false,
+    "forbidSaveWithoutApproval": true,
+    "requireProposalEnvelope": true
+  }
+}

@@ -2,6 +2,7 @@ import { lstat, readFile, stat } from "node:fs/promises";
 import { basename, dirname, extname, resolve } from "node:path";
 import { globby } from "globby";
 import { z } from "zod";
+import { buildDialogueEnvelope } from "./dialogue-envelope.js";
 import { stableId } from "./identity.js";
 import { parseManifest } from "./manifest-intelligence.js";
 import { locateProjectMemory } from "./private-storage.js";
@@ -297,6 +298,21 @@ export const analysisPlanSchema = z.object({
   ),
   stoppingRules: z.array(z.string()),
   unresolved: z.array(z.string()),
+  role: z.enum(["gate", "inventory", "retrieve", "propose", "check"]).default("propose"),
+  coverageStatus: z.string().optional(),
+  blindSpots: z.array(z.string()).default([]),
+  mustNotClaim: z.array(z.string()).default([]),
+  nextAsks: z
+    .array(
+      z.object({
+        who: z.enum(["agent", "script", "tool", "user"]),
+        do: z.string(),
+        why: z.string().optional(),
+        when: z.string().optional(),
+        question: z.string().optional(),
+      }),
+    )
+    .default([]),
 });
 
 const extensionLanguage = new Map([
@@ -1971,6 +1987,25 @@ export function planAnalysis(model, options = {}) {
         .map((item) => [item.id, item]),
     ).values(),
   ];
+  const dialogue = buildDialogueEnvelope({
+    role: "propose",
+    coverage: model.coverage,
+    unresolved: model.profile.uncertainties,
+    mode,
+    extraBlindSpots: [
+      "dependency-injection-and-reflection",
+      "event-and-runtime-dispatch",
+      "generated-bindings",
+    ],
+    extraMustNotClaim: ["enhanced-tools-succeeded"],
+    extraNextAsks: [
+      {
+        who: "tool",
+        do: "graphify-or-serena-retrieve",
+        why: "preferred-before-heuristic-fallback",
+      },
+    ],
+  });
   return analysisPlanSchema.parse({
     schemaVersion: 2,
     generatedAt: new Date().toISOString(),
@@ -1990,8 +2025,10 @@ export function planAnalysis(model, options = {}) {
       "Stop and ask before a required enhanced tool is replaced by a fallback.",
       "Prefer depth on the highest-impact verified flow over shallow coverage quotas.",
       "Treat runtime, production, business, and user-impact claims as unresolved until evidence supports them.",
+      "Follow nextAsks; treat this plan as a proposal, not verified code truth.",
     ],
     unresolved: model.profile.uncertainties,
+    ...dialogue,
   });
 }
 

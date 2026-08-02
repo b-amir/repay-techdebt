@@ -6,6 +6,7 @@ import { globby } from "globby";
 import pLimit from "p-limit";
 import { Piscina } from "piscina";
 import { z } from "zod";
+import { buildDialogueEnvelope } from "./lib/dialogue-envelope.js";
 import { formatTargetError, resolveTargetRoot, skillRoot } from "./lib/tooling.js";
 
 const SOURCE_GLOBS = ["**/*.{js,jsx,ts,tsx,py}"];
@@ -36,11 +37,14 @@ const findingSchema = z.object({
 });
 
 function printHelp() {
-  process.stdout.write("Usage: node find-patterns.js <target-project-directory>\n\n");
-  process.stdout.write(
-    "Scan JavaScript, TypeScript, and Python with Acorn, ts-morph, and ast-grep workers.\n",
-  );
-  process.stdout.write("Candidate snippets are checked with Secretlint before output.\n");
+  process.stdout.write(`Usage:
+  node find-patterns.js <target-project-directory> --scope <relative-path>
+  node find-patterns.js <target-project-directory> --all
+
+Teaching-lead scanner for JS/TS/Python (Acorn, ts-morph, ast-grep). Not a workbook driver.
+Requires --scope for a focused gap-fill, or explicit --all for a whole-repo lead pass.
+Output is teachingLeads with notExhaustive=true; verify selected leads in live source.
+`);
 }
 
 function parseArguments(argv) {
@@ -48,8 +52,30 @@ function parseArguments(argv) {
     printHelp();
     process.exit(0);
   }
-  if (argv.length > 1) throw new Error("Expected exactly one target project directory");
-  return argv[0];
+  const positional = [];
+  const options = { scope: null, all: false };
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index];
+    if (!argument.startsWith("--")) {
+      positional.push(argument);
+      continue;
+    }
+    const name = argument.slice(2);
+    if (name === "all") options.all = true;
+    else if (name === "scope") {
+      const value = argv[++index];
+      if (!value || value.startsWith("--")) throw new Error("Missing value for --scope");
+      options.scope = value.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+    } else throw new Error(`Unknown option: ${argument}`);
+  }
+  if (positional.length !== 1) throw new Error("Expected exactly one target project directory");
+  if (!options.all && !options.scope)
+    throw new Error(
+      "find-patterns requires --scope <relative-path> for gap-fill leads, or --all for an explicit whole-repo teaching-lead pass",
+    );
+  if (options.all && options.scope)
+    throw new Error("Use either --scope or --all, not both");
+  return { targetInput: positional[0], options };
 }
 
 async function maskSecretCandidates(findings) {
@@ -84,24 +110,30 @@ async function maskSecretCandidates(findings) {
 let projectRootForMessages;
 
 try {
-  const target = await resolveTargetRoot(parseArguments(process.argv.slice(2)));
+  const { targetInput, options } = parseArguments(process.argv.slice(2));
+  const target = await resolveTargetRoot(targetInput);
   const projectRoot = target.targetRoot;
   projectRootForMessages = projectRoot;
+  const scopeIgnore = [...IGNORES, ...(target.relativeSkillRoot ? [`${target.relativeSkillRoot}/**`] : [])];
+  const globRoot = options.scope ? resolve(projectRoot, options.scope) : projectRoot;
   const files = await globby(SOURCE_GLOBS, {
     absolute: false,
-    cwd: projectRoot,
+    cwd: globRoot,
     dot: true,
     followSymbolicLinks: false,
     gitignore: true,
-    ignore: [...IGNORES, ...(target.relativeSkillRoot ? [`${target.relativeSkillRoot}/**`] : [])],
+    ignore: scopeIgnore,
     onlyFiles: true,
   });
-  if (files.length === 0) {
+  const prefixed = options.scope
+    ? files.map((file) => `${options.scope}/${file}`.replaceAll("\\", "/"))
+    : files.map((file) => file.replaceAll("\\", "/"));
+  if (prefixed.length === 0) {
     process.stderr.write(
       `${JSON.stringify({
         type: "tool-failure",
         tool: "bundled-pattern-scanner",
-        reason: "no supported JavaScript, TypeScript, or Python files were found",
+        reason: "no supported JavaScript, TypeScript, or Python files were found in scope",
         fallback: "ask before manually inspecting representative files in the detected languages",
       })}\n`,
     );
@@ -109,13 +141,13 @@ try {
   }
   const piscina = new Piscina({
     filename: fileURLToPath(new URL("./pattern-worker.js", import.meta.url)),
-    maxThreads: Math.max(1, Math.min(availableParallelism(), files.length, 4)),
+    maxThreads: Math.max(1, Math.min(availableParallelism(), prefixed.length, 4)),
   });
   const batches = await Promise.all(
-    files
+    prefixed
       .sort()
       .map((file) =>
-        piscina.run({ absolutePath: resolve(projectRoot, file), file: file.replaceAll("\\", "/") }),
+        piscina.run({ absolutePath: resolve(projectRoot, file), file }),
       ),
   );
   await piscina.close();
@@ -130,15 +162,38 @@ try {
       left.line - right.line ||
       left.pattern.localeCompare(right.pattern),
   );
+  const dialogue = buildDialogueEnvelope({
+    role: "retrieve",
+    extraBlindSpots: [
+      "catalog-is-not-exhaustive",
+      "dynamic-and-framework-specific-patterns",
+    ],
+    extraMustNotClaim: ["complete-teaching-surface", "defect-proof"],
+    extraNextAsks: [
+      {
+        who: "agent",
+        do: "verify-selected-leads-in-source",
+        why: "teaching-leads-only",
+      },
+    ],
+  });
   process.stdout.write(
     `${JSON.stringify(
       {
         analyzer: "bundled-pattern-scanner",
         status: "succeeded",
+        role: dialogue.role,
+        notExhaustive: true,
+        scope: options.scope ?? ".",
+        wholeRepo: Boolean(options.all),
         projectRoot,
         excludedSkillPath: target.relativeSkillRoot,
-        scannedFiles: files.length,
+        scannedFiles: prefixed.length,
+        teachingLeads: z.array(findingSchema).parse(safeFindings),
         findings: z.array(findingSchema).parse(safeFindings),
+        blindSpots: dialogue.blindSpots,
+        mustNotClaim: dialogue.mustNotClaim,
+        nextAsks: dialogue.nextAsks,
       },
       null,
       2,

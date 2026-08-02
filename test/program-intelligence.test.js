@@ -117,6 +117,10 @@ test("focused planning changes relevance without claiming enhanced tools ran", a
       ["Semgrep MCP or CLI", "bundled Secretlint"],
     );
     assert.ok(plan.unresolved.some((item) => /purpose/i.test(item)));
+    assert.equal(plan.role, "propose");
+    assert.ok(Array.isArray(plan.nextAsks));
+    assert.ok(plan.nextAsks.length > 0);
+    assert.ok(plan.mustNotClaim.includes("enhanced-tools-succeeded"));
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

@@ -107,6 +107,11 @@ function summaryJson(plan) {
     target: plan.target,
     request: plan.request,
     coverage: plan.coverage,
+    role: plan.role,
+    coverageStatus: plan.coverageStatus,
+    blindSpots: plan.blindSpots,
+    mustNotClaim: plan.mustNotClaim,
+    nextAsks: plan.nextAsks,
     profileSummary: plan.profileSummary,
     investigations: plan.investigations.map((item) => ({
       id: item.id,

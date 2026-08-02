@@ -2,19 +2,27 @@ import { z } from "zod";
 
 export const TopicExpectationSchema = z.object({
   id: z.string().describe("Stable identifier for the expected topic"),
-  intent: z.enum(["must-find", "useful", "irrelevant", "forbidden"]).describe("How this topic should be ranked or penalized"),
+  intent: z
+    .enum(["must-find", "useful", "irrelevant", "forbidden"])
+    .describe("How this topic should be ranked or penalized"),
   description: z.string().optional().describe("Why this topic has this expectation"),
+  matchFocus: z
+    .string()
+    .optional()
+    .describe("Optional regex matched against topic focus/title when IDs are planner hashes"),
 });
 
 export const WorkflowExpectationSchema = z.object({
   id: z.string(),
   mustIncludeNodes: z.array(z.string()).default([]),
-  mustIncludeEdges: z.array(
-    z.object({
-      from: z.string(),
-      to: z.string(),
-    })
-  ).default([]),
+  mustIncludeEdges: z
+    .array(
+      z.object({
+        from: z.string(),
+        to: z.string(),
+      }),
+    )
+    .default([]),
 });
 
 export const LessonRubricSchema = z.object({
@@ -27,14 +35,22 @@ export const LessonRubricSchema = z.object({
   notes: z.string().optional(),
 });
 
+export const DialogueExpectationSchema = z.object({
+  requireNamingHeuristicDemotion: z.boolean().default(false),
+  forbidSaveWithoutApproval: z.boolean().default(false),
+  requireApprovalPasses: z.boolean().default(false),
+  requireProposalEnvelope: z.boolean().default(true),
+});
+
 export const EvaluationFixtureSchema = z.object({
   version: z.number().int().min(1).max(1),
   name: z.string(),
   description: z.string(),
   topics: z.array(TopicExpectationSchema).default([]),
   workflows: z.array(WorkflowExpectationSchema).default([]),
-  lessons: z.record(LessonRubricSchema).default({}),
+  lessons: z.record(z.string(), LessonRubricSchema).default({}),
   allowedSideEffects: z.array(z.string()).default([]),
+  dialogue: DialogueExpectationSchema.optional(),
 });
 
 export function validateFixture(data) {

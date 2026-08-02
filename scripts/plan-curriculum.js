@@ -6,8 +6,8 @@ function help() {
   process.stdout.write(`Usage:
   node plan-curriculum.js <target-root> [--scope <relative-path>] [--format json|markdown] [--max-files <count>] [--max-manifest-files <count>] [--max-relation-files <count>] [--max-relation-bytes <count>]
 
-Build a ranked book index before writing lessons. It creates no target files. Large repositories
-receive a broad subject inventory; every selected topic retains concrete evidence paths.
+Build a ranked book-index proposal before writing lessons. It creates no target files. Output is a
+dialogue proposal (role/nextAsks/signalClass); the agent must approve the shortlist before save.
 `);
 }
 

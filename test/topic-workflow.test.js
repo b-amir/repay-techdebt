@@ -111,10 +111,17 @@ test("teach-topic runs a topic through investigation, drafting, review, and savi
           status: "planned",
           lessonPath: null,
           prerequisites: [],
+          signalClass: "naming-heuristic",
           signals: []
         }
       ],
-      unresolved: []
+      unresolved: [],
+      agentApproval: {
+        approvedAt: "2026-08-01T00:00:00.000Z",
+        corroboratedTopicIds: ["topic-123456789abc"],
+        demotedTopicIds: [],
+        acceptedPartialScope: null,
+      },
     };
     const inputPath = resolve(directory, "curriculum.json");
     await writeFile(inputPath, JSON.stringify(curriculumData));

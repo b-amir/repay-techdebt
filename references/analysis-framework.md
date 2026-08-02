@@ -7,18 +7,16 @@ developer's ability to modify the system safely.
 
 ## Operating loop
 
-1. **Profile:** detect languages, frameworks, executable shapes, boundaries, entry points, tests,
-   infrastructure, and unknowns with `profile-project.js`.
-2. **Model:** represent files, areas, technologies, capabilities, and supported relationships in a
-   normalized graph with `build-program-model.js` or an accepted richer graph tool.
-3. **Plan:** rank questions by verified relevance, criticality, learner value, uncertainty, and the
-   cost of obtaining stronger evidence with `plan-analysis.js`.
-4. **Investigate:** traverse from purpose to effects and from selected code back to consumers.
-5. **Verify:** replace hypotheses with source, test, tool, runtime, or user-confirmed evidence.
-6. **Teach:** explain the smallest coherent slice that connects exact semantics to system
-   consequences.
-7. **Remember:** persist only approved lessons, durable decisions, and curriculum progress. Never
-   persist raw indexes or unverified findings.
+1. **Profile (script inventory):** languages, frameworks, shapes, boundaries, entry points —
+   `profile-project.js`. Agent confirms purpose.
+2. **Model:** normalized graph via `build-program-model.js` or an accepted richer graph tool.
+3. **Plan (script propose):** `plan-analysis.js` / `plan-curriculum.js` emit ranked proposals with
+   `nextAsks` — not finished truth.
+4. **Investigate (agent ↔ retrieve tools):** Graphify/Serena questions, then verify in source.
+5. **Verify:** promote hypotheses with source, test, tool, runtime, or user evidence.
+6. **Teach handshake:** advisory `plan-lesson` → draft → mechanical QA → agent semantic pass → save.
+7. **Remember:** only approved lessons, decisions, and curriculum progress — never raw indexes or
+   unverified findings.
 
 ## Continuous zoom hierarchy
 

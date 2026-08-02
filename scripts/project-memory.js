@@ -31,6 +31,7 @@ import {
 import { computeEvidenceDigests } from "./lib/curriculum-refresh.js";
 import { readCurriculum, writeCurriculum, CurriculumConflictError } from "./lib/curriculum-store.js";
 import { renderCurriculumMarkdown } from "./lib/curriculum-planning.js";
+import { validateAgentApproval } from "./lib/curriculum-approval.js";
 import { inspectLesson } from "./lib/lesson-quality.js";
 import { recordExercise, scheduleReview } from "./lib/learning-progress.js";
 
@@ -49,6 +50,9 @@ function printHelp() {
   node project-memory.js status <target-root> [--storage private|project-local|team] [--format table|json]
   node project-memory.js init <target-root> [--storage private|project-local|team] [--output-location sister|private|custom] [--output-root <path>] [--mode ask|pr|workbook] [--depth concise|balanced|deep] [--save-policy ask|automatic] [--boundary-hints <csv>] [--critical-workflows <csv>] [--max-files <count>] [--max-manifest-files <count>] [--max-relation-files <count>] [--max-relation-bytes <count>] [--allow-non-git] [--yes|--interactive]
   node project-memory.js save-curriculum <target-root> --input <curriculum.json> --yes
+
+Curriculum JSON must include agentApproval (approvedAt, corroboratedTopicIds for naming-heuristic
+topics, acceptedPartialScope when coverage is partial). --yes alone is not an agent shortlist.
   node project-memory.js save-lesson <target-root> --topic-id <id> --title <title> --input <markdown-file> --yes
   node project-memory.js configure-output <target-root> --output-location sister|custom [--output-root <path>] --yes
   node project-memory.js record-decision <target-root> --decision <text> [--reason <text>] [--scope <text>] --yes
@@ -820,6 +824,9 @@ function validateCurriculum(value, targetRoot) {
     throw new Error("Curriculum input must be a schema-v1 plan with a topics array");
   if (resolve(value.target?.root ?? "") !== targetRoot)
     throw new Error("Curriculum target does not match the requested target root");
+  const approvalCheck = validateAgentApproval(value);
+  if (!approvalCheck.ok) throw new Error(approvalCheck.error);
+  value.topics = approvalCheck.topics;
   const ids = new Set();
   const focuses = new Set();
   for (const topic of value.topics) {

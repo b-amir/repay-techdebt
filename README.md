@@ -127,17 +127,16 @@ Session-only operation creates no durable memory.
    in-repository skill installation is excluded from every scan.
 2. **Load preferences safely.** A first-run wizard can create private memory, project-local memory,
    team memory, or nothing at all.
-3. **Build the baseline model.** Read-only scanners identify program archetypes, components,
-   languages, frameworks, capabilities, entry points, boundaries, dependencies, tests, relations,
-   lenses, parser coverage, and uncertainty.
+3. **Take turns.** Bundled scripts inventory, gate, and propose (`nextAsks`); the agent confirms
+   purpose, retrieves with Graphify/Serena when available, verifies live source, and teaches.
 4. **Rank the investigation.** Questions are prioritized by request, focus, program type, graph
-   evidence, and impact—not by a universal checklist.
-5. **Create the book index.** A whole-app run records 12–30 subjects for a small repository, 25–70
-   for a medium one, or 60–150 for a large one before it writes any lesson.
+   evidence, and impact—not by a universal checklist. Script plans are proposals, not finished truth.
+5. **Approve the book index.** A whole-app run proposes a broad subject inventory; the agent
+   shortlists before save, then writes 1–3 lessons per run.
 6. **Use stronger tools when they matter.** Each phase has an explicit capability ladder and failure
    gate.
-7. **Verify and teach.** The agent confirms source, writes one small lesson per subject, checks its
-   prose and evidence, and links it from the durable index.
+7. **Qualify and teach.** Mechanical lesson QA plus one agent semantic pass; cite paths and lines;
+   end with gaps and a tool-use ledger.
 
 The bundled registry currently includes 16 program/language packs, 10 framework packs, and 17
 cross-cutting lenses spanning correctness, security, performance, reliability, data integrity,

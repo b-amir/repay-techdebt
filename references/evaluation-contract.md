@@ -15,13 +15,16 @@ Every evaluation fixture is stored as a JSON object (or analogous data structure
 - `workflows` (Array of `WorkflowExpectation`): List of workflows expected in the graph.
 - `lessons` (Object mapping lesson ID to `LessonRubric`): Expected baseline rubrics for generated lessons.
 - `allowedSideEffects` (Array of strings): Allowed side-effect behaviors if any.
+- `dialogue` (optional object): Script↔agent handshake expectations (`requireNamingHeuristicDemotion`,
+  `forbidSaveWithoutApproval`, `requireApprovalPasses`, `requireProposalEnvelope`).
 
 ### `TopicExpectation`
 
 Describes how a specific topic ID should be ranked or treated by the skill.
-- `id` (string): The stable identifier of the expected topic.
+- `id` (string): The stable identifier of the expected topic (or a logical label).
 - `intent` (string): One of `must-find`, `useful`, `irrelevant`, or `forbidden`.
-- `description` (string): Context for why this topic has this intent.
+- `description` (string): Context for why this topic has this expectation.
+- `matchFocus` (string, optional): Regex matched against topic focus/title when planner IDs are hashes.
 
 ### `WorkflowExpectation`
 
