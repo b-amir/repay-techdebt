@@ -27,3 +27,5 @@ jobs:
         run: pnpm install
       - name: Run tests
         run: pnpm test
+      - name: Validate Release
+        run: node scripts/validate-release.js

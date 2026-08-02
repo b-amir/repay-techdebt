@@ -968,18 +968,38 @@ async function configureOutput(targetRoot, options) {
   }
   await mkdir(dirname(destination.root), { recursive: true });
   const staging = await mkdtemp(resolve(dirname(destination.root), ".repay-techdebt-output-"));
+  const SECRET_PATTERNS = [
+    /\b(?:sk|ghp|github_pat|glpat|xox[baprs]|AKIA)[-_A-Za-z0-9]{8,}\b/gi,
+    /\b(?:token|password|secret|api[_-]?key)\s*[=:]\s*[^\s,;]+/gi,
+    /(?:Authorization:\s*(?:Bearer|Basic)\s+)\S+/gi,
+  ];
+
+  function sanitizeContent(text) {
+    let scrubbed = text;
+    for (const pattern of SECRET_PATTERNS) {
+      scrubbed = scrubbed.replace(pattern, "[REDACTED]");
+    }
+    // Replace absolute targetRoot paths with relative paths
+    const rootPattern = new RegExp(targetRoot.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g");
+    scrubbed = scrubbed.replace(rootPattern, ".");
+    return scrubbed;
+  }
+
   try {
     await mkdir(resolve(staging, "lessons"));
-    for (const name of lessonNames)
+    for (const name of lessonNames) {
+      const rawContent = await readFile(resolve(current.lessons, name), "utf8");
       await writeFile(
         resolve(staging, "lessons", name),
-        await readFile(resolve(current.lessons, name)),
+        sanitizeContent(rawContent),
+        "utf8"
       );
+    }
     const oldIndex = await readFile(current.lessonIndex, "utf8");
     const visibleIndex = oldIndex
       .replace(/^# Saved Lessons/m, "# Learning index")
       .replaceAll("](./", "](lessons/");
-    await writeFile(resolve(staging, "INDEX.md"), visibleIndex, "utf8");
+    await writeFile(resolve(staging, "INDEX.md"), sanitizeContent(visibleIndex), "utf8");
     await rename(staging, destination.root);
     await replaceJsonFile(paths.config, {
       ...config,
