@@ -111,7 +111,7 @@ function workbookPaths(memory, config) {
   };
 }
 
-async function resolveMemoryPaths(targetRoot, options = {}) {
+export async function resolveMemoryPaths(targetRoot, options = {}) {
   const location = await locateProjectMemory(targetRoot, options.storage);
   return { ...memoryPaths(location.root), location };
 }
@@ -1538,43 +1538,58 @@ async function scheduleReviewAction(targetRoot, options) {
   process.stdout.write("Review scheduled.\n");
 }
 
-try {
-  const { action, options, targetInput } = parseArguments(process.argv.slice(2));
-  if (
-    !new Set([
-      "status",
-      "init",
-      "save-lesson",
-      "save-curriculum",
-      "configure-output",
-      "save-artifact",
-      "record-decision",
-      "repair-index",
-      "migrate",
-      "record-exercise",
-      "schedule-review",
-    ]).has(action)
-  ) {
-    printHelp();
-    throw new Error(
-      "Expected status, init, configure-output, save-curriculum, save-lesson, save-artifact, record-decision, migrate, repair-index, record-exercise, or schedule-review",
-    );
+import { fileURLToPath } from "node:url";
+
+if (import.meta.url.startsWith('file:') && process.argv[1] === fileURLToPath(import.meta.url)) {
+  try {
+    const { action, options, targetInput } = parseArguments(process.argv.slice(2));
+    if (
+      !new Set([
+        "status",
+        "init",
+        "save-lesson",
+        "save-curriculum",
+        "configure-output",
+        "save-artifact",
+        "record-decision",
+        "repair-index",
+        "migrate",
+        "record-exercise",
+        "schedule-review",
+      ]).has(action)
+    ) {
+      printHelp();
+      throw new Error(
+        "Expected status, init, configure-output, save-curriculum, save-lesson, save-artifact, record-decision, migrate, repair-index, record-exercise, or schedule-review",
+      );
+    }
+    const { targetRoot } = await resolveTargetRoot(targetInput);
+    if (action === "status") await status(targetRoot, options);
+    else if (action === "init") await init(targetRoot, options);
+    else if (action === "configure-output") await configureOutput(targetRoot, options);
+    else if (action === "save-curriculum") await saveCurriculum(targetRoot, options);
+    else if (action === "save-lesson") await saveLesson(targetRoot, options);
+    else if (action === "save-artifact") await saveArtifact(targetRoot, options);
+    else if (action === "record-decision") await recordDecision(targetRoot, options);
+    else if (action === "migrate") await migrate(targetRoot, options);
+    else if (action === "repair-index") await repairIndex(targetRoot, options);
+    else if (action === "record-exercise") await recordExerciseAction(targetRoot, options);
+    else if (action === "schedule-review") await scheduleReviewAction(targetRoot, options);
+  } catch (error) {
+    if (error.code === "NO_MEMORY") {
+      process.stderr.write(
+        JSON.stringify({
+          type: "target-error",
+          code: error.code,
+          reason: error.message,
+          requestedTarget: error.target,
+        }) + "\n",
+      );
+    } else if (error.code === "TARGET_IS_SKILL") {
+      process.stderr.write(JSON.stringify(error) + "\n");
+    } else {
+      process.stderr.write(`Project memory failed: ${error.message}\n`);
+    }
+    process.exit(1);
   }
-  const { targetRoot } = await resolveTargetRoot(targetInput);
-  if (action === "status") await status(targetRoot, options);
-  else if (action === "init") await init(targetRoot, options);
-  else if (action === "configure-output") await configureOutput(targetRoot, options);
-  else if (action === "save-curriculum") await saveCurriculum(targetRoot, options);
-  else if (action === "save-lesson") await saveLesson(targetRoot, options);
-  else if (action === "save-artifact") await saveArtifact(targetRoot, options);
-  else if (action === "record-decision") await recordDecision(targetRoot, options);
-  else if (action === "migrate") await migrate(targetRoot, options);
-  else if (action === "repair-index") await repairIndex(targetRoot, options);
-  else if (action === "record-exercise") await recordExerciseAction(targetRoot, options);
-  else if (action === "schedule-review") await scheduleReviewAction(targetRoot, options);
-} catch (error) {
-  process.stderr.write(
-    `${formatTargetError(error) ?? `Project memory failed: ${error.message}`}\n`,
-  );
-  process.exitCode = 1;
 }
