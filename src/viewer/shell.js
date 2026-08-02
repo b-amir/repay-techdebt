@@ -192,6 +192,7 @@ ${sidebarHtml}
 <main class="ds-main">${sidebarToggleButton("ds-sidebar-toggle-float", false)}<div class="ds-main-inner">${mainHtml}</div></main>
 </div>
 ${viewSettingsPanel()}
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 <script>${CLIENT_SCRIPT}</script>
 </body>
 </html>`;
@@ -369,20 +370,25 @@ export function renderLesson({
   const buttonLabel = completed ? "Mark not done" : "Mark done";
   const button = `<button type="button" class="${buttonClass}" data-lesson="${escapeHtml(lessonKey)}" data-completed="${completed ? "true" : "false"}">${buttonLabel}</button>`;
   const prevHtml = prev
-    ? `<a class="ds-btn-ghost" href="${lessonHref(prev.key)}" rel="prev">← ${escapeHtml(prev.title)}</a>`
-    : "";
+    ? `<a class="ds-lesson-nav ds-lesson-nav-prev" href="${lessonHref(prev.key)}" rel="prev">
+        <span class="ds-lesson-nav-kicker">Previous</span>
+        <span class="ds-lesson-nav-title">${escapeHtml(prev.title)}</span>
+      </a>`
+    : `<span class="ds-lesson-nav ds-lesson-nav-prev ds-lesson-nav-empty" aria-hidden="true"></span>`;
   const nextHtml = next
-    ? `<a class="ds-btn-ghost" href="${lessonHref(next.key)}" rel="next">${escapeHtml(next.title)} →</a>`
-    : "";
-  const prevNext =
-    prevHtml || nextHtml
-      ? `<nav class="ds-prevnext" aria-label="Lesson navigation">${prevHtml}${nextHtml}</nav>`
-      : "";
+    ? `<a class="ds-lesson-nav ds-lesson-nav-next" href="${lessonHref(next.key)}" rel="next">
+        <span class="ds-lesson-nav-kicker">Next</span>
+        <span class="ds-lesson-nav-title">${escapeHtml(next.title)}</span>
+      </a>`
+    : `<span class="ds-lesson-nav ds-lesson-nav-next ds-lesson-nav-empty" aria-hidden="true"></span>`;
+  const footer = `<footer class="ds-lesson-footer">
+    <nav class="ds-lesson-nav-row" aria-label="Lesson navigation">${prevHtml}${nextHtml}</nav>
+    <div class="ds-lesson-footer-actions">${button}</div>
+  </footer>`;
   const main = `<article class="ds-plaque">
     <h1 class="ds-plaque-title">${escapeHtml(title)}</h1>
     <div class="ds-plaque-body">${wrapClaims(bodyHtml)}</div>
-    <div class="ds-plaque-actions">${button}</div>
-    ${prevNext}
+    ${footer}
   </article>`;
   return renderShell({
     documentTitle: `${title} · ${workbookTitle}`,

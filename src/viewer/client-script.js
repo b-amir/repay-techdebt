@@ -58,6 +58,29 @@ export const CLIENT_SCRIPT = `
       btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
       btn.setAttribute("aria-label", collapsed ? "Show sidebar" : "Hide sidebar");
     });
+    renderMermaid();
+  }
+
+  function renderMermaid() {
+    if (!window.mermaid) return;
+    var theme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "neutral";
+    window.mermaid.initialize({
+      startOnLoad: false,
+      theme: theme,
+      securityLevel: "strict",
+      fontFamily: "Source Sans 3, system-ui, sans-serif",
+    });
+    var nodes = document.querySelectorAll(".ds-mermaid-wrap .mermaid:not([data-processed])");
+    if (!nodes.length) return;
+    window.mermaid.run({ nodes: nodes })
+      .then(function () {
+        nodes.forEach(function (node) {
+          node.setAttribute("data-processed", "true");
+        });
+      })
+      .catch(function (err) {
+        console.error("mermaid render failed", err);
+      });
   }
 
   function bindPrefs() {
@@ -72,6 +95,10 @@ export const CLIENT_SCRIPT = `
         next[key] = val;
         if (key === "theme") next.themeChosen = true;
         writePrefs(next);
+        if (key === "theme" && document.querySelector(".ds-mermaid-wrap")) {
+          window.location.reload();
+          return;
+        }
         applyPrefs(next);
       });
     });
@@ -170,6 +197,7 @@ export const CLIENT_SCRIPT = `
     bindSettingsPanel();
     bindSidebarToggle();
     bindCopyButtons();
+    renderMermaid();
 
     var btn = document.querySelector(".ds-mark-done");
     if (btn) {

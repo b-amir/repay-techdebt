@@ -185,6 +185,7 @@ test("mini-curriculum save-lesson exposes viewer hint and server lists the lesso
     assert.match(html, /ds-shell/);
     assert.match(html, /Request boundary/);
     assert.match(html, /Mark done/);
+    assert.match(html, /ds-lesson-footer/);
 
     const completion = await fetch(`http://127.0.0.1:${port}/api/completion`, {
       method: "POST",

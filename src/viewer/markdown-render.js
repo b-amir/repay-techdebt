@@ -2,6 +2,34 @@
 // Security: html:false (raw HTML in lessons is escaped, never interpreted),
 // linkify on, and external links get rel="noopener" so loopback context stays safe.
 import MarkdownIt from "markdown-it";
+import markdownItMultimdTable from "markdown-it-multimd-table";
+import hljs from "highlight.js/lib/common";
+
+const LANG_ALIASES = {
+  ts: "typescript",
+  js: "javascript",
+  py: "python",
+  sh: "bash",
+  yml: "yaml",
+};
+
+const LANG_LABELS = {
+  typescript: "TypeScript",
+  javascript: "JavaScript",
+  python: "Python",
+  bash: "Bash",
+  yaml: "YAML",
+  json: "JSON",
+  sql: "SQL",
+  rust: "Rust",
+  go: "Go",
+  java: "Java",
+  csharp: "C#",
+  html: "HTML",
+  css: "CSS",
+  markdown: "Markdown",
+  plaintext: "Plain text",
+};
 
 const md = new MarkdownIt({
   html: false,
@@ -9,6 +37,56 @@ const md = new MarkdownIt({
   linkify: true,
   typographer: false,
 });
+
+md.use(markdownItMultimdTable, {
+  multiline: true,
+  rowspan: true,
+  headerless: false,
+});
+
+function escapeFenceText(text) {
+  return String(text ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;");
+}
+
+function resolveLanguage(info) {
+  const raw = String(info ?? "").trim().split(/\s+/)[0];
+  if (!raw) return "";
+  const lower = raw.toLowerCase();
+  return LANG_ALIASES[lower] ?? lower;
+}
+
+function languageLabel(lang) {
+  if (!lang) return "Code";
+  return LANG_LABELS[lang] ?? lang.replace(/^\w/, (c) => c.toUpperCase());
+}
+
+function highlightCode(code, lang) {
+  if (lang && hljs.getLanguage(lang)) {
+    return { html: hljs.highlight(code, { language: lang }).value, lang };
+  }
+  const auto = hljs.highlightAuto(code);
+  return { html: auto.value, lang: auto.language ?? "" };
+}
+
+md.renderer.rules.fence = function renderFence(tokens, idx) {
+  const token = tokens[idx];
+  const info = token.info.trim();
+  const code = token.content;
+
+  if (info.split(/\s+/)[0].toLowerCase() === "mermaid") {
+    return `<div class="ds-mermaid-wrap"><pre class="mermaid">${escapeFenceText(code)}</pre></div>\n`;
+  }
+
+  const lang = resolveLanguage(info);
+  const { html, lang: resolvedLang } = highlightCode(code, lang);
+  const label = languageLabel(resolvedLang || lang);
+  const langClass = resolvedLang || lang ? ` language-${resolvedLang || lang}` : "";
+
+  return `<div class="ds-codeblock">
+  <div class="ds-codeblock-header"><span class="ds-codeblock-lang">${label}</span></div>
+  <pre class="hljs"><code class="hljs${langClass}">${html}</code></pre>
+</div>\n`;
+};
 
 // Harden rendered anchors: external links open in a new browsing context with noopener.
 const defaultLinkRenderer =
