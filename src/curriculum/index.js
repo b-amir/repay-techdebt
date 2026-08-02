@@ -17,3 +17,5 @@ export { applyLearnerProfile } from "./learner-profile.js";
 export { deduplicateAndSplitTopics } from "./topic-decomposition.js";
 
 export { runTopicWorkflow } from "./topic-workflow.js";
+
+export { buildTeachingCurriculum, TEACHING_CHAPTER } from "./mini-curriculum.js";

@@ -138,6 +138,10 @@ Session-only operation creates no durable memory.
 7. **Qualify and teach.** Mechanical lesson QA plus one agent semantic pass; cite paths and lines;
    end with gaps and a tool-use ledger.
 
+For maintenance flags (`--clear-output`, `--reset`, `--reconfig`, `--view`), the local workbook
+viewer, and CLI examples, see **[docs/manual.md](docs/manual.md)**. Control-flow and exit-code
+detail lives in **[docs/how-it-works.md](docs/how-it-works.md)**.
+
 The bundled registry currently includes 16 program/language packs, 10 framework packs, and 17
 cross-cutting lenses spanning correctness, security, performance, reliability, data integrity,
 privacy, accessibility, cost, reproducibility, memory safety, offline behavior, and quality.
@@ -263,6 +267,9 @@ workbook, balanced depth, ask-before-save, and ask-before-fallback.
 ```text
 repay-techdebt/
 ├── SKILL.md                 # vendor-neutral agent workflow
+├── docs/
+│   ├── manual.md            # maintenance flags, viewer, CLI quick reference
+│   └── how-it-works.md      # control-flow contracts and exit codes
 ├── agents/openai.yaml       # optional product metadata
 ├── packs/                   # languages, frameworks, capabilities, lenses
 ├── references/              # evidence, analysis, memory, tools, runtime contracts

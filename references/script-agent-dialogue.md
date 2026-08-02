@@ -73,13 +73,15 @@ Script: plan-lesson.js … --format json
 Agent: draft lesson from verified anchors
 Script: check-lesson-quality.js <draft.md>
 Agent: semantic checklist; ≤1 rewrite
-Script: project-memory.js save-lesson … (per save policy)
+Script: project-memory.js save-curriculum … (mini-curriculum when no full workbook yet)
+Script: project-memory.js save-lesson … --topic-id … (per save policy)
+Script: view-lessons.js <target-root> [--open] [--lesson …] (after lesson-saved)
 Agent: tool ledger + gaps + next concepts
 ```
 
 Skip whole-repo `find-patterns.js` unless the agent passes explicit `--all` for teaching leads, or
 uses `--scope <path>` for a residual gap. Output is `teachingLeads` (`notExhaustive: true`).
-Skip `plan-curriculum.js`.
+Skip `plan-curriculum.js` (use mini-curriculum for durable saves).
 
 ## Mode: PR Mentor
 
@@ -92,7 +94,9 @@ Agent: pick 1–3 teaching points (not every hunk)
 Compose → check → semantic → save? → ledger
 ```
 
-Skip `plan-curriculum.js` unless the user asks for a workbook from the PR.
+Create or append a mini-curriculum (`buildTeachingCurriculum` → `save-curriculum`) before any
+durable `save-lesson` so lessons always link from `INDEX.md`. A second teach appends new topics
+under chapter **Recent teaching**.
 
 ## Mode: whole-app workbook
 

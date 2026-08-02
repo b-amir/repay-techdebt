@@ -15,6 +15,7 @@ import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { promisify } from "node:util";
 import { test } from "vite-plus/test";
+import { buildTeachingCurriculum } from "../src/curriculum/index.js";
 
 const execute = promisify(execFile);
 const root = resolve(import.meta.dirname, "..");
@@ -73,6 +74,23 @@ async function absent(path) {
   } catch {
     return true;
   }
+}
+
+async function saveTeachingCurriculum(target, subjects, environment = {}) {
+  const targetRoot = await realpath(target);
+  const curriculum = buildTeachingCurriculum({
+    targetRoot,
+    approvedAt: "2026-08-02T12:00:00.000Z",
+    subjects,
+  });
+  const curriculumPath = resolve(targetRoot, ".repay-teaching-curriculum.json");
+  await writeFile(curriculumPath, `${JSON.stringify(curriculum, null, 2)}\n`);
+  const saved = await run(
+    ["save-curriculum", target, "--input", curriculumPath, "--yes"],
+    environment,
+  );
+  assert.equal(saved.code, 0, saved.stderr);
+  return curriculum;
 }
 
 test("first run is read-only and initialization requires explicit consent", async () => {
@@ -174,9 +192,18 @@ test("initializes memory, saves a checked Markdown lesson, and records a decisio
     assert.equal(initializedResult.graphifyIgnoreUpdated, true);
     assert.match(await readFile(resolve(target, ".graphifyignore"), "utf8"), /\.repay-techdebt\//);
 
+    const curriculum = await saveTeachingCurriculum(target, [
+      {
+        title: "Dependency Direction",
+        focus: "dependency-direction-boundary",
+        evidencePaths: ["src/routes/admin.ts", "src/auth/permission.ts"],
+      },
+    ]);
     const saved = await run([
       "save-lesson",
       target,
+      "--topic-id",
+      curriculum.topics[0].id,
       "--title",
       "Dependency Direction",
       "--input",
@@ -651,10 +678,31 @@ test("existing private lessons can be exported to a visible workbook without del
     const memoryRoot = JSON.parse(initialized.stdout).memoryRoot;
     const draft = resolve(base, "lesson.md");
     await writeFile(draft, validConciseLesson());
+    const curriculum = await saveTeachingCurriculum(
+      target,
+      [
+        {
+          title: "Request boundary",
+          focus: "request-boundary-export",
+          evidencePaths: ["src/routes/admin.ts", "src/auth/permission.ts"],
+        },
+      ],
+      environment,
+    );
     assert.equal(
       (
         await run(
-          ["save-lesson", target, "--title", "Request boundary", "--input", draft, "--yes"],
+          [
+            "save-lesson",
+            target,
+            "--topic-id",
+            curriculum.topics[0].id,
+            "--title",
+            "Request boundary",
+            "--input",
+            draft,
+            "--yes",
+          ],
           environment,
         )
       ).code,

@@ -32,6 +32,7 @@ target root keeps projects separate. `REPAY_TECHDEBT_STATE_DIR` and
 
 <parent-of-git-root>/repay-<project>-techdebt/
 ├── INDEX.md
+├── progress.json              # learner completion (viewer + mark-done API)
 └── lessons/
     └── YYYY-MM-DD-lesson-title.md
 ```
@@ -163,6 +164,8 @@ node <skill-root>/scripts/project-memory.js save-curriculum <target-root> \
 node <skill-root>/scripts/project-memory.js save-lesson <target-root> \
   --topic-id <topic-id> --title "Lesson title" --input <temporary-markdown-file> --yes
 
+node <skill-root>/scripts/view-lessons.js <target-root> [--open] [--lesson <lessons/...>]
+
 node <skill-root>/scripts/project-memory.js record-decision <target-root> \
   --scope project --decision "..." --reason "..." --yes
 
@@ -172,10 +175,31 @@ node <skill-root>/scripts/project-memory.js save-artifact <target-root> \
 
 Lesson paths are relative to `outputRoot`; artifact paths are relative to `memoryRoot`. Curriculum
 JSON is canonical private state, while `INDEX.md` is its readable rendering. Saving a lesson marks
-its topic written and links it from the index. Drafts must pass the configured lesson-quality check
+its topic written and links it from the index. **Always a workbook:** durable saves require a
+curriculum with topics (full workbook or mini-curriculum under **Recent teaching**). Saving
+without `--topic-id` when topics exist throws; saving with no curriculum emits
+`workbook-linkage-required` (exit 2) after quality checks. A successful save emits `lesson-saved`
+with `viewer: { script, deepLinkRel }` for the local browser viewer.
+
+Drafts must pass the configured lesson-quality check
 and Secretlint. Snapshots require
 `--verified`. Notebooks are parsed, Secretlint-checked, and stripped of outputs and execution
 counts. Inputs are capped at 10 MiB. Lesson saves use a lock and atomic index replacement.
+
+## Maintenance and fresh starts
+
+See `<skill-root>/docs/manual.md` for the full command reference.
+
+```text
+node <skill-root>/scripts/project-memory.js clear-output <target-root> [--keep-lessons] [--keep-config] [--revert-target-markers] [--dry-run] --yes
+node <skill-root>/scripts/project-memory.js clear-cache <target-root> [--dry-run] --yes
+node <skill-root>/scripts/project-memory.js reset <target-root> [--dry-run] --yes
+node <skill-root>/scripts/project-memory.js reconfig <target-root> [--mode …] [--depth …] [--save-policy …] [--interactive] --yes
+node <skill-root>/scripts/project-memory.js open-viewer <target-root>
+```
+
+Maintenance deletes only repay-techdebt memory, sister workbook output, disposable cache, and
+optional target `.repay-techdebt/` markers — never application source.
 
 ## Privacy and analysis boundaries
 

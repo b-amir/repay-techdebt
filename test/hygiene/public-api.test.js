@@ -78,6 +78,21 @@ const BARRELS = [
       "applyLearnerProfile",
       "deduplicateAndSplitTopics",
       "runTopicWorkflow",
+      "buildTeachingCurriculum",
+      "TEACHING_CHAPTER",
+    ],
+  },
+  {
+    name: "viewer",
+    file: "../../src/viewer/index.js",
+    keys: [
+      "resolveWorkbook",
+      "readProgress",
+      "setCompletion",
+      "renderMarkdown",
+      "buildSidebar",
+      "createViewerServer",
+      "renderLesson",
     ],
   },
   {

@@ -35,6 +35,21 @@ explicitly to every script. If roots are equal or the target is inside the skill
 the skill is nested in the target, exclude that skill path from every scan. Never use skill source
 as application evidence.
 
+## Activation flags (run before analysis)
+
+If the user invokes the skill with a maintenance flag, run the matching `project-memory.js` action
+on `<target-root>` first. Full manual: `<skill-root>/docs/manual.md`.
+
+| User flag        | Action         | Notes                                                                             |
+| ---------------- | -------------- | --------------------------------------------------------------------------------- |
+| `--clear-output` | `clear-output` | Skill memory + workbook + curriculum. Never app source. `--dry-run` then `--yes`. |
+| `--clear-cache`  | `clear-cache`  | Analyzer cache only.                                                              |
+| `--reset`        | `reset`        | Output + cache.                                                                   |
+| `--reconfig`     | `reconfig`     | Update mode/depth/save-policy in existing config.                                 |
+| `--view`         | `open-viewer`  | Script-owned browser UI only — never hand-build viewer HTML.                      |
+
+Modifiers: `--keep-lessons`, `--keep-config`, `--revert-target-markers`, `--dry-run` (preview).
+
 ## Script ↔ agent contract
 
 | Scripts                                                                 | Agent                                                                                  |
@@ -97,8 +112,9 @@ Read the matching path in `references/script-agent-dialogue.md`. Execution detai
 
 Agent questions → Graphify/Serena (or approved `query-program-model.js`) → verify anchors in
 source → optional scoped gap-fill (`find-patterns.js --scope <path>` or other scans) → teach
-handshake below. Skip `plan-curriculum.js`. Do not run whole-repo `find-patterns.js` unless you
-pass explicit `--all` for teaching leads.
+handshake below. Before a durable save, create or append a mini-curriculum so the lesson links from
+`INDEX.md`. Skip `plan-curriculum.js` (use `buildTeachingCurriculum` + `save-curriculum` instead).
+Do not run whole-repo `find-patterns.js` unless you pass explicit `--all` for teaching leads.
 
 Graphify (ask before install/extract):
 
@@ -109,7 +125,9 @@ node <skill-root>/scripts/run-graphify.js paths|extract|query <target-root> …
 ### PR Mentor
 
 Gather diff via GitHub MCP or `get-pr-changes.js` (exclude `.repay-techdebt/`). Re-rank around
-changed symbols; retrieve blast radius; teach 1–3 points. Skip curriculum unless asked.
+changed symbols; retrieve blast radius; teach 1–3 points. Before a durable save, create or append a
+mini-curriculum (`buildTeachingCurriculum` → `save-curriculum`) so every lesson links from
+`INDEX.md` — same workbook shape as whole-app mode.
 
 ### Whole-app workbook
 
@@ -154,11 +172,16 @@ node <skill-root>/scripts/evaluate-lesson.js <target-root> <draft.md> --depth <c
 
 5. **Agent B4b + B6 sense:** PRIMM moves without empty process headings; claim decomposition
    (`CLAIMS:` with support yes|no|gap). ≤1 rewrite if quality, evidence, faithfulness, or sense failed.
-6. **Script save** via `project-memory.js save-lesson` when policy/`--topic-id` allows; else ask.
-   Explicit `CLAIMS:` failures block save. Record checkpoint replies in a trajectory and optionally
-   validate with `check-trajectory.js`.
-7. **Agent ledger:** every tool, operation, outcome, fallback, limitation; unresolved gaps; next
-   concepts; checkpoint skips.
+6. **Script save** via `project-memory.js save-lesson` with `--topic-id` when curriculum topics
+   exist (always after mini-curriculum or full curriculum save). Explicit `CLAIMS:` failures block
+   save. On `lesson-saved`, open or offer the workbook viewer:
+
+```text
+node <skill-root>/scripts/view-lessons.js <target-root> [--open] [--lesson <lessons/...>]
+```
+
+The save emit includes `viewer.script` and `viewer.deepLinkRel`. Always show Markdown paths too. 7. **Agent ledger:** every tool, operation, outcome, fallback, limitation; unresolved gaps; next
+concepts; checkpoint skips.
 
 ## Enhanced tools (pointers only)
 

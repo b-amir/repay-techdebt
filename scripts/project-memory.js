@@ -1,4 +1,4 @@
-import { execFile } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   appendFile,
@@ -15,6 +15,7 @@ import {
 import { basename, dirname, relative, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
+import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { isSameOrInside, resolveTargetRoot, skillRoot } from "../src/foundations/targeting.js";
 import {
@@ -29,6 +30,11 @@ import { renderCurriculumMarkdown } from "../src/curriculum/curriculum-planning.
 import { evaluateLessonForSave } from "../src/lessons/save-lesson.js";
 import { recordExercise, scheduleReview } from "../src/memory/learning-progress.js";
 import { validateCurriculum } from "../src/curriculum/approve-curriculum.js";
+import {
+  executeSkillMaintenance,
+  planSkillCacheClear,
+  planSkillMaintenance,
+} from "../src/memory/skill-maintenance.js";
 
 export { resolveMemoryPaths } from "../src/foundations/memory-paths.js";
 
@@ -57,7 +63,13 @@ corroboratedTopicIds for naming-heuristic topics, acceptedPartialScope when cove
   node project-memory.js save-artifact <target-root> --type atlas|snapshot|notebook --title <title> --input <file> [--verified] --yes
   node project-memory.js migrate <target-root> --yes
   node project-memory.js repair-index <target-root> --yes
+  node project-memory.js clear-output <target-root> [--keep-lessons] [--keep-config] [--revert-target-markers] [--dry-run] --yes
+  node project-memory.js clear-cache <target-root> [--dry-run] --yes
+  node project-memory.js reset <target-root> [--keep-lessons] [--keep-config] [--revert-target-markers] [--dry-run] --yes
+  node project-memory.js reconfig <target-root> [--mode ask|pr|workbook] [--depth concise|balanced|deep] [--save-policy ask|automatic] [--interactive] --yes
+  node project-memory.js open-viewer <target-root> [--port <n>] [--open] [--lesson <lessons/...>]
 
+Maintenance removes only repay-techdebt memory, workbook output, and analyzer cache — never application source.
 Private-external machine memory plus a discoverable sister workbook is the default and leaves the
 target unchanged. --sharing team|local is a legacy alias for --storage team|project-local. Status is read-only. Mutations require consent.
 Agents should ask in conversation and pass --yes; --interactive is for human terminal use.
@@ -75,7 +87,11 @@ function parseArguments(argv) {
     const argument = rest[index];
     if (!argument.startsWith("--")) throw new Error(`Unexpected argument: ${argument}`);
     const name = argument.slice(2);
-    if (new Set(["yes", "interactive", "allow-non-git", "verified"]).has(name))
+    if (new Set(["yes", "interactive", "allow-non-git", "verified", "dry-run", "open"]).has(name))
+      options[name] = true;
+    else if (
+      new Set(["keep-lessons", "keep-config", "revert-target-markers", "include-cache"]).has(name)
+    )
       options[name] = true;
     else {
       if (index + 1 >= rest.length || rest[index + 1].startsWith("--"))
@@ -777,11 +793,6 @@ async function uniqueLessonPath(paths, title) {
   throw new Error("Could not allocate a unique lesson filename");
 }
 
-async function appendLessonIndex(paths, line) {
-  const current = await readFile(paths.lessonIndex, "utf8");
-  await replaceLessonIndex(paths, `${current}${line}`);
-}
-
 async function replaceLessonIndex(paths, content) {
   const temporary = resolve(
     dirname(paths.lessonIndex),
@@ -1053,7 +1064,7 @@ async function saveLesson(targetRoot, options) {
       return;
     }
     await writeFile(candidate.path, content, { encoding: "utf8", flag: "wx" });
-    const date = new Date().toISOString().slice(0, 10);
+    const lessonRel = relative(workbook.root, candidate.path).replaceAll("\\", "/");
     try {
       if (topic) {
         const previousCurriculum = structuredClone(curriculum);
@@ -1080,10 +1091,19 @@ async function saveLesson(targetRoot, options) {
           throw error;
         }
       } else {
-        await appendLessonIndex(
-          workbook,
-          `| ${date} | [${markdownLabel(title)}](./${candidate.name}) | ${config.defaults.mode} |\n`,
-        );
+        // Always a workbook: a durable lesson save must link into a curriculum.
+        // One-shot teaches create/append a mini-curriculum (chapter "Recent teaching")
+        // first, then save-lesson --topic-id. Drafts that are never persisted are unaffected.
+        await rm(candidate.path, { force: true });
+        emit({
+          type: "workbook-linkage-required",
+          status: "not-saved",
+          targetRoot,
+          requiredAction:
+            "Create or append a mini-curriculum first (project-memory.js save-curriculum), then rerun save-lesson with --topic-id. Skipping curriculum is only allowed for non-persisted drafts.",
+        });
+        process.exitCode = 2;
+        return;
       }
     } catch (error) {
       await rm(candidate.path, { force: true });
@@ -1096,7 +1116,8 @@ async function saveLesson(targetRoot, options) {
       memoryRoot: paths.root,
       outputRoot: workbook.root,
       topicId: topic?.id ?? null,
-      file: relative(workbook.root, candidate.path).replaceAll("\\", "/"),
+      file: lessonRel,
+      viewer: { script: "scripts/view-lessons.js", deepLinkRel: lessonRel },
     });
   } finally {
     await rm(paths.lessonLock, { force: true, recursive: true });
@@ -1519,7 +1540,230 @@ async function scheduleReviewAction(targetRoot, options) {
   process.stdout.write("Review scheduled.\n");
 }
 
-import { fileURLToPath } from "node:url";
+function maintenanceFlags(options) {
+  return {
+    keepLessons: !!options["keep-lessons"],
+    keepConfig: !!options["keep-config"],
+    revertTargetMarkers: !!options["revert-target-markers"],
+  };
+}
+
+async function resolveMaintenanceContext(targetRoot, options) {
+  let config = null;
+  let workbookRoot = null;
+  try {
+    const paths = await resolveMemoryPaths(targetRoot, options);
+    if (await pathExists(paths.config)) {
+      ({ config } = await readConfig(paths));
+      workbookRoot = workbookPaths(paths, config).root;
+    }
+  } catch {
+    // first-run or broken memory — still plan filesystem paths
+  }
+  return { config, workbookRoot };
+}
+
+function summarizeMaintenancePlan(plan) {
+  return {
+    removeDirectories: plan.removeDirectories,
+    removeFiles: plan.removeFiles,
+    preservePaths: plan.preservePaths,
+    insideTarget: plan.insideTarget,
+    outsideTarget: plan.outsideTarget,
+    memoryRoots: plan.memoryRoots,
+    workbookRoot: plan.workbookRoot,
+    cacheRoot: plan.cacheRoot,
+    revertTargetMarkers: plan.markerRevert.length > 0,
+  };
+}
+
+async function runMaintenanceAction(targetRoot, options, { type, includeCache }) {
+  const ctx = await resolveMaintenanceContext(targetRoot, options);
+  const plan = includeCache
+    ? await planSkillMaintenance(targetRoot, {
+        ...maintenanceFlags(options),
+        includeCache: true,
+        config: ctx.config,
+        workbookRoot: ctx.workbookRoot,
+      })
+    : await planSkillMaintenance(targetRoot, {
+        ...maintenanceFlags(options),
+        includeCache: false,
+        config: ctx.config,
+        workbookRoot: ctx.workbookRoot,
+      });
+  const empty =
+    plan.removeDirectories.length === 0 &&
+    plan.removeFiles.length === 0 &&
+    plan.markerRevert.length === 0;
+  if (empty) {
+    emit({ type: `${type}-not-needed`, status: "ready", targetRoot });
+    return;
+  }
+  const summary = summarizeMaintenancePlan(plan);
+  if (options["dry-run"]) {
+    emit({ type: `${type}-preview`, status: "preview", targetRoot, plan: summary });
+    return;
+  }
+  if (!options.yes) {
+    emit({
+      type: "consent-required",
+      status: "not-cleared",
+      targetRoot,
+      action: type,
+      plan: summary,
+      requiredAction: `Approve ${type.replace(/-/g, " ")}, then rerun with --yes.`,
+    });
+    process.exitCode = 2;
+    return;
+  }
+  const result = await executeSkillMaintenance(plan);
+  emit({
+    type: `${type}-completed`,
+    status: "cleared",
+    targetRoot,
+    removed: result.removed,
+    markerUpdates: result.markerUpdates,
+    plan: summary,
+  });
+}
+
+async function clearOutput(targetRoot, options) {
+  await runMaintenanceAction(targetRoot, options, { type: "clear-output", includeCache: false });
+}
+
+async function clearCache(targetRoot, options) {
+  const plan = await planSkillCacheClear(targetRoot);
+  const empty = plan.removeDirectories.length === 0;
+  if (empty) {
+    emit({ type: "clear-cache-not-needed", status: "ready", targetRoot });
+    return;
+  }
+  const summary = summarizeMaintenancePlan(plan);
+  if (options["dry-run"]) {
+    emit({ type: "clear-cache-preview", status: "preview", targetRoot, plan: summary });
+    return;
+  }
+  if (!options.yes) {
+    emit({
+      type: "consent-required",
+      status: "not-cleared",
+      targetRoot,
+      action: "clear-cache",
+      plan: summary,
+      requiredAction: "Approve cache clear, then rerun with --yes.",
+    });
+    process.exitCode = 2;
+    return;
+  }
+  const result = await executeSkillMaintenance(plan);
+  emit({
+    type: "clear-cache-completed",
+    status: "cleared",
+    targetRoot,
+    removed: result.removed,
+    plan: summary,
+  });
+}
+
+async function resetSkillState(targetRoot, options) {
+  await runMaintenanceAction(targetRoot, options, { type: "reset", includeCache: true });
+}
+
+async function askReconfigWizard(existing, options) {
+  if (!stdin.isTTY || !stdout.isTTY)
+    throw new Error("--interactive requires a terminal; agents must ask in chat and use --yes");
+  const prompt = createInterface({ input: stdin, output: stdout });
+  try {
+    const mode = (
+      await prompt.question(`Default mode (ask/pr/workbook) [${existing.defaults.mode}]: `)
+    ).trim();
+    if (mode) options.mode = mode;
+    const depth = (
+      await prompt.question(
+        `Lesson depth (concise/balanced/deep) [${existing.defaults.lessonDepth}]: `,
+      )
+    ).trim();
+    if (depth) options.depth = depth;
+    const automatic = (
+      await prompt.question(
+        `Auto-save explicitly requested lessons? [${existing.output.savePolicy === "automatic" ? "Y/n" : "y/N"}] `,
+      )
+    ).trim();
+    if (automatic) options["save-policy"] = /^y(?:es)?$/i.test(automatic) ? "automatic" : "ask";
+    const confirmed = (await prompt.question("Apply preference changes now? [y/N] ")).trim();
+    options.yes = /^y(?:es)?$/i.test(confirmed);
+  } finally {
+    prompt.close();
+  }
+  return options;
+}
+
+async function reconfig(targetRoot, initialOptions) {
+  const paths = await resolveMemoryPaths(targetRoot, initialOptions);
+  const { config: existing } = await readConfig(paths);
+  const options = initialOptions.interactive
+    ? await askReconfigWizard(existing, { ...initialOptions })
+    : initialOptions;
+  const csv = (value) =>
+    String(value ?? "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  const proposed = structuredClone(existing);
+  if (options.mode) {
+    if (!MODES.has(options.mode)) throw new Error("--mode must be ask, pr, or workbook");
+    proposed.defaults.mode = options.mode;
+  }
+  if (options.depth) {
+    if (!DEPTHS.has(options.depth)) throw new Error("--depth must be concise, balanced, or deep");
+    proposed.defaults.lessonDepth = options.depth;
+  }
+  if (options["save-policy"]) {
+    if (!SAVE_POLICIES.has(options["save-policy"]))
+      throw new Error("--save-policy must be ask or automatic");
+    proposed.output.savePolicy = options["save-policy"];
+  }
+  if (options["boundary-hints"] !== undefined)
+    proposed.analysis.boundaryHints = csv(options["boundary-hints"]);
+  if (options["critical-workflows"] !== undefined)
+    proposed.analysis.criticalWorkflows = csv(options["critical-workflows"]);
+  if (!options.yes) {
+    emit({
+      type: "consent-required",
+      status: "not-reconfigured",
+      targetRoot,
+      currentConfig: existing,
+      proposedConfig: proposed,
+      requiredAction: "Approve preference changes, then rerun with --yes.",
+    });
+    process.exitCode = 2;
+    return;
+  }
+  await replaceJsonFile(paths.config, proposed);
+  emit({
+    type: "reconfigured",
+    status: "ready",
+    targetRoot,
+    memoryRoot: paths.root,
+    config: proposed,
+  });
+}
+
+async function openViewer(targetRoot, options) {
+  const script = resolve(skillRoot, "scripts", "view-lessons.js");
+  const args = [script, targetRoot];
+  if (options.port) args.push("--port", options.port);
+  args.push("--open");
+  if (options.lesson) args.push("--lesson", options.lesson);
+  await new Promise((resolvePromise, reject) => {
+    const child = spawn(process.execPath, args, { stdio: "inherit" });
+    child.on("error", reject);
+    child.on("close", (code) =>
+      code === 0 ? resolvePromise() : reject(new Error(`Viewer exited with code ${code}`)),
+    );
+  });
+}
 
 if (import.meta.url.startsWith("file:") && process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
@@ -1537,11 +1781,16 @@ if (import.meta.url.startsWith("file:") && process.argv[1] === fileURLToPath(imp
         "migrate",
         "record-exercise",
         "schedule-review",
+        "clear-output",
+        "clear-cache",
+        "reset",
+        "reconfig",
+        "open-viewer",
       ]).has(action)
     ) {
       printHelp();
       throw new Error(
-        "Expected status, init, configure-output, save-curriculum, save-lesson, save-artifact, record-decision, migrate, repair-index, record-exercise, or schedule-review",
+        "Expected status, init, configure-output, save-curriculum, save-lesson, save-artifact, record-decision, migrate, repair-index, record-exercise, schedule-review, clear-output, clear-cache, reset, reconfig, or open-viewer",
       );
     }
     const { targetRoot } = await resolveTargetRoot(targetInput);
@@ -1556,6 +1805,11 @@ if (import.meta.url.startsWith("file:") && process.argv[1] === fileURLToPath(imp
     else if (action === "repair-index") await repairIndex(targetRoot, options);
     else if (action === "record-exercise") await recordExerciseAction(targetRoot, options);
     else if (action === "schedule-review") await scheduleReviewAction(targetRoot, options);
+    else if (action === "clear-output") await clearOutput(targetRoot, options);
+    else if (action === "clear-cache") await clearCache(targetRoot, options);
+    else if (action === "reset") await resetSkillState(targetRoot, options);
+    else if (action === "reconfig") await reconfig(targetRoot, options);
+    else if (action === "open-viewer") await openViewer(targetRoot, options);
   } catch (error) {
     if (error.code === "NO_MEMORY") {
       process.stderr.write(

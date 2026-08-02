@@ -520,7 +520,8 @@ proxies. **Exit 2 only if quality/citation floors fail.** Faithfulness/rubric ar
 | `--topic-id` unknown                            | Throw                                     |
 | Quality / citation / explicit faithfulness fail | `lesson-quality-failed`, exit 2           |
 | Secretlint fail                                 | `secret-risk`, exit 2                     |
-| Lock / write conflict                           | Conflict / busy handling, exit 2          |
+| Lock / write conflict                           | Conflict / busy handling, exit 1–2        |
+| No curriculum / no `--topic-id` after write     | `workbook-linkage-required`, exit 2       |
 | All OK                                          | Write lesson; update topic status + INDEX |
 
 `savePolicy` (`ask` \| `automatic`) is **stored preference for the agent**. The script always requires `--yes`; the agent decides whether to ask the user before passing it.
@@ -606,40 +607,42 @@ Evidence language: `references/evidence-contract.md`.
 
 ## 12. Key implementation files
 
-| Path                                    | Owns                                                         |
-| --------------------------------------- | ------------------------------------------------------------ |
-| `SKILL.md`                              | Activation, shared head, mode pointers, teach handshake      |
-| `references/script-agent-dialogue.md`   | Turn map, caps, mode paths, semantic checklist               |
-| `references/bottleneck-checkpoints.md`  | B0–B6 cards + CLAIMS format                                  |
-| `references/analysis-protocol.md`       | Phases 1–8 execution detail                                  |
-| `references/tool-integrations.md`       | Tool statuses, failure prompt, chains                        |
-| `references/project-memory.md`          | Storage modes, wizard, privacy                               |
-| `src/foundations/targeting.js`          | Root resolution refusals                                     |
-| `src/foundations/private-storage.js`    | Private vs project-local locate                              |
-| `src/foundations/memory-paths.js`       | `resolveMemoryPaths` / memory layout (CLI must not own this) |
-| `src/dialogue/dialogue-envelope.js`     | Envelope + `topicSignalClass`                                |
-| `src/program/program-model-schema.js`   | Zod schemas + `MODEL_VERSION`                                |
-| `src/program/program-scan.js`           | File discovery / classify helpers                            |
-| `src/program/program-coverage.js`       | Pure coverage aggregation                                    |
-| `src/program/plan-analysis-core.js`     | `planAnalysis` + `summarizeModel`                            |
-| `src/program/program-intelligence.js`   | Facade: `buildProgramModel` + re-exports                     |
-| `src/curriculum/curriculum-planning.js` | Curriculum proposal                                          |
-| `src/curriculum/curriculum-approval.js` | Approval / corroboration / partial-scope gates               |
-| `src/curriculum/curriculum-policy.js`   | Omnibus topic detection                                      |
-| `src/curriculum/approve-curriculum.js`  | `validateCurriculum` (approval + structural floors)          |
-| `src/lessons/claim-faithfulness.js`     | CLAIMS parse + snippet overlap                               |
-| `src/lessons/lesson-citation-check.js`  | Citation validity + shared extract                           |
-| `src/lessons/lesson-quality.js`         | Mechanical lesson QA                                         |
-| `src/lessons/save-lesson.js`            | `evaluateLessonForSave` + `runTeachFloors`                   |
-| `src/tools/analyzer-result.js`          | Shared analyzer result factory (no base-class port)          |
-| `src/dialogue/trajectory.js`            | Mode trajectories                                            |
-| `src/memory/curriculum-store.js`        | Read/write curriculum JSON                                   |
-| `src/memory/curriculum-refresh.js`      | Evidence digests + curriculum refresh                        |
-| `src/memory/learning-progress.js`       | Exercise records + review scheduling                         |
-| `src/evaluation/evaluation.js`          | Fixture curriculum evaluation runner                         |
-| `src/evaluation/evaluation-schema.js`   | Fixture + expectation Zod schemas                            |
-| `src/packs/pack-registry.js`            | Pack catalog load + detect                                   |
-| `scripts/project-memory.js`             | status/init/save-curriculum/save-lesson CLI                  |
+| Path                                      | Owns                                                         |
+| ----------------------------------------- | ------------------------------------------------------------ |
+| `SKILL.md`                                | Activation, shared head, mode pointers, teach handshake      |
+| `references/script-agent-dialogue.md`     | Turn map, caps, mode paths, semantic checklist               |
+| `references/bottleneck-checkpoints.md`    | B0–B6 cards + CLAIMS format                                  |
+| `references/analysis-protocol.md`         | Phases 1–8 execution detail                                  |
+| `references/tool-integrations.md`         | Tool statuses, failure prompt, chains                        |
+| `references/project-memory.md`            | Storage modes, wizard, privacy                               |
+| `src/foundations/targeting.js`            | Root resolution refusals                                     |
+| `src/foundations/private-storage.js`      | Private vs project-local locate                              |
+| `src/foundations/memory-paths.js`         | `resolveMemoryPaths` / memory layout (CLI must not own this) |
+| `src/dialogue/dialogue-envelope.js`       | Envelope + `topicSignalClass`                                |
+| `src/program/program-model-schema.js`     | Zod schemas + `MODEL_VERSION`                                |
+| `src/program/program-scan.js`             | File discovery / classify helpers                            |
+| `src/program/program-coverage.js`         | Pure coverage aggregation                                    |
+| `src/program/plan-analysis-core.js`       | `planAnalysis` + `summarizeModel`                            |
+| `src/program/program-intelligence.js`     | Facade: `buildProgramModel` + re-exports                     |
+| `src/curriculum/curriculum-planning.js`   | Curriculum proposal                                          |
+| `src/curriculum/curriculum-approval.js`   | Approval / corroboration / partial-scope gates               |
+| `src/curriculum/curriculum-policy.js`     | Omnibus topic detection                                      |
+| `src/curriculum/approve-curriculum.js`    | `validateCurriculum` (approval + structural floors)          |
+| `src/curriculum/mini-curriculum.js`       | `buildTeachingCurriculum` for PR/focused mini workbooks      |
+| `src/lessons/claim-faithfulness.js`       | CLAIMS parse + snippet overlap                               |
+| `src/lessons/lesson-citation-check.js`    | Citation validity + shared extract                           |
+| `src/lessons/lesson-quality.js`           | Mechanical lesson QA                                         |
+| `src/lessons/save-lesson.js`              | `evaluateLessonForSave` + `runTeachFloors`                   |
+| `src/tools/analyzer-result.js`            | Shared analyzer result factory (no base-class port)          |
+| `src/dialogue/trajectory.js`              | Mode trajectories                                            |
+| `src/memory/curriculum-store.js`          | Read/write curriculum JSON                                   |
+| `src/memory/curriculum-refresh.js`        | Evidence digests + curriculum refresh                        |
+| `src/memory/learning-progress.js`         | Exercise records + review scheduling                         |
+| `src/evaluation/evaluation.js`            | Fixture curriculum evaluation runner                         |
+| `src/evaluation/evaluation-schema.js`     | Fixture + expectation Zod schemas                            |
+| `src/packs/pack-registry.js`              | Pack catalog load + detect                                   |
+| `scripts/project-memory.js`               | status/init/save-curriculum/save-lesson CLI                  |
+| `src/viewer/*`, `scripts/view-lessons.js` | Local workbook browser (markdown-it, progress.json)          |
 
 ---
 
