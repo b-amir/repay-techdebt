@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "name": "unfaithful-claims",
+  "description": "Explicit CLAIMS with support:yes that the snippet does not support. Faithfulness check must fail.",
+  "topics": [],
+  "workflows": [],
+  "lessons": {},
+  "allowedSideEffects": []
+}

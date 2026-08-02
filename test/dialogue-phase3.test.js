@@ -57,11 +57,26 @@ test("corroborated naming-heuristic topics can be approved", () => {
   };
   applyAgentApproval(curriculum, {
     approvedAt: "2026-08-02T00:00:00.000Z",
+    purposeStatus: "accepted",
     corroboratedTopicIds: ["topic-bbbbbbbbbbbb"],
     acceptedPartialScope: "scoped billing-core study",
   });
   const check = validateAgentApproval(curriculum);
   assert.equal(check.ok, true, check.error);
+});
+
+test("purposeStatus is required on agentApproval", () => {
+  const check = validateAgentApproval({
+    schemaVersion: 1,
+    topics: [{ id: "topic-cccccccccccc", signalClass: "ast", focus: "x" }],
+    coverage: { modeledFiles: 1 },
+    agentApproval: {
+      approvedAt: "2026-08-02T00:00:00.000Z",
+      corroboratedTopicIds: [],
+    },
+  });
+  assert.equal(check.ok, false);
+  assert.match(check.error, /purposeStatus/);
 });
 
 test("unconventional-layout fixture plans billing subjects and dialogue envelopes", async () => {
@@ -117,6 +132,7 @@ test("unconventional-layout fixture plans billing subjects and dialogue envelope
 
     applyAgentApproval(curriculum, {
       approvedAt: new Date().toISOString(),
+      purposeStatus: "unresolved",
       corroboratedTopicIds: curriculum.topics
         .filter((topic) => topic.signalClass === "naming-heuristic")
         .map((topic) => topic.id),

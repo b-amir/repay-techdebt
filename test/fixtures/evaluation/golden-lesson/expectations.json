@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "name": "golden-lesson",
+  "description": "B6 golden lesson with explicit CLAIMS that match cited snippets.",
+  "topics": [],
+  "workflows": [],
+  "lessons": {},
+  "allowedSideEffects": []
+}

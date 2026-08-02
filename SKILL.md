@@ -9,9 +9,10 @@ Act as a senior engineering mentor. Teach from verified project evidence. Do not
 into a generic review or programming course.
 
 Scripts and the agent take turns from 0→100. Read
-`<skill-root>/references/script-agent-dialogue.md` at activation and follow its turn map, caps,
-source ranking, and mode paths. Scripts return proposals with `role`, `blindSpots`,
-`mustNotClaim`, and `nextAsks` — never treat them as finished truth.
+`<skill-root>/references/script-agent-dialogue.md` and
+`<skill-root>/references/bottleneck-checkpoints.md` at activation. Follow the turn map, caps,
+source ranking, mode paths, and B0–B6 checkpoint asks. Scripts return proposals with `role`,
+`blindSpots`, `mustNotClaim`, and `nextAsks` — never treat them as finished truth.
 
 ## Preserve the project
 
@@ -60,22 +61,22 @@ node <skill-root>/scripts/check-runtime.js --format table
 `templates/introduction-wizard.md` and `references/project-memory.md` (recommend private memory,
 sister workbook, `ask`/`balanced`/`ask`). Repair/migrate/unlock memory only with approval.
 
-**Script inventory → Agent purpose**
+**Script inventory → Agent B0/B1**
 
 ```text
 node <skill-root>/scripts/profile-project.js <target-root> [--scope <path>] --format json
 ```
 
-Accept or leave purpose/criticality unresolved. Prefer
+Complete checkpoint B0 (purpose ACCEPT|UNRESOLVED) and B1 (stack confirm/correct). Prefer
 `references/analysis-framework.md` and `references/evidence-contract.md` when ranking claims.
 
-**Script propose → Agent need/skip tools**
+**Script propose → Agent B2**
 
 ```text
 node <skill-root>/scripts/plan-analysis.js <target-root> --mode <pr|workbook|focused> --depth <concise|balanced|deep> [--focus <q>] [--scope <path>] --format summary-json
 ```
 
-Follow `nextAsks`. Mark toolChain steps needed or not needed.
+Follow `nextAsks`. Emit ≤5 retrieve questions (B2). Mark toolChain steps needed or not needed.
 
 **Script gate → Agent/user on failure**
 
@@ -118,9 +119,9 @@ After purpose + retrieve hubs, run the curriculum **proposal**, then agent short
 node <skill-root>/scripts/plan-curriculum.js <target-root> --format json
 ```
 
-Approve/demote/add subjects (corroborate `signalClass: naming-heuristic`). Persist only with
-`agentApproval` in the curriculum JSON (`approvedAt`, `corroboratedTopicIds`, and
-`acceptedPartialScope` when coverage is partial), then:
+Approve/demote/add subjects (B3; corroborate `signalClass: naming-heuristic`). Complete B4a order
+check. Persist only with `agentApproval` including `purposeStatus: accepted|unresolved`,
+`approvedAt`, `corroboratedTopicIds`, and `acceptedPartialScope` when coverage is partial:
 
 ```text
 node <skill-root>/scripts/project-memory.js save-curriculum <target-root> --input <approved.json> --yes
@@ -131,22 +132,33 @@ claims unless `acceptedPartialScope` is set.
 
 ## Teach handshake (compose → check → semantic → save)
 
-1. **Script propose:** `plan-lesson.js` (advisory shape; verify in live source).
+1. **Script propose:** `plan-lesson.js` (advisory shape; verify in live source). After retrieve,
+   complete B5 (verify ≤3 anchors).
 2. Read `templates/lesson-format.md`, `references/lesson-composition.md`,
-   `references/lesson-writing.md`.
+   `references/lesson-writing.md`, and B4b/B6 in `references/bottleneck-checkpoints.md`.
 3. **Agent draft** one subject, 3–8 clear sections, path:line citations, honest evidence language.
 4. **Script check:**
 
 ```text
 node <skill-root>/scripts/check-lesson-quality.js <draft.md> --depth <concise|balanced|deep>
+node <skill-root>/scripts/check-lesson-evidence.js <target-root> <draft.md>
+node <skill-root>/scripts/check-lesson-faithfulness.js <target-root> <draft.md>
 node <skill-root>/scripts/check-snippet-secrets.js <target-root> <snippet-file>
 ```
 
-5. **Agent semantic checklist** (dialogue ref): one outcome; relationship or named gap; evidence
-   states; no scanner-omnibus; source-rank honesty. ≤1 rewrite if either side failed.
+Optional report-only bundle (floors + pedagogy proxies + rubric scores; not a save gate):
+
+```text
+node <skill-root>/scripts/evaluate-lesson.js <target-root> <draft.md> --depth <concise|balanced|deep>
+```
+
+5. **Agent B4b + B6 sense:** PRIMM moves without empty process headings; claim decomposition
+   (`CLAIMS:` with support yes|no|gap). ≤1 rewrite if quality, evidence, faithfulness, or sense failed.
 6. **Script save** via `project-memory.js save-lesson` when policy/`--topic-id` allows; else ask.
+   Explicit `CLAIMS:` failures block save. Record checkpoint replies in a trajectory and optionally
+   validate with `check-trajectory.js`.
 7. **Agent ledger:** every tool, operation, outcome, fallback, limitation; unresolved gaps; next
-   concepts.
+   concepts; checkpoint skips.
 
 ## Enhanced tools (pointers only)
 

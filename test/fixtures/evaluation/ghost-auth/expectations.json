@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "name": "ghost-auth",
+  "description": "Tiny greeting module with no auth. Curriculum must not invent auth/security subjects as must-teach from naming alone; auth-like topics are forbidden.",
+  "topics": [
+    {
+      "id": "greeting",
+      "intent": "must-find",
+      "matchFocus": "greet",
+      "description": "The only real subject is greeting."
+    },
+    {
+      "id": "auth-session-security",
+      "intent": "forbidden",
+      "description": "No authentication code exists in this fixture."
+    }
+  ],
+  "workflows": [],
+  "lessons": {},
+  "allowedSideEffects": [],
+  "dialogue": {
+    "requireProposalEnvelope": true,
+    "requireNamingHeuristicDemotion": true
+  }
+}

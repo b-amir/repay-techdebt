@@ -5,6 +5,7 @@ import { rankCandidate } from "./curriculum-ranking.js";
 import { deduplicateAndSplitTopics } from "./topic-decomposition.js";
 import { buildStudyOrder } from "./curriculum-graph.js";
 import { applyLearnerProfile } from "./learner-profile.js";
+import { findOmnibusTopics } from "./claim-faithfulness.js";
 
 const NON_PRODUCT =
   /(^|\/)(?:test|tests|__tests__|spec|specs|fixtures|mocks|scripts|tools|docs?|examples?|generated|dist|build|coverage|vendor|node_modules|storybook-static|\.storybook|\.react-router|e2e)(\/|$)/i;
@@ -359,6 +360,7 @@ export function planCurriculum(model) {
           ? "core"
           : "deep-dive";
   });
+  const omnibus = findOmnibusTopics(selected);
   const dialogue = buildDialogueEnvelope({
     role: "propose",
     coverage: model.coverage,
@@ -368,6 +370,7 @@ export function planCurriculum(model) {
       "nonstandard-package-layouts",
       "dependency-injection-and-events",
       "naming-heuristic-chapter-bias",
+      ...(omnibus.length > 0 ? ["omnibus-topic-titles"] : []),
     ],
     extraMustNotClaim: ["complete-subject-inventory"],
     extraNextAsks: [
@@ -381,6 +384,19 @@ export function planCurriculum(model) {
         do: "graphify-query-hubs",
         why: "recover-subjects-regex-may-miss",
       },
+      ...(omnibus.length > 0
+        ? [
+            {
+              who: "agent",
+              do: "split-or-demote-omnibus-topics",
+              why: "b4a-one-outcome-per-topic",
+              question: `Split: ${omnibus
+                .slice(0, 4)
+                .map((topic) => topic.id)
+                .join(", ")}`,
+            },
+          ]
+        : []),
     ],
   });
   return {

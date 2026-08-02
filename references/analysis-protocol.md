@@ -69,9 +69,9 @@ conclusions must not imply observed production behavior. See `runtime-evidence.m
 node <skill-root>/scripts/plan-curriculum.js <target-root> --format json
 ```
 
-**Agent turn:** SHORTLIST approve/demote/add; corroborate `naming-heuristic` topics into
-`agentApproval.corroboratedTopicIds`. Set `acceptedPartialScope` when coverage is partial. Save only
-with that block present:
+**Agent turn:** SHORTLIST approve/demote/add; set `purposeStatus` to `accepted` or `unresolved`;
+corroborate `naming-heuristic` topics into `agentApproval.corroboratedTopicIds`. Set
+`acceptedPartialScope` when coverage is partial. Save only with that block present:
 
 ```text
 node <skill-root>/scripts/project-memory.js save-curriculum <target-root> --input <approved.json> --yes
@@ -81,8 +81,8 @@ Focused/PR modes skip this phase unless the user asks for a workbook.
 
 ## Phase 8: teach handshake (propose → draft → check → semantic → save)
 
-1. `plan-lesson.js` — advisory composition.
-2. Agent drafts from verified anchors.
-3. `check-lesson-quality.js` (+ secrets check as needed).
-4. Agent semantic checklist (`script-agent-dialogue.md`); ≤1 rewrite.
-5. Save per memory policy; end with tool ledger, gaps, and next concepts.
+1. `plan-lesson.js` — advisory composition; complete B5 verify after retrieve.
+2. Agent drafts from verified anchors (B4b).
+3. `check-lesson-quality.js` + `check-lesson-evidence.js` (+ secrets as needed).
+4. Agent B4b/B6 sense (PRIMM moves + claim decomposition); ≤1 rewrite.
+5. Save per memory policy; end with tool ledger, checkpoint skips, gaps, next concepts.

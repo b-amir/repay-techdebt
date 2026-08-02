@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "name": "omnibus-topic",
+  "description": "A curriculum proposal that tries to teach the whole app in one subject must be rejected (B4a).",
+  "topics": [],
+  "workflows": [],
+  "lessons": {},
+  "allowedSideEffects": [],
+  "dialogue": {
+    "forbidOmnibusTopics": true
+  }
+}

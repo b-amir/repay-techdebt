@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "name": "capture-settle-retrieve",
+  "description": "B5 retrieve fixture: capturePayment must call settle; agents should ask relationship questions before teaching.",
+  "topics": [
+    {
+      "id": "billing-capture",
+      "intent": "must-find",
+      "matchFocus": "capture",
+      "description": "Capture entry must appear as a study subject."
+    }
+  ],
+  "workflows": [
+    {
+      "id": "capture-to-settle",
+      "mustIncludeNodes": ["capturePayment", "settle"],
+      "mustIncludeEdges": [{ "from": "capturePayment", "to": "settle" }]
+    }
+  ],
+  "lessons": {},
+  "allowedSideEffects": [],
+  "dialogue": {
+    "requireRetrieveQuestions": true
+  }
+}

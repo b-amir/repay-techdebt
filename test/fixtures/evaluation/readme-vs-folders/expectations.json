@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "name": "readme-vs-folders",
+  "description": "Folder names suggest a widget UI feature app; README declares a payments capture service. Purpose must come from README/docs, not path regex.",
+  "topics": [
+    {
+      "id": "payments-purpose",
+      "intent": "must-find",
+      "matchFocus": "capture|payment",
+      "description": "Inventory should surface capture/payment, not invent an auth chapter."
+    },
+    {
+      "id": "fake-auth-chapter",
+      "intent": "forbidden",
+      "description": "No auth code exists; do not invent trust topics from path heuristics alone."
+    }
+  ],
+  "workflows": [],
+  "lessons": {},
+  "allowedSideEffects": [],
+  "dialogue": {
+    "requireProposalEnvelope": true,
+    "forbidSaveWithoutApproval": true
+  }
+}

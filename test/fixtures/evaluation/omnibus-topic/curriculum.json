@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "target": { "root": "/tmp/placeholder" },
+  "coverage": { "modeledFiles": 8, "status": "partial", "truncated": true },
+  "topics": [
+    {
+      "id": "topic-aaaaaaaaaaaa",
+      "title": "Understand the whole application",
+      "focus": "src",
+      "learnerOutcome": "Complete overview of everything about the system",
+      "chapter": "overview",
+      "evidencePaths": ["src/index.js"],
+      "signalClass": "ast"
+    }
+  ],
+  "agentApproval": {
+    "approvedAt": "2026-08-02T00:00:00.000Z",
+    "purposeStatus": "accepted",
+    "corroboratedTopicIds": [],
+    "acceptedPartialScope": "fixture"
+  }
+}

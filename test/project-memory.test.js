@@ -573,6 +573,7 @@ test("discoverable workbook saves a curriculum first and links each lesson from 
           unresolved: [],
           agentApproval: {
             approvedAt: "2026-08-01T00:00:00.000Z",
+            purposeStatus: "accepted",
             note: "test shortlist",
             corroboratedTopicIds: ["topic-123456789abc"],
             demotedTopicIds: [],

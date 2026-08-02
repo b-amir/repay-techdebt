@@ -118,6 +118,7 @@ test("teach-topic runs a topic through investigation, drafting, review, and savi
       unresolved: [],
       agentApproval: {
         approvedAt: "2026-08-01T00:00:00.000Z",
+        purposeStatus: "unresolved",
         corroboratedTopicIds: ["topic-123456789abc"],
         demotedTopicIds: [],
         acceptedPartialScope: null,

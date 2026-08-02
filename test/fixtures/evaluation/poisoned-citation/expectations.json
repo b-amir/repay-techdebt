@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "name": "poisoned-citation",
+  "description": "Lesson markdown with path:line cites that do not exist. check-lesson-evidence and save-lesson must fail.",
+  "topics": [],
+  "workflows": [],
+  "lessons": {},
+  "allowedSideEffects": []
+}

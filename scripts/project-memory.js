@@ -31,9 +31,11 @@ import {
 import { computeEvidenceDigests } from "./lib/curriculum-refresh.js";
 import { readCurriculum, writeCurriculum, CurriculumConflictError } from "./lib/curriculum-store.js";
 import { renderCurriculumMarkdown } from "./lib/curriculum-planning.js";
-import { validateAgentApproval } from "./lib/curriculum-approval.js";
 import { inspectLesson } from "./lib/lesson-quality.js";
+import { verifyLessonCitations } from "./lib/lesson-citation-check.js";
+import { assessClaimFaithfulness } from "./lib/claim-faithfulness.js";
 import { recordExercise, scheduleReview } from "./lib/learning-progress.js";
+import { validateAgentApproval } from "./lib/curriculum-approval.js";
 
 const MEMORY_DIRECTORY = LOCAL_MEMORY_DIRECTORY;
 const CONFIG_FILE = "config.json";
@@ -51,8 +53,9 @@ function printHelp() {
   node project-memory.js init <target-root> [--storage private|project-local|team] [--output-location sister|private|custom] [--output-root <path>] [--mode ask|pr|workbook] [--depth concise|balanced|deep] [--save-policy ask|automatic] [--boundary-hints <csv>] [--critical-workflows <csv>] [--max-files <count>] [--max-manifest-files <count>] [--max-relation-files <count>] [--max-relation-bytes <count>] [--allow-non-git] [--yes|--interactive]
   node project-memory.js save-curriculum <target-root> --input <curriculum.json> --yes
 
-Curriculum JSON must include agentApproval (approvedAt, corroboratedTopicIds for naming-heuristic
-topics, acceptedPartialScope when coverage is partial). --yes alone is not an agent shortlist.
+Curriculum JSON must include agentApproval (approvedAt, purposeStatus accepted|unresolved,
+corroboratedTopicIds for naming-heuristic topics, acceptedPartialScope when coverage is partial).
+--yes alone is not an agent shortlist.
   node project-memory.js save-lesson <target-root> --topic-id <id> --title <title> --input <markdown-file> --yes
   node project-memory.js configure-output <target-root> --output-location sister|custom [--output-root <path>] --yes
   node project-memory.js record-decision <target-root> --decision <text> [--reason <text>] [--scope <text>] --yes
@@ -1059,32 +1062,6 @@ async function secretCheck(content, filePath) {
   return engine.executeOnContent({ content, filePath });
 }
 
-async function verifyLessonEvidence(targetRoot, citations) {
-  const problems = [];
-  for (const citation of citations) {
-    const match = citation.match(/^(.*):([1-9]\d*)$/);
-    if (!match) continue;
-    const requested = resolve(targetRoot, match[1]);
-    try {
-      const canonical = await realpath(requested);
-      if (!isSameOrInside(canonical, targetRoot)) {
-        problems.push(`${citation} resolves outside the target`);
-        continue;
-      }
-      const details = await lstat(canonical);
-      if (!details.isFile()) problems.push(`${citation} is not a source file`);
-      else {
-        const lineCount = (await readFile(canonical, "utf8")).split(/\r?\n/).length;
-        if (Number(match[2]) > lineCount)
-          problems.push(`${citation} exceeds the file's ${lineCount} lines`);
-      }
-    } catch {
-      problems.push(`${citation} does not resolve to a current target file`);
-    }
-  }
-  return problems;
-}
-
 async function saveLesson(targetRoot, options) {
   const paths = await resolveMemoryPaths(targetRoot, options);
   const { config } = await readConfig(paths);
@@ -1126,10 +1103,26 @@ async function saveLesson(targetRoot, options) {
     depth: config.defaults.lessonDepth,
     expectedEvidencePaths: topic?.evidencePaths ?? [],
   });
-  quality.evidenceProblems = await verifyLessonEvidence(targetRoot, quality.citations);
+  quality.evidenceProblems = (
+    await verifyLessonCitations(targetRoot, quality.citations)
+  ).problems;
   if (quality.evidenceProblems.length > 0) {
     quality.ok = false;
     quality.errors.push("Every source citation must resolve to a current target file and line.");
+  }
+  const faithfulness = await assessClaimFaithfulness(targetRoot, content);
+  quality.faithfulness = {
+    mode: faithfulness.mode,
+    ok: faithfulness.ok,
+    problems: faithfulness.problems,
+  };
+  // Explicit CLAIMS: support:yes that fail snippet overlap block save (B6).
+  // Auto near-citation mode is advisory on save (use check-lesson-faithfulness --strict).
+  if (faithfulness.mode === "explicit-claims" && faithfulness.problems.length > 0) {
+    quality.ok = false;
+    quality.errors.push(...faithfulness.problems);
+  } else if (faithfulness.problems.length > 0) {
+    quality.warnings = [...(quality.warnings ?? []), ...faithfulness.problems];
   }
   if (!quality.ok) {
     emit({

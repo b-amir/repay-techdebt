@@ -36,12 +36,18 @@ consent, secrets, or capability-failure prompts.
 
 ## Agent reply forms (internal, tiny)
 
-- `ACCEPT purpose | UNRESOLVED purpose + questions`
+- `ACCEPT purpose | UNRESOLVED purpose + questions` (B0; set `purposeStatus` on approval)
 - `NEED tools: […] | SKIP tool X because […]`
-- `SHORTLIST: [ids…] + ADDED: […] + DEMOTED: […]`
-- `CLAIMS: […]` with evidence states
+- `RETRIEVEQs: […]` (B2; ≤5 specific questions)
+- `SHORTLIST: [ids…] + ADDED: […] + DEMOTED: […]` (B3)
+- `CLAIMS: […]` with path:line + support yes|no|gap (B6)
 - `REWRITE once: address […]`
 - `STOP extra loops; ship with gaps: […]`
+
+Checkpoint cards: `bottleneck-checkpoints.md` (B0–B6). Complete them in trajectory order.
+Validate ask fidelity with `scripts/check-trajectory.js` (workbook: B0→B1→B2→B5→B3→B4a→B4b→B6).
+
+Omnibus topics (“understand the whole app”) must be split/demoted; save rejects them.
 
 ## Shared head (all modes)
 
@@ -105,14 +111,16 @@ Naming-heuristic topics need agent corroboration (graph, source, docs, or user) 
 `agentApproval.corroboratedTopicIds` (or `topic.corroborated=true`) before save.
 Partial coverage requires `agentApproval.acceptedPartialScope`.
 
-## Semantic checklist (agent; after mechanical QA)
+## Semantic checklist (agent; after mechanical QA + evidence floor)
 
 - One subject / outcome — not an omnibus of scanner hits.
 - At least one consumer↔dependency relationship **or** a named gap.
 - Material claims use honest evidence states in prose or ledger.
+- Run claim decomposition from `bottleneck-checkpoints.md` (B6).
 - Snippets match current lines; memory is not current-code proof.
 - Sources listed with reliability rank; model prior not dressed as project fact.
 - If Graphify/Serena failed or was skipped, state which relation class is untrusted.
+- PRIMM moves present without empty Predict/Run/Investigate/Modify/Make headings.
 
 ## Script catalog (roles)
 

@@ -2,6 +2,10 @@
  * Agent shortlist approval required before persisting a curriculum proposal.
  */
 
+import { findOmnibusTopics } from "./claim-faithfulness.js";
+
+const PURPOSE_STATUSES = new Set(["accepted", "unresolved"]);
+
 export function validateAgentApproval(curriculum) {
   const approval = curriculum?.agentApproval;
   if (!approval || typeof approval !== "object") {
@@ -13,6 +17,13 @@ export function validateAgentApproval(curriculum) {
   }
   if (!approval.approvedAt || typeof approval.approvedAt !== "string") {
     return { ok: false, error: "agentApproval.approvedAt (ISO timestamp) is required" };
+  }
+  if (!PURPOSE_STATUSES.has(approval.purposeStatus)) {
+    return {
+      ok: false,
+      error:
+        "agentApproval.purposeStatus must be 'accepted' or 'unresolved' (B0 purpose checkpoint).",
+    };
   }
   const coverage = curriculum.coverage ?? {};
   const partial =
@@ -30,6 +41,16 @@ export function validateAgentApproval(curriculum) {
   const demoted = new Set(approval.demotedTopicIds ?? []);
   const corroborated = new Set(approval.corroboratedTopicIds ?? []);
   const topics = (curriculum.topics ?? []).filter((topic) => !demoted.has(topic.id));
+  const omnibus = findOmnibusTopics(topics);
+  if (omnibus.length > 0) {
+    return {
+      ok: false,
+      error: `Omnibus topics must be split or demoted before save: ${omnibus
+        .slice(0, 6)
+        .map((topic) => `${topic.id} (${topic.title ?? topic.focus})`)
+        .join("; ")}. One subject / outcome per topic (B4a).`,
+    };
+  }
   const uncorroborated = topics.filter((topic) => {
     const signal = topic.signalClass ?? "naming-heuristic";
     if (signal !== "naming-heuristic") return false;
@@ -50,8 +71,12 @@ export function validateAgentApproval(curriculum) {
 
 /** Apply demotions and stamp approval metadata onto a curriculum object (mutates). */
 export function applyAgentApproval(curriculum, approval) {
+  const purposeStatus = PURPOSE_STATUSES.has(approval.purposeStatus)
+    ? approval.purposeStatus
+    : "unresolved";
   curriculum.agentApproval = {
     approvedAt: approval.approvedAt ?? new Date().toISOString(),
+    purposeStatus,
     note: approval.note ?? null,
     demotedTopicIds: approval.demotedTopicIds ?? [],
     corroboratedTopicIds: approval.corroboratedTopicIds ?? [],
@@ -59,7 +84,8 @@ export function applyAgentApproval(curriculum, approval) {
     acceptedPartialScope: approval.acceptedPartialScope ?? null,
   };
   const demoted = new Set(curriculum.agentApproval.demotedTopicIds);
-  if (demoted.size > 0) curriculum.topics = curriculum.topics.filter((topic) => !demoted.has(topic.id));
+  if (demoted.size > 0)
+    curriculum.topics = curriculum.topics.filter((topic) => !demoted.has(topic.id));
   const corroborated = new Set(curriculum.agentApproval.corroboratedTopicIds);
   for (const topic of curriculum.topics) {
     if (corroborated.has(topic.id)) topic.corroborated = true;
