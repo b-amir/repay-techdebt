@@ -2,7 +2,12 @@ import { resolve } from "node:path";
 import { createEngine } from "@secretlint/node";
 import { globby } from "globby";
 import { z } from "zod";
-import { formatTargetError, resolveTargetRoot, runCommand, skillRoot } from "./lib/tooling.js";
+import {
+  formatTargetError,
+  resolveTargetRoot,
+  runCommand,
+  skillRoot,
+} from "../src/tools/tooling.js";
 
 const semgrepSchema = z.object({
   results: z.array(

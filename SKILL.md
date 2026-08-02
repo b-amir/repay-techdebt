@@ -37,8 +37,8 @@ as application evidence.
 
 ## Script ↔ agent contract
 
-| Scripts | Agent |
-| --- | --- |
+| Scripts                                                                 | Agent                                                                                  |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | Gates, inventories, wrappers, coverage, proposals, mechanical QA, saves | Purpose, retrieve questions, verify source, shortlist, teach, semantic qualify, ledger |
 
 **Caps:** ≤1 extra investigate turn per phase; ≤1 lesson rewrite; then ship with gaps or ask.
@@ -164,13 +164,13 @@ node <skill-root>/scripts/evaluate-lesson.js <target-root> <draft.md> --depth <c
 
 Full chains, wrappers, and failure prompts: `references/tool-integrations.md`.
 
-| Phase | Prefer | Portable fallback (ask first) |
-| --- | --- | --- |
-| PR/CI | GitHub MCP | `get-pr-changes.js` |
-| Architecture | Graphify | `query-program-model.js` / scoped `scan-architecture.js` |
-| Symbols | Serena | bundled AST scanners; verify in source |
-| Security | Semgrep | Secretlint + manual verify |
-| Docs | Context7 | official primary docs |
-| Large/remote | Repomix stdout | scoped outline |
+| Phase        | Prefer         | Portable fallback (ask first)                            |
+| ------------ | -------------- | -------------------------------------------------------- |
+| PR/CI        | GitHub MCP     | `get-pr-changes.js`                                      |
+| Architecture | Graphify       | `query-program-model.js` / scoped `scan-architecture.js` |
+| Symbols      | Serena         | bundled AST scanners; verify in source                   |
+| Security     | Semgrep        | Secretlint + manual verify                               |
+| Docs         | Context7       | official primary docs                                    |
+| Large/remote | Repomix stdout | scoped outline                                           |
 
 Always exclude nested skill paths and `.repay-techdebt/` from application evidence.

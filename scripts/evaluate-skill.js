@@ -3,8 +3,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { evaluateCurriculum } from "./lib/evaluation.js";
-import { validateFixture } from "./lib/evaluation-schema.js";
+import { evaluateCurriculum } from "../src/evaluation/evaluation.js";
+import { validateFixture } from "../src/evaluation/evaluation-schema.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixturesDir = path.join(__dirname, "..", "test", "fixtures", "evaluation");
@@ -21,7 +21,7 @@ async function main() {
     process.exit(1);
   }
 
-  const directories = entries.filter(e => e.isDirectory());
+  const directories = entries.filter((e) => e.isDirectory());
   const results = [];
 
   for (const dir of directories) {
@@ -47,7 +47,7 @@ async function main() {
 
     results.push({
       fixture: dir.name,
-      evaluation
+      evaluation,
     });
   }
 
@@ -84,7 +84,7 @@ async function main() {
     }
   }
 
-  const failed = results.some(r => r.error || (r.evaluation && !r.evaluation.ok));
+  const failed = results.some((r) => r.error || (r.evaluation && !r.evaluation.ok));
   process.exit(failed ? 1 : 0);
 }
 

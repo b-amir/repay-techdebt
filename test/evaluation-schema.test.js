@@ -1,6 +1,7 @@
+// @category C8
 import assert from "node:assert/strict";
 import { test } from "vite-plus/test";
-import { validateFixture, validateRubric } from "../scripts/lib/evaluation-schema.js";
+import { validateFixture, validateRubric } from "../src/evaluation/evaluation-schema.js";
 
 test("validates a correct fixture", () => {
   const validFixture = {
@@ -11,9 +12,7 @@ test("validates a correct fixture", () => {
       { id: "core-command", intent: "must-find", description: "The main entry command" },
       { id: "unrelated-file", intent: "irrelevant", description: "A decoy file" },
     ],
-    workflows: [
-      { id: "run-cli", mustIncludeNodes: ["command:start"], mustIncludeEdges: [] }
-    ],
+    workflows: [{ id: "run-cli", mustIncludeNodes: ["command:start"], mustIncludeEdges: [] }],
     lessons: {
       "core-command": {
         correctness: 5,
@@ -22,10 +21,10 @@ test("validates a correct fixture", () => {
         clarity: 4,
         pedagogy: 5,
         actionability: 4,
-        notes: "Good lesson."
-      }
+        notes: "Good lesson.",
+      },
     },
-    allowedSideEffects: []
+    allowedSideEffects: [],
   };
 
   const result = validateFixture(validFixture);
@@ -53,7 +52,7 @@ test("validates a correct rubric", () => {
     focus: 4,
     clarity: 4,
     pedagogy: 5,
-    actionability: 5
+    actionability: 5,
   };
 
   const result = validateRubric(validRubric);
@@ -67,7 +66,7 @@ test("rejects rubric out of bounds", () => {
     focus: 4,
     clarity: 4,
     pedagogy: 5,
-    actionability: 5
+    actionability: 5,
   };
 
   const result = validateRubric(invalidRubric);

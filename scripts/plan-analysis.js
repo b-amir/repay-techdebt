@@ -1,5 +1,5 @@
-import { formatTargetError, resolveTargetRoot } from "./lib/targeting.js";
-import { buildProgramModel, planAnalysis } from "./lib/program-intelligence.js";
+import { formatTargetError, resolveTargetRoot } from "../src/foundations/targeting.js";
+import { buildProgramModel, planAnalysis } from "../src/program/program-intelligence.js";
 
 function help() {
   process.stdout.write(`Usage:

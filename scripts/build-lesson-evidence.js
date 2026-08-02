@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { buildEvidencePacket } from "./lib/lesson-evidence.js";
-import { resolveTargetRoot } from "./lib/targeting.js";
+import { buildEvidencePacket } from "../src/lessons/lesson-evidence.js";
+import { resolveTargetRoot } from "../src/foundations/targeting.js";
 
 function help() {
   process.stdout.write(`Usage:

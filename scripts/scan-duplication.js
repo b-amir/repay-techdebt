@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { bundledBinary, formatTargetError, resolveTargetRoot, runCommand } from "./lib/tooling.js";
+import {
+  bundledBinary,
+  formatTargetError,
+  resolveTargetRoot,
+  runCommand,
+} from "../src/tools/tooling.js";
 
 const outputSchema = z.object({
   analyzer: z.literal("jscpd"),

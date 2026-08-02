@@ -1,6 +1,7 @@
+// @category C2
 import assert from "node:assert/strict";
 import { test } from "vite-plus/test";
-import { buildDialogueEnvelope, topicSignalClass } from "../scripts/lib/dialogue-envelope.js";
+import { buildDialogueEnvelope, topicSignalClass } from "../src/dialogue/dialogue-envelope.js";
 
 test("dialogue envelope marks partial coverage as must-not-claim whole-app absence", () => {
   const envelope = buildDialogueEnvelope({

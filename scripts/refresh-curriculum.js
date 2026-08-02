@@ -1,8 +1,8 @@
 import { parseArgs } from "node:util";
 import { readFile, writeFile } from "node:fs/promises";
-import { resolveTargetRoot } from "./lib/targeting.js";
-import { resolveMemoryPaths } from "./lib/memory-paths.js";
-import { refreshCurriculum } from "./lib/curriculum-refresh.js";
+import { resolveTargetRoot } from "../src/foundations/targeting.js";
+import { resolveMemoryPaths } from "../src/foundations/memory-paths.js";
+import { refreshCurriculum } from "../src/memory/curriculum-refresh.js";
 
 function parse(args) {
   const { values, positionals } = parseArgs({
@@ -33,7 +33,7 @@ async function main() {
     try {
       const data = await readFile(paths.curriculumData, "utf8");
       curriculumData = JSON.parse(data);
-    } catch (e) {
+    } catch {
       throw new Error(`Failed to read curriculum at ${paths.curriculumData}`);
     }
 
@@ -43,16 +43,18 @@ async function main() {
       // Actually write it if --yes is passed, otherwise prompt?
       // Wait, in `project-memory.js`, there's `replaceJsonFile`. I'll just write it directly.
       if (!options.yes) {
-        process.stdout.write(JSON.stringify({
-          status: "dry-run",
-          message: `${result.invalidated} topics are stale. Pass --yes to apply updates.`,
-          details: result,
-        }) + "\n");
+        process.stdout.write(
+          JSON.stringify({
+            status: "dry-run",
+            message: `${result.invalidated} topics are stale. Pass --yes to apply updates.`,
+            details: result,
+          }) + "\n",
+        );
         return;
       }
 
       await writeFile(paths.curriculumData, JSON.stringify(curriculumData, null, 2) + "\n", "utf8");
-      
+
       // I should also re-render the index. But project-memory.js handles rendering.
       // Wait, let's call project-memory.js to render? Or I can just output JSON.
       // The instructions say: "Refresh remains read-only until the user approves the rendered index update."
@@ -60,18 +62,20 @@ async function main() {
       // If I just write it and call `node project-memory.js save-curriculum <target> --input <path> --yes` it will re-render!
     }
 
-    process.stdout.write(JSON.stringify({
-      status: "success",
-      unchanged: result.unchanged,
-      affected: result.affected,
-      invalidated: result.invalidated,
-      newlyRelevant: result.newlyRelevant,
-      staleTopics: result.staleTopics.map(t => ({
-        id: t.id,
-        title: t.title,
-        staleReasons: t.staleReasons,
-      })),
-    }) + "\n");
+    process.stdout.write(
+      JSON.stringify({
+        status: "success",
+        unchanged: result.unchanged,
+        affected: result.affected,
+        invalidated: result.invalidated,
+        newlyRelevant: result.newlyRelevant,
+        staleTopics: result.staleTopics.map((t) => ({
+          id: t.id,
+          title: t.title,
+          staleReasons: t.staleReasons,
+        })),
+      }) + "\n",
+    );
   } catch (error) {
     process.stderr.write(
       JSON.stringify({

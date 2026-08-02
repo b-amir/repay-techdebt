@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { inspectLesson } from "./lib/lesson-quality.js";
+import { inspectLesson } from "../src/lessons/lesson-quality.js";
 
 function help() {
   process.stdout.write(`Usage:

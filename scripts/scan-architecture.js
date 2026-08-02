@@ -9,7 +9,7 @@ import {
   resolveTargetRoot,
   runCommand,
   sanitizeDiagnostic,
-} from "./lib/tooling.js";
+} from "../src/tools/tooling.js";
 
 const IGNORED_DIRECTORIES = new Set([
   ".git",

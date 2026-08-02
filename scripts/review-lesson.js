@@ -1,6 +1,5 @@
 import { readFileSync } from "node:fs";
-import { inspectLesson, evaluateSpecification } from "./lib/lesson-quality.js";
-import { buildLessonSpecification } from "./lib/lesson-specification.js";
+import { inspectLesson, evaluateSpecification } from "../src/lessons/lesson-quality.js";
 
 function help() {
   process.stdout.write(`Usage:

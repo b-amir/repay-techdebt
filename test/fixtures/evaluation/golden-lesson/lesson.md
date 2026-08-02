@@ -23,5 +23,6 @@ Try a modify challenge: add a guard in settle that rejects non-positive amounts,
 Capture owns entry validation; settle owns settlement status. Cite both files when you claim the handoff.
 
 CLAIMS:
+
 1. "capturePayment returns the result of settle" — billing/capture.js:6 — support: yes — state: observed
 2. "settle returns a settled status object" — billing/settlement.js:3 — support: yes — state: observed

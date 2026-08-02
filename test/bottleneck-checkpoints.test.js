@@ -1,3 +1,4 @@
+// @category C2
 import assert from "node:assert/strict";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -6,12 +7,12 @@ import { fileURLToPath } from "node:url";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { test } from "vite-plus/test";
-import { verifyLessonCitations } from "../scripts/lib/lesson-citation-check.js";
-import { planCurriculum } from "../scripts/lib/curriculum-planning.js";
-import { evaluateCurriculum } from "../scripts/lib/evaluation.js";
-import { validateFixture } from "../scripts/lib/evaluation-schema.js";
-import { buildProgramModel } from "../scripts/lib/program-intelligence.js";
-import { resolveTargetRoot } from "../scripts/lib/targeting.js";
+import { verifyLessonCitations } from "../src/lessons/lesson-citation-check.js";
+import { planCurriculum } from "../src/curriculum/curriculum-planning.js";
+import { evaluateCurriculum } from "../src/evaluation/evaluation.js";
+import { validateFixture } from "../src/evaluation/evaluation-schema.js";
+import { buildProgramModel } from "../src/program/program-intelligence.js";
+import { resolveTargetRoot } from "../src/foundations/targeting.js";
 
 const execute = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -48,8 +49,7 @@ test("check-lesson-evidence passes when cites resolve", async () => {
     await mkdir(resolve(directory, "src"), { recursive: true });
     await writeFile(resolve(directory, "src/a.ts"), "export const a = 1;\n".repeat(20));
     await writeFile(resolve(directory, "src/b.ts"), "export const b = 2;\n".repeat(20));
-    const markdown =
-      "See `src/a.ts:3` and `src/b.ts:5` for the boundary and the helper.\n";
+    const markdown = "See `src/a.ts:3` and `src/b.ts:5` for the boundary and the helper.\n";
     const result = await verifyLessonCitations(directory, markdown);
     assert.equal(result.ok, true, result.problems.join("; "));
   } finally {
@@ -70,13 +70,13 @@ test("ghost-auth fixture must not invent auth subjects as present ids", async ()
       resolve(directory, "src/greet.js"),
       await readFile(resolve(fixtures, "ghost-auth/src/greet.js"), "utf8"),
     );
-    const curriculum = planCurriculum(
-      await buildProgramModel(await resolveTargetRoot(directory)),
-    );
+    const curriculum = planCurriculum(await buildProgramModel(await resolveTargetRoot(directory)));
     const topicEval = evaluateCurriculum(curriculum, expectations.data);
     assert.equal(topicEval.ok, true, JSON.stringify(topicEval));
     assert.ok(
-      !curriculum.topics.some((topic) => /auth|session|security/i.test(`${topic.focus} ${topic.title}`)),
+      !curriculum.topics.some((topic) =>
+        /auth|session|security/i.test(`${topic.focus} ${topic.title}`),
+      ),
       "ghost auth fixture should not surface auth-named topics",
     );
   } finally {
@@ -106,9 +106,7 @@ test("readme-vs-folders surfaces capture despite widget folder names", async () 
       resolve(directory, "app/features/widgets/README.md"),
       await readFile(resolve(fixtures, "readme-vs-folders/app/features/widgets/README.md"), "utf8"),
     );
-    const curriculum = planCurriculum(
-      await buildProgramModel(await resolveTargetRoot(directory)),
-    );
+    const curriculum = planCurriculum(await buildProgramModel(await resolveTargetRoot(directory)));
     const topicEval = evaluateCurriculum(curriculum, expectations.data);
     assert.equal(topicEval.ok, true, JSON.stringify(topicEval.missingMustFind));
   } finally {

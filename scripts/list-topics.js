@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
-import { resolveMemoryPaths } from "./lib/memory-paths.js";
-import { readCurriculum } from "./lib/curriculum-store.js";
+import { resolveMemoryPaths } from "../src/foundations/memory-paths.js";
+import { readCurriculum } from "../src/memory/curriculum-store.js";
 
 const { values, positionals } = parseArgs({
   options: {
@@ -34,10 +34,11 @@ async function run() {
   // Also support positional arguments for search
   const query = positionals.join(" ").toLowerCase();
   if (query) {
-    topics = topics.filter((t) => 
-      t.title.toLowerCase().includes(query) || 
-      t.learnerOutcome.toLowerCase().includes(query) ||
-      t.chapter.toLowerCase().includes(query)
+    topics = topics.filter(
+      (t) =>
+        t.title.toLowerCase().includes(query) ||
+        t.learnerOutcome.toLowerCase().includes(query) ||
+        t.chapter.toLowerCase().includes(query),
     );
   }
 
@@ -46,7 +47,7 @@ async function run() {
     return;
   }
 
-  const completed = (id) => curriculum.learnerCompletion?.[id] ? " (Completed)" : "";
+  const completed = (id) => (curriculum.learnerCompletion?.[id] ? " (Completed)" : "");
 
   for (const topic of topics) {
     console.log(`[${topic.status}] ${topic.title}${completed(topic.id)}`);

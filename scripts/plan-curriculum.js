@@ -1,6 +1,6 @@
-import { formatTargetError, resolveTargetRoot } from "./lib/targeting.js";
-import { planCurriculum, renderCurriculumMarkdown } from "./lib/curriculum-planning.js";
-import { buildProgramModel } from "./lib/program-intelligence.js";
+import { formatTargetError, resolveTargetRoot } from "../src/foundations/targeting.js";
+import { planCurriculum, renderCurriculumMarkdown } from "../src/curriculum/curriculum-planning.js";
+import { buildProgramModel } from "../src/program/program-intelligence.js";
 
 function help() {
   process.stdout.write(`Usage:

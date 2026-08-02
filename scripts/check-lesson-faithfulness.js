@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { assessClaimFaithfulness } from "./lib/claim-faithfulness.js";
-import { formatTargetError, resolveTargetRoot } from "./lib/targeting.js";
+import { assessClaimFaithfulness } from "../src/lessons/claim-faithfulness.js";
+import { formatTargetError, resolveTargetRoot } from "../src/foundations/targeting.js";
 
 function help() {
   process.stdout.write(`Usage:
@@ -41,11 +41,7 @@ try {
   const markdown = await readFile(resolve(args[1]), "utf8");
   const result = await assessClaimFaithfulness(target.targetRoot, markdown);
   const blocking =
-    result.mode === "explicit-claims"
-      ? result.problems
-      : strict
-        ? result.problems
-        : [];
+    result.mode === "explicit-claims" ? result.problems : strict ? result.problems : [];
   const payload = {
     analyzer: "lesson-claim-faithfulness",
     role: "check",

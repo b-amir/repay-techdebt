@@ -21,6 +21,7 @@ Every evaluation fixture is stored as a JSON object (or analogous data structure
 ### `TopicExpectation`
 
 Describes how a specific topic ID should be ranked or treated by the skill.
+
 - `id` (string): The stable identifier of the expected topic (or a logical label).
 - `intent` (string): One of `must-find`, `useful`, `irrelevant`, or `forbidden`.
 - `description` (string): Context for why this topic has this expectation.
@@ -29,6 +30,7 @@ Describes how a specific topic ID should be ranked or treated by the skill.
 ### `WorkflowExpectation`
 
 Describes an end-to-end trace or workflow.
+
 - `id` (string): Workflow identifier.
 - `mustIncludeNodes` (Array of strings): Node IDs that must appear in the workflow.
 - `mustIncludeEdges` (Array of objects with `from` and `to` strings): Directed edges that must be resolved.
@@ -36,6 +38,7 @@ Describes an end-to-end trace or workflow.
 ### `LessonRubric`
 
 An editorial rubric measuring lesson quality from 1 to 5.
+
 - `correctness`: Factual accuracy based on the code.
 - `importance`: The necessity of the lesson for the target profile.
 - `focus`: Whether the lesson stays on a single independent outcome.
@@ -48,4 +51,4 @@ An editorial rubric measuring lesson quality from 1 to 5.
 
 1. Identify a small target codebase (CLI, frontend, API, etc.) that illustrates specific semantic patterns or edge cases.
 2. Provide a `.json` file containing the `EvaluationFixture` data alongside the fixture source code.
-3. Validate your fixture against `scripts/lib/evaluation-schema.js`.
+3. Validate your fixture against `src/evaluation/evaluation-schema.js`.

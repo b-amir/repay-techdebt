@@ -3,8 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./foundations": "./src/foundations/index.js"
+  },
   "scripts": {
-    "test": "vp test"
+    "test": "vp test",
+    "test:hygiene": "vp test test/hygiene test/architecture-hygiene.test.js",
+    "test:unit": "vp test test/unit",
+    "test:integration": "vp test test/integration",
+    "test:conformance": "vp test test/conformance",
+    "lint:orphans": "dependency-cruise src scripts test --output-type err-long --progress none",
+    "test:coverage": "vp test --coverage --coverage.provider=v8 --coverage.reporter=text --coverage.include='src/**'"
   },
   "dependencies": {
     "@ast-grep/lang-python": "0.0.6",
@@ -27,6 +36,9 @@
     "vite-plus": "0.2.6",
     "yaml": "2.9.0",
     "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "4.1.10"
   },
   "devEngines": {
     "packageManager": {

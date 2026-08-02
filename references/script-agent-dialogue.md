@@ -5,10 +5,10 @@ discovery or teaching alone.
 
 ## Contract
 
-| Partner | Owns | Must not own |
-| --- | --- | --- |
-| **Scripts** | Consent/runtime/capability gates; inventories; tool wrappers; coverage math; proposal JSON; mechanical QA; saves | Final “what to teach”; absence claims without verify; lesson taste |
-| **Agent** | Purpose; retrieve questions; live-source verify; shortlist approve/demote; draft lessons; semantic qualify; ledger | Skipping gates; dressing model prior as observed fact |
+| Partner     | Owns                                                                                                               | Must not own                                                       |
+| ----------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| **Scripts** | Consent/runtime/capability gates; inventories; tool wrappers; coverage math; proposal JSON; mechanical QA; saves   | Final “what to teach”; absence claims without verify; lesson taste |
+| **Agent**   | Purpose; retrieve questions; live-source verify; shortlist approve/demote; draft lessons; semantic qualify; ledger | Skipping gates; dressing model prior as observed fact              |
 
 **Turn shape:** `ASK → RUN → RETURN → TAKE`
 
@@ -26,12 +26,12 @@ consent, secrets, or capability-failure prompts.
 
 ## Source reliability (high → low)
 
-1. Current target source / config / lockfile / tests  
-2. Successful enhanced tool ops after functional check  
-3. Version-matched authoritative docs  
-4. User confirmation of purpose/criticality  
-5. Deterministic script *derived* facts (+ limitations)  
-6. Script *inferred* heuristics (paths, pattern catalog, folders)  
+1. Current target source / config / lockfile / tests
+2. Successful enhanced tool ops after functional check
+3. Version-matched authoritative docs
+4. User confirmation of purpose/criticality
+5. Deterministic script _derived_ facts (+ limitations)
+6. Script _inferred_ heuristics (paths, pattern catalog, folders)
 7. Model prior (hypothesis only)
 
 ## Agent reply forms (internal, tiny)
@@ -124,14 +124,14 @@ Partial coverage requires `agentApproval.acceptedPartialScope`.
 
 ## Script catalog (roles)
 
-| Script | Role |
-| --- | --- |
-| `project-memory.js`, `check-runtime.js`, `check-capabilities.js` | gate |
-| `profile-project.js`, `build-program-model.js` | inventory |
-| `run-graphify.js`, `get-pr-changes.js`, `query-program-model.js`, `scan-*` | retrieve |
-| `plan-analysis.js`, `plan-curriculum.js`, `plan-lesson.js` | propose |
-| `check-lesson-quality.js`, `check-snippet-secrets.js`, `review-lesson.js` | check |
-| `find-patterns.js` | retrieve leads only (`--scope` or `--all`; `teachingLeads`; not workbook driver) |
+| Script                                                                     | Role                                                                             |
+| -------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `project-memory.js`, `check-runtime.js`, `check-capabilities.js`           | gate                                                                             |
+| `profile-project.js`, `build-program-model.js`                             | inventory                                                                        |
+| `run-graphify.js`, `get-pr-changes.js`, `query-program-model.js`, `scan-*` | retrieve                                                                         |
+| `plan-analysis.js`, `plan-curriculum.js`, `plan-lesson.js`                 | propose                                                                          |
+| `check-lesson-quality.js`, `check-snippet-secrets.js`, `review-lesson.js`  | check                                                                            |
+| `find-patterns.js`                                                         | retrieve leads only (`--scope` or `--all`; `teachingLeads`; not workbook driver) |
 
 Full flags and failure prompts: `tool-integrations.md`. Evidence language: `evidence-contract.md`.
 Lesson shapes: `lesson-composition.md` + `templates/lesson-format.md`.

@@ -1,7 +1,8 @@
+// @category C3
 import assert from "node:assert/strict";
 import { test } from "vite-plus/test";
-import { planCurriculum, renderCurriculumMarkdown } from "../scripts/lib/curriculum-planning.js";
-import { inspectLesson } from "../scripts/lib/lesson-quality.js";
+import { planCurriculum, renderCurriculumMarkdown } from "../src/curriculum/curriculum-planning.js";
+import { inspectLesson } from "../src/lessons/lesson-quality.js";
 
 function largeModel() {
   const nodes = [{ id: "system:root", kind: "system", name: "large-app", path: "." }];
@@ -36,7 +37,11 @@ test("large repositories receive a complete ranked subject inventory without arb
   assert.equal(curriculum.role, "propose");
   assert.ok(curriculum.nextAsks.some((item) => item.do === "approve-curriculum-shortlist"));
   assert.ok(curriculum.topics[0].signalClass === "user");
-  assert.ok(curriculum.topics.some((topic) => topic.signalClass === "naming-heuristic" || topic.signalClass === "ast"));
+  assert.ok(
+    curriculum.topics.some(
+      (topic) => topic.signalClass === "naming-heuristic" || topic.signalClass === "ast",
+    ),
+  );
   const markdown = renderCurriculumMarkdown(curriculum);
   assert.match(markdown, /focused subjects/); // Don't match the exact number, it varies
   assert.match(markdown, /Purpose and critical workflows/);

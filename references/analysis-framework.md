@@ -87,6 +87,7 @@ same plan merely because they share a language.
 Infer likely user and operator workflows from route registration, navigation, labels, API contracts,
 commands, jobs, permissions, documentation, tests, and deployment configuration.
 A workflow candidate requires multiple independent signals or one authoritative declaration.
+
 - Navigation-only, filename-only, and framework-default leads are labeled weak.
 - Every inferred workflow explains which clues raised or lowered its confidence.
 - Consolidate converging clues (e.g., a file named `routes.js` matching a React navigation tree) to form high-confidence workflows.

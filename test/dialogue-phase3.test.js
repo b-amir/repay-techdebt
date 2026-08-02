@@ -1,21 +1,25 @@
+// @category C2
 import assert from "node:assert/strict";
 import { mkdtemp, rm, writeFile, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { test } from "vite-plus/test";
-import { applyAgentApproval, validateAgentApproval } from "../scripts/lib/curriculum-approval.js";
-import { planCurriculum } from "../scripts/lib/curriculum-planning.js";
+import {
+  applyAgentApproval,
+  validateAgentApproval,
+} from "../src/curriculum/curriculum-approval.js";
+import { planCurriculum } from "../src/curriculum/curriculum-planning.js";
 import {
   curriculumCoversFocus,
   evaluateCurriculum,
   evaluateDialogueProposal,
   evaluateDialogueProposalAsync,
-} from "../scripts/lib/evaluation.js";
-import { validateFixture } from "../scripts/lib/evaluation-schema.js";
-import { buildProgramModel } from "../scripts/lib/program-intelligence.js";
-import { resolveTargetRoot } from "../scripts/lib/targeting.js";
-import { rankCandidate } from "../scripts/lib/curriculum-ranking.js";
+} from "../src/evaluation/evaluation.js";
+import { validateFixture } from "../src/evaluation/evaluation-schema.js";
+import { buildProgramModel } from "../src/program/program-intelligence.js";
+import { resolveTargetRoot } from "../src/foundations/targeting.js";
+import { rankCandidate } from "../src/curriculum/curriculum-ranking.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const unconventional = resolve(root, "test/fixtures/evaluation/unconventional-layout");
@@ -96,15 +100,17 @@ test("unconventional-layout fixture plans billing subjects and dialogue envelope
     await mkdir(billing, { recursive: true });
     await writeFile(
       resolve(billing, "capture.js"),
-      await (
-        await import("node:fs/promises")
-      ).readFile(resolve(unconventional, "bounded-contexts/billing-core/capture.js"), "utf8"),
+      await (await import("node:fs/promises")).readFile(
+        resolve(unconventional, "bounded-contexts/billing-core/capture.js"),
+        "utf8",
+      ),
     );
     await writeFile(
       resolve(billing, "settlement.js"),
-      await (
-        await import("node:fs/promises")
-      ).readFile(resolve(unconventional, "bounded-contexts/billing-core/settlement.js"), "utf8"),
+      await (await import("node:fs/promises")).readFile(
+        resolve(unconventional, "bounded-contexts/billing-core/settlement.js"),
+        "utf8",
+      ),
     );
 
     const model = await buildProgramModel(await resolveTargetRoot(directory));

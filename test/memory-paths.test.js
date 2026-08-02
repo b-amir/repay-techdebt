@@ -1,11 +1,12 @@
+// @category C0
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { test } from "vite-plus/test";
-import { memoryPaths, resolveMemoryPaths } from "../scripts/lib/memory-paths.js";
-import { validateCurriculum } from "../scripts/lib/approve-curriculum.js";
-import { applyAgentApproval } from "../scripts/lib/curriculum-approval.js";
+import { memoryPaths, resolveMemoryPaths } from "../src/foundations/memory-paths.js";
+import { validateCurriculum } from "../src/curriculum/approve-curriculum.js";
+import { applyAgentApproval } from "../src/curriculum/curriculum-approval.js";
 
 test("memoryPaths exposes expected layout keys", () => {
   const paths = memoryPaths("/tmp/repay-memory-root");

@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { runTeachFloors } from "./lib/save-lesson.js";
-import { formatTargetError, resolveTargetRoot } from "./lib/targeting.js";
+import { runTeachFloors } from "../src/lessons/save-lesson.js";
+import { formatTargetError, resolveTargetRoot } from "../src/foundations/targeting.js";
 
 /**
  * Report-only pedagogy / quality bundle. Floor failures set exit 2; rubric proxies never
@@ -31,7 +31,10 @@ function rubricProxies(markdown, quality, pedagogy) {
     dimensions: {
       correctness: score(hasCite && quality.ok, hasCite),
       importance: score(/because|matters|critical|protect/i.test(lower), /why/i.test(lower)),
-      focus: score(quality.sectionCount >= 3 && quality.sectionCount <= 8, quality.sectionCount > 0),
+      focus: score(
+        quality.sectionCount >= 3 && quality.sectionCount <= 8,
+        quality.sectionCount > 0,
+      ),
       clarity: score(hasYou && (quality.warnings?.length ?? 0) === 0, hasYou),
       pedagogy: score(
         pedagogy.ok && hasPredict && hasChallenge,

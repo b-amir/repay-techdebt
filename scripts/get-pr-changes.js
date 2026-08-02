@@ -2,7 +2,7 @@ import { basename } from "node:path";
 import pLimit from "p-limit";
 import parseDiff from "parse-diff";
 import { z } from "zod";
-import { formatTargetError, resolveTargetRoot, runCommand } from "./lib/tooling.js";
+import { formatTargetError, resolveTargetRoot, runCommand } from "../src/tools/tooling.js";
 
 const LOCKFILES = new Set([
   "bun.lock",

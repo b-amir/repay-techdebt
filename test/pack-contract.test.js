@@ -1,7 +1,8 @@
+// @category C7
 import { test } from "vite-plus/test";
 import * as assert from "node:assert/strict";
 import { resolve } from "node:path";
-import { loadProgramPacks, loadFrameworkPacks } from "../scripts/lib/pack-registry.js";
+import { loadProgramPacks, loadFrameworkPacks } from "../src/packs/pack-registry.js";
 
 const PACKS_DIR = resolve(process.cwd(), "packs");
 

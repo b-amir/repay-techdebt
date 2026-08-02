@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { validateTrajectory, stubWorkbookTrajectory } from "./lib/trajectory.js";
+import { validateTrajectory, stubWorkbookTrajectory } from "../src/dialogue/trajectory.js";
 
 function help() {
   process.stdout.write(`Usage:

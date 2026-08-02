@@ -4,7 +4,7 @@ import { execa } from "execa";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { stubWorkbookTrajectory, validateTrajectory } from "./lib/trajectory.js";
+import { stubWorkbookTrajectory, validateTrajectory } from "../src/dialogue/trajectory.js";
 
 const { values, positionals } = parseArgs({
   options: {

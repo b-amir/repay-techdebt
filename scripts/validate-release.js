@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { readFile, stat } from "node:fs/promises";
-import { resolve, join } from "node:path";
+import { join } from "node:path";
 
 async function validateRelease() {
   const root = process.cwd();
@@ -43,7 +43,7 @@ async function validateRelease() {
       console.error("❌ SKILL.md is unreasonably large (> 500KB)");
       failed = true;
     }
-  } catch (err) {
+  } catch {
     failed = true;
   }
 
@@ -55,7 +55,7 @@ async function validateRelease() {
   }
 }
 
-validateRelease().catch(err => {
+validateRelease().catch((err) => {
   console.error("Unexpected error:", err);
   process.exitCode = 1;
 });

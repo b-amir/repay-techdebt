@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
-import { resolveTargetRoot } from "./lib/targeting.js";
-import { runTopicWorkflow } from "./lib/topic-workflow.js";
+import { resolveTargetRoot } from "../src/foundations/targeting.js";
+import { runTopicWorkflow } from "../src/curriculum/topic-workflow.js";
 
 function parse(args) {
   const { values, positionals } = parseArgs({
@@ -38,7 +38,7 @@ function parse(args) {
 try {
   const { targetInput, options } = parse(process.argv.slice(2));
   const target = await resolveTargetRoot(targetInput);
-  
+
   const result = await runTopicWorkflow(target, {
     topicId: options["topic-id"],
     next: options.next,
@@ -52,7 +52,7 @@ try {
   });
 
   process.stdout.write(JSON.stringify(result, null, 2) + "\n");
-  
+
   if (result.status === "paused") {
     process.exit(1); // Exits with error to enforce stop before continuing
   }

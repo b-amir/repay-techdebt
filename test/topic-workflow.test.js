@@ -1,6 +1,7 @@
+// @category C3
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, rm, writeFile, readFile, realpath } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile, realpath } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { promisify } from "node:util";
@@ -44,9 +45,8 @@ async function writeLessonEvidence(target) {
 test("teach-topic workflow requires target and topic-id or next", async () => {
   const directory = await mkdtemp(resolve(tmpdir(), "workflow-"));
   try {
-    await assert.rejects(
-      execute(process.execPath, [script, directory], { cwd: root }),
-      (err) => err.stderr.includes("Must specify --topic-id <id> or --next.")
+    await assert.rejects(execute(process.execPath, [script, directory], { cwd: root }), (err) =>
+      err.stderr.includes("Must specify --topic-id <id> or --next."),
     );
   } finally {
     await rm(directory, { recursive: true, force: true });
@@ -79,7 +79,22 @@ test("teach-topic runs a topic through investigation, drafting, review, and savi
     await writeLessonEvidence(directory);
 
     // 1. Initialize Memory
-    await execute(process.execPath, [memoryScript, "init", directory, "--storage", "project-local", "--mode", "workbook", "--depth", "concise", "--yes"], { cwd: root });
+    await execute(
+      process.execPath,
+      [
+        memoryScript,
+        "init",
+        directory,
+        "--storage",
+        "project-local",
+        "--mode",
+        "workbook",
+        "--depth",
+        "concise",
+        "--yes",
+      ],
+      { cwd: root },
+    );
 
     // 2. Generate Curriculum
     const curriculumData = {
@@ -112,8 +127,8 @@ test("teach-topic runs a topic through investigation, drafting, review, and savi
           lessonPath: null,
           prerequisites: [],
           signalClass: "naming-heuristic",
-          signals: []
-        }
+          signals: [],
+        },
       ],
       unresolved: [],
       agentApproval: {
@@ -126,7 +141,11 @@ test("teach-topic runs a topic through investigation, drafting, review, and savi
     };
     const inputPath = resolve(directory, "curriculum.json");
     await writeFile(inputPath, JSON.stringify(curriculumData));
-    await execute(process.execPath, [memoryScript, "save-curriculum", directory, "--input", inputPath, "--yes"], { cwd: root });
+    await execute(
+      process.execPath,
+      [memoryScript, "save-curriculum", directory, "--input", inputPath, "--yes"],
+      { cwd: root },
+    );
 
     // 3. teach-topic --next (should pause to draft)
     let stdout;
@@ -146,10 +165,14 @@ test("teach-topic runs a topic through investigation, drafting, review, and savi
     // 4. teach-topic --next --draft <file> (should save)
     const draftPath = resolve(directory, "draft.md");
     await writeFile(draftPath, validConciseLesson());
-    
+
     let stdout2;
     try {
-      const res = await execute(process.execPath, [script, directory, "--next", "--draft", draftPath, "--depth", "concise"], { cwd: root });
+      const res = await execute(
+        process.execPath,
+        [script, directory, "--next", "--draft", draftPath, "--depth", "concise"],
+        { cwd: root },
+      );
       stdout2 = res.stdout;
     } catch (err) {
       stdout2 = err.stdout;
@@ -158,7 +181,6 @@ test("teach-topic runs a topic through investigation, drafting, review, and savi
     const result2 = JSON.parse(stdout2);
     assert.equal(result2.status, "complete", JSON.stringify(result2, null, 2));
     assert.equal(result2.topicId, "topic-123456789abc");
-
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

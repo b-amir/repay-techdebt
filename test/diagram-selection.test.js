@@ -1,13 +1,14 @@
+// @category C4
 import assert from "node:assert/strict";
 import { test } from "vite-plus/test";
-import { selectDiagramType } from "../scripts/lib/diagram-selection.js";
+import { selectDiagramType } from "../src/lessons/diagram-selection.js";
 
 test("selectDiagramType rejects overly dense diagrams", () => {
   const topic = { chapter: "boundaries" };
   const packet = {
-    callers: new Array(15).fill("a"),
-    dependencies: new Array(10).fill("b"),
-    stateEffects: []
+    callers: Array.from({ length: 15 }, () => "a"),
+    dependencies: Array.from({ length: 10 }, () => "b"),
+    stateEffects: [],
   };
 
   const intent = selectDiagramType(topic, packet);

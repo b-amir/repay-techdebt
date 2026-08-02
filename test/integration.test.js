@@ -1,3 +1,4 @@
+// @category C6
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { chmod, mkdir, mkdtemp, realpath, readdir, rm, writeFile } from "node:fs/promises";

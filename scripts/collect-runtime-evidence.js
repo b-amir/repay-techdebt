@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 import { parseArgs } from "node:util";
-import { collectRuntimeEvidence } from "./lib/runtime-evidence.js";
+import { collectRuntimeEvidence } from "../src/tools/runtime-evidence.js";
 
 const { values, positionals } = parseArgs({
   options: {
     consent: { type: "boolean" },
     command: { type: "string" },
     workload: { type: "string" },
-    timeout: { type: "string" }
+    timeout: { type: "string" },
   },
   allowPositionals: true,
 });

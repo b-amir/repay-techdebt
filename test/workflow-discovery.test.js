@@ -1,12 +1,11 @@
+// @category C1
 import assert from "node:assert/strict";
 import { test } from "vite-plus/test";
-import { discoverWorkflows } from "../scripts/lib/workflow-discovery.js";
+import { discoverWorkflows } from "../src/program/workflow-discovery.js";
 
 test("discoverWorkflows labels single clues as weak", () => {
   const model = {
-    nodes: [
-      { id: "1", kind: "file", name: "routes.js" }
-    ]
+    nodes: [{ id: "1", kind: "file", name: "routes.js" }],
   };
   const workflows = discoverWorkflows(model);
   assert.equal(workflows.length, 1);
@@ -18,8 +17,8 @@ test("discoverWorkflows raises confidence for converging clues", () => {
   const model = {
     nodes: [
       { id: "1", kind: "route", name: "GET /api/users" },
-      { id: "2", kind: "route", name: "POST /api/users" }
-    ]
+      { id: "2", kind: "route", name: "POST /api/users" },
+    ],
   };
   const workflows = discoverWorkflows(model);
   assert.equal(workflows.length, 1);
@@ -31,8 +30,8 @@ test("discoverWorkflows distinguishes commands from routes", () => {
   const model = {
     nodes: [
       { id: "1", kind: "command", name: "start" },
-      { id: "2", kind: "file", name: "cli.js" }
-    ]
+      { id: "2", kind: "file", name: "cli.js" },
+    ],
   };
   const workflows = discoverWorkflows(model);
   assert.equal(workflows.length, 1);

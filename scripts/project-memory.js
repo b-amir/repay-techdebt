@@ -16,26 +16,21 @@ import { basename, dirname, relative, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 import { promisify } from "node:util";
-import {
-  formatTargetError,
-  isSameOrInside,
-  resolveTargetRoot,
-  skillRoot,
-} from "./lib/targeting.js";
+import { isSameOrInside, resolveTargetRoot, skillRoot } from "../src/foundations/targeting.js";
 import {
   LOCAL_MEMORY_DIRECTORY,
   pathExists,
   projectStoragePaths,
-} from "./lib/private-storage.js";
-import { resolveMemoryPaths } from "./lib/memory-paths.js";
-import { computeEvidenceDigests } from "./lib/curriculum-refresh.js";
-import { readCurriculum, writeCurriculum, CurriculumConflictError } from "./lib/curriculum-store.js";
-import { renderCurriculumMarkdown } from "./lib/curriculum-planning.js";
-import { evaluateLessonForSave } from "./lib/save-lesson.js";
-import { recordExercise, scheduleReview } from "./lib/learning-progress.js";
-import { validateCurriculum } from "./lib/approve-curriculum.js";
+} from "../src/foundations/private-storage.js";
+import { resolveMemoryPaths } from "../src/foundations/memory-paths.js";
+import { computeEvidenceDigests } from "../src/memory/curriculum-refresh.js";
+import { readCurriculum, writeCurriculum } from "../src/memory/curriculum-store.js";
+import { renderCurriculumMarkdown } from "../src/curriculum/curriculum-planning.js";
+import { evaluateLessonForSave } from "../src/lessons/save-lesson.js";
+import { recordExercise, scheduleReview } from "../src/memory/learning-progress.js";
+import { validateCurriculum } from "../src/curriculum/approve-curriculum.js";
 
-export { resolveMemoryPaths } from "./lib/memory-paths.js";
+export { resolveMemoryPaths } from "../src/foundations/memory-paths.js";
 
 const MEMORY_DIRECTORY = LOCAL_MEMORY_DIRECTORY;
 const CONFIG_FILE = "config.json";
@@ -930,11 +925,7 @@ async function configureOutput(targetRoot, options) {
     await mkdir(resolve(staging, "lessons"));
     for (const name of lessonNames) {
       const rawContent = await readFile(resolve(current.lessons, name), "utf8");
-      await writeFile(
-        resolve(staging, "lessons", name),
-        sanitizeContent(rawContent),
-        "utf8"
-      );
+      await writeFile(resolve(staging, "lessons", name), sanitizeContent(rawContent), "utf8");
     }
     const oldIndex = await readFile(current.lessonIndex, "utf8");
     const visibleIndex = oldIndex
@@ -1076,7 +1067,11 @@ async function saveLesson(targetRoot, options) {
         }
         try {
           curriculum.history = curriculum.history || [];
-          curriculum.history.push({ action: "save-lesson", topicId: topic.id, date: new Date().toISOString() });
+          curriculum.history.push({
+            action: "save-lesson",
+            topicId: topic.id,
+            date: new Date().toISOString(),
+          });
           await writeCurriculum(paths.curriculumData, curriculum, expectedRevision);
           await replaceLessonIndex(workbook, renderCurriculumMarkdown(curriculum));
         } catch (error) {
@@ -1150,10 +1145,10 @@ async function repairIndex(targetRoot, options) {
         let indexContent = "";
         try {
           indexContent = await readFile(workbook.lessonIndex, "utf8");
-        } catch (err) {
+        } catch {
           // Ignore if missing
         }
-        
+
         curriculum.learnerCompletion = curriculum.learnerCompletion || {};
         const lines = indexContent.split(/\r?\n/);
         for (const line of lines) {
@@ -1509,7 +1504,12 @@ async function recordExerciseAction(targetRoot, options) {
   if (!options["topic-id"] || !options.type || !options.answer) {
     throw new Error("--topic-id, --type, and --answer are required");
   }
-  const result = recordExercise(options["topic-id"], options.type, options.answer, !!options["session-only"]);
+  const result = recordExercise(
+    options["topic-id"],
+    options.type,
+    options.answer,
+    !!options["session-only"],
+  );
   process.stdout.write(`Exercise recorded (stored: ${result.stored}).\n`);
 }
 
@@ -1521,7 +1521,7 @@ async function scheduleReviewAction(targetRoot, options) {
 
 import { fileURLToPath } from "node:url";
 
-if (import.meta.url.startsWith('file:') && process.argv[1] === fileURLToPath(import.meta.url)) {
+if (import.meta.url.startsWith("file:") && process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
     const { action, options, targetInput } = parseArguments(process.argv.slice(2));
     if (

@@ -7,7 +7,7 @@ import {
   resolveTargetRoot,
   skillRoot,
   TargetRootError,
-} from "./lib/tooling.js";
+} from "../src/tools/tooling.js";
 
 function printHelp() {
   process.stdout.write(

@@ -1,6 +1,7 @@
+// @category C4
 import assert from "node:assert/strict";
 import { test } from "vite-plus/test";
-import { composeMermaidBlock } from "../scripts/lib/lesson-composition.js";
+import { composeMermaidBlock } from "../src/lessons/lesson-composition.js";
 
 test("composeMermaidBlock handles none gracefully", () => {
   const result = composeMermaidBlock({ type: "none" });
@@ -12,9 +13,9 @@ test("composeMermaidBlock generates valid sequence diagram with accessibility ta
     type: "sequence",
     teachingQuestion: "Order of ops?",
     reason: "Because async",
-    nodes: ["User", "System"]
+    nodes: ["User", "System"],
   };
-  
+
   const result = composeMermaidBlock(intent);
   assert.match(result, /```mermaid/);
   assert.match(result, /sequenceDiagram/);
@@ -28,9 +29,9 @@ test("composeMermaidBlock generates valid flowchart with accessibility tags", ()
     type: "flowchart",
     teachingQuestion: "Ownership?",
     reason: "Shows trust",
-    nodes: ["Client", "Server"]
+    nodes: ["Client", "Server"],
   };
-  
+
   const result = composeMermaidBlock(intent);
   assert.match(result, /```mermaid/);
   assert.match(result, /flowchart TD/);

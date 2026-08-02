@@ -1,6 +1,7 @@
+// @category C1
 import assert from "node:assert/strict";
 import { test } from "vite-plus/test";
-import { buildCoverage } from "../scripts/lib/program-coverage.js";
+import { buildCoverage } from "../src/program/program-coverage.js";
 
 const baseInput = {
   scope: ".",

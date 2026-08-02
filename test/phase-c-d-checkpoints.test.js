@@ -1,3 +1,4 @@
+// @category C2
 import assert from "node:assert/strict";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -6,22 +7,19 @@ import { fileURLToPath } from "node:url";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { test } from "vite-plus/test";
-import {
-  assessClaimFaithfulness,
-  parseClaimsBlock,
-} from "../scripts/lib/claim-faithfulness.js";
-import { isOmnibusTopic } from "../scripts/lib/curriculum-policy.js";
-import { validateAgentApproval } from "../scripts/lib/curriculum-approval.js";
+import { assessClaimFaithfulness, parseClaimsBlock } from "../src/lessons/claim-faithfulness.js";
+import { isOmnibusTopic } from "../src/curriculum/curriculum-policy.js";
+import { validateAgentApproval } from "../src/curriculum/curriculum-approval.js";
 import {
   stubWorkbookTrajectory,
   validateTrajectory,
   WORKBOOK_TRAJECTORY,
-} from "../scripts/lib/trajectory.js";
-import { planCurriculum } from "../scripts/lib/curriculum-planning.js";
-import { evaluateCurriculum } from "../scripts/lib/evaluation.js";
-import { validateFixture } from "../scripts/lib/evaluation-schema.js";
-import { buildProgramModel } from "../scripts/lib/program-intelligence.js";
-import { resolveTargetRoot } from "../scripts/lib/targeting.js";
+} from "../src/dialogue/trajectory.js";
+import { planCurriculum } from "../src/curriculum/curriculum-planning.js";
+import { evaluateCurriculum } from "../src/evaluation/evaluation.js";
+import { validateFixture } from "../src/evaluation/evaluation-schema.js";
+import { buildProgramModel } from "../src/program/program-intelligence.js";
+import { resolveTargetRoot } from "../src/foundations/targeting.js";
 
 const execute = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -121,7 +119,14 @@ test("check-trajectory CLI accepts stub workbook", async () => {
     await writeFile(path, JSON.stringify(trajectory));
     const check = await execute(
       process.execPath,
-      [resolve(root, "scripts/check-trajectory.js"), path, "--mode", "workbook", "--format", "json"],
+      [
+        resolve(root, "scripts/check-trajectory.js"),
+        path,
+        "--mode",
+        "workbook",
+        "--format",
+        "json",
+      ],
       { cwd: root },
     );
     assert.equal(JSON.parse(check.stdout).ok, true);
@@ -132,7 +137,9 @@ test("check-trajectory CLI accepts stub workbook", async () => {
 
 test("capture-settle-retrieve fixture surfaces capture subjects and workflow edge", async () => {
   const expectations = validateFixture(
-    JSON.parse(await readFile(resolve(fixtures, "capture-settle-retrieve/expectations.json"), "utf8")),
+    JSON.parse(
+      await readFile(resolve(fixtures, "capture-settle-retrieve/expectations.json"), "utf8"),
+    ),
   );
   assert.ok(expectations.ok);
 
@@ -147,13 +154,13 @@ test("capture-settle-retrieve fixture surfaces capture subjects and workflow edg
       resolve(directory, "billing/settlement.js"),
       await readFile(resolve(fixtures, "capture-settle-retrieve/billing/settlement.js"), "utf8"),
     );
-    const curriculum = planCurriculum(
-      await buildProgramModel(await resolveTargetRoot(directory)),
-    );
+    const curriculum = planCurriculum(await buildProgramModel(await resolveTargetRoot(directory)));
     const topicEval = evaluateCurriculum(curriculum, expectations.data);
     assert.equal(topicEval.ok, true, JSON.stringify(topicEval.missingMustFind));
     assert.ok(
-      curriculum.topics.some((topic) => /capture|billing|settle/i.test(`${topic.focus} ${topic.title}`)),
+      curriculum.topics.some((topic) =>
+        /capture|billing|settle/i.test(`${topic.focus} ${topic.title}`),
+      ),
     );
   } finally {
     await rm(directory, { recursive: true, force: true });

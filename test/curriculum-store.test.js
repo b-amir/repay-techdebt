@@ -1,9 +1,14 @@
+// @category C5
 import { test } from "vite-plus/test";
 import * as assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve, join } from "node:path";
-import { readCurriculum, writeCurriculum, CurriculumConflictError } from "../scripts/lib/curriculum-store.js";
+import {
+  readCurriculum,
+  writeCurriculum,
+  CurriculumConflictError,
+} from "../src/memory/curriculum-store.js";
 
 test("curriculum-store handles revisions and locks correctly", async () => {
   const targetRoot = await mkdtemp(resolve(tmpdir(), "store-"));
@@ -41,7 +46,7 @@ test("curriculum-store handles revisions and locks correctly", async () => {
       assert.ok(error instanceof CurriculumConflictError);
       assert.match(error.message, /Expected revision/);
     }
-    
+
     // 6. Test concurrent writes (lock contention)
     const concurrentWrites = Array.from({ length: 5 }).map((_, i) => {
       return (async () => {
@@ -52,11 +57,10 @@ test("curriculum-store handles revisions and locks correctly", async () => {
         await writeCurriculum(filePath, d);
       })();
     });
-    
+
     await Promise.allSettled(concurrentWrites);
     const { data: finalData } = await readCurriculum(filePath);
     assert.ok(finalData.writer >= 0 && finalData.writer < 5);
-
   } finally {
     await rm(targetRoot, { recursive: true, force: true });
   }

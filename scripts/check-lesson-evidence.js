@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { verifyLessonCitations } from "./lib/lesson-citation-check.js";
-import { formatTargetError, resolveTargetRoot } from "./lib/targeting.js";
+import { verifyLessonCitations } from "../src/lessons/lesson-citation-check.js";
+import { formatTargetError, resolveTargetRoot } from "../src/foundations/targeting.js";
 
 function help() {
   process.stdout.write(`Usage:

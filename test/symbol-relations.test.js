@@ -1,6 +1,7 @@
+// @category C1
 import assert from "node:assert/strict";
 import { test } from "vite-plus/test";
-import { extractSymbolRelations } from "../scripts/lib/relations/ts-adapter.js";
+import { extractSymbolRelations } from "../src/program/relations/ts-adapter.js";
 
 test("ts-adapter extracts function and class definitions", () => {
   const content = `
@@ -9,14 +10,14 @@ test("ts-adapter extracts function and class definitions", () => {
     const x = 5;
   `;
   const result = extractSymbolRelations("test.ts", content);
-  
-  const classSym = result.symbols.find(s => s.name === "User");
-  const fnSym = result.symbols.find(s => s.name === "login");
-  const varSym = result.symbols.find(s => s.name === "x");
-  
+
+  const classSym = result.symbols.find((s) => s.name === "User");
+  const fnSym = result.symbols.find((s) => s.name === "login");
+  const varSym = result.symbols.find((s) => s.name === "x");
+
   assert.ok(classSym);
   assert.equal(classSym.kind, "class");
-  
+
   assert.ok(fnSym);
   assert.equal(fnSym.kind, "function");
 
@@ -30,8 +31,8 @@ test("ts-adapter extracts inheritance", () => {
     class Derived extends Base {}
   `;
   const result = extractSymbolRelations("test.ts", content);
-  
-  const rel = result.relations.find(r => r.kind === "implements");
+
+  const rel = result.relations.find((r) => r.kind === "implements");
   assert.ok(rel);
   // Confidence check
   assert.equal(rel.confidence, 0.8);
@@ -44,7 +45,7 @@ test("ts-adapter extracts basic calls", () => {
     }
   `;
   const result = extractSymbolRelations("test.ts", content);
-  
-  const rel = result.relations.find(r => r.kind === "calls");
+
+  const rel = result.relations.find((r) => r.kind === "calls");
   assert.ok(rel);
 });

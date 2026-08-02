@@ -39,7 +39,7 @@ target-pure fallback.
 ## Analyzer result contract
 
 Enhanced-tool wrappers should return a standard `AnalyzerResult` via
-`createAnalyzerResult` in `scripts/lib/analyzer-result.js` (re-exported from
+`createAnalyzerResult` in `src/tools/analyzer-result.js` (re-exported from
 `analyzer-adapter.js` for compatibility). There is no required base class — prefer the shared
 factory and status vocabulary. No wrapper may silently install into or write inside the target
 repository (`assertSafeAnalyzerOutputDirectory`).
@@ -48,15 +48,15 @@ repository (`assertSafeAnalyzerOutputDirectory`).
 
 Use these exact meanings inside `AnalyzerResult.status`:
 
-| Status               | Meaning                                                                                                        |
-| -------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `successful`         | The phase-specific operation returned usable evidence.                                                         |
-| `failed`             | The tool existed but the operation errored, timed out, authenticated incorrectly, or returned unusable output. |
-| `unavailable`        | The executable, MCP server, required index, or project initialization is absent.                               |
-| `unconfigured`       | The current request lacks mandatory context or configuration for this tool.                                    |
-| `partial`            | The operation succeeded but missed some scope due to limits or timeouts.                                       |
-| `stale`              | The operation used cached data that is older than the current source.                                          |
-| `refused`            | The operation was aborted due to safety constraints (e.g. unsafe writes).                                      |
+| Status         | Meaning                                                                                                        |
+| -------------- | -------------------------------------------------------------------------------------------------------------- |
+| `successful`   | The phase-specific operation returned usable evidence.                                                         |
+| `failed`       | The tool existed but the operation errored, timed out, authenticated incorrectly, or returned unusable output. |
+| `unavailable`  | The executable, MCP server, required index, or project initialization is absent.                               |
+| `unconfigured` | The current request lacks mandatory context or configuration for this tool.                                    |
+| `partial`      | The operation succeeded but missed some scope due to limits or timeouts.                                       |
+| `stale`        | The operation used cached data that is older than the current source.                                          |
+| `refused`      | The operation was aborted due to safety constraints (e.g. unsafe writes).                                      |
 
 A version command can establish installation, not functional success.
 `check-capabilities.js` therefore separates its detailed preflight status from `runtimeOutcome`.

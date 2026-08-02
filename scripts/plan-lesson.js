@@ -1,6 +1,6 @@
-import { formatTargetError, resolveTargetRoot } from "./lib/targeting.js";
-import { planLesson } from "./lib/lesson-composition.js";
-import { buildProgramModel } from "./lib/program-intelligence.js";
+import { formatTargetError, resolveTargetRoot } from "../src/foundations/targeting.js";
+import { planLesson } from "../src/lessons/lesson-composition.js";
+import { buildProgramModel } from "../src/program/program-intelligence.js";
 
 const kinds = [
   "auto",

@@ -1,6 +1,6 @@
-import { formatTargetError, resolveTargetRoot } from "./lib/targeting.js";
-import { buildProgramModel } from "./lib/program-intelligence.js";
-import { buildWorkflowGraph } from "./lib/workflow-graph.js";
+import { formatTargetError, resolveTargetRoot } from "../src/foundations/targeting.js";
+import { buildProgramModel } from "../src/program/program-intelligence.js";
+import { buildWorkflowGraph } from "../src/program/workflow-graph.js";
 
 function help() {
   process.stdout.write(`Usage:
@@ -48,7 +48,15 @@ function parse(argv) {
   if (!Number.isInteger(limit) || limit < 1 || limit > 500)
     throw new Error("--limit must be an integer from 1 to 500");
   if (!new Set(["json", "table"]).has(format)) throw new Error("--format must be json or table");
-  return { targetInput: positional[0], query: positional[1], depth, limit, format, scope, workflow };
+  return {
+    targetInput: positional[0],
+    query: positional[1],
+    depth,
+    limit,
+    format,
+    scope,
+    workflow,
+  };
 }
 
 function renderTable(result) {
@@ -76,7 +84,9 @@ function renderTable(result) {
 }
 
 try {
-  const { targetInput, query, depth, limit, format, scope, workflow } = parse(process.argv.slice(2));
+  const { targetInput, query, depth, limit, format, scope, workflow } = parse(
+    process.argv.slice(2),
+  );
   if (!query?.trim()) throw new Error("A non-empty path-or-name query is required");
   const target = await resolveTargetRoot(targetInput);
   const model = await buildProgramModel(target, { scope });
@@ -114,7 +124,10 @@ try {
         : "succeeded";
 
   if (workflow) {
-    const wfGraph = buildWorkflowGraph(model, seedNodes.map((n) => n.id));
+    const wfGraph = buildWorkflowGraph(
+      model,
+      seedNodes.map((n) => n.id),
+    );
     const wfResult = {
       schemaVersion: 1,
       target: model.target,
@@ -127,7 +140,9 @@ try {
       unresolvedHops: wfGraph.unresolvedHops,
     };
     process.stdout.write(
-      format === "json" ? `${JSON.stringify(wfResult, null, 2)}\n` : `Workflow graph for ${query}:\nNodes: ${wfGraph.nodes.length}, Edges: ${wfGraph.edges.length}, Complete: ${wfGraph.isCompleteTrace}\n`
+      format === "json"
+        ? `${JSON.stringify(wfResult, null, 2)}\n`
+        : `Workflow graph for ${query}:\nNodes: ${wfGraph.nodes.length}, Edges: ${wfGraph.edges.length}, Complete: ${wfGraph.isCompleteTrace}\n`,
     );
     process.exit(0);
   }

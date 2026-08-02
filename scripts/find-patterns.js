@@ -6,8 +6,8 @@ import { globby } from "globby";
 import pLimit from "p-limit";
 import { Piscina } from "piscina";
 import { z } from "zod";
-import { buildDialogueEnvelope } from "./lib/dialogue-envelope.js";
-import { formatTargetError, resolveTargetRoot, skillRoot } from "./lib/tooling.js";
+import { buildDialogueEnvelope } from "../src/dialogue/dialogue-envelope.js";
+import { formatTargetError, resolveTargetRoot, skillRoot } from "../src/tools/tooling.js";
 
 const SOURCE_GLOBS = ["**/*.{js,jsx,ts,tsx,py}"];
 const IGNORES = [
@@ -73,8 +73,7 @@ function parseArguments(argv) {
     throw new Error(
       "find-patterns requires --scope <relative-path> for gap-fill leads, or --all for an explicit whole-repo teaching-lead pass",
     );
-  if (options.all && options.scope)
-    throw new Error("Use either --scope or --all, not both");
+  if (options.all && options.scope) throw new Error("Use either --scope or --all, not both");
   return { targetInput: positional[0], options };
 }
 
@@ -114,7 +113,10 @@ try {
   const target = await resolveTargetRoot(targetInput);
   const projectRoot = target.targetRoot;
   projectRootForMessages = projectRoot;
-  const scopeIgnore = [...IGNORES, ...(target.relativeSkillRoot ? [`${target.relativeSkillRoot}/**`] : [])];
+  const scopeIgnore = [
+    ...IGNORES,
+    ...(target.relativeSkillRoot ? [`${target.relativeSkillRoot}/**`] : []),
+  ];
   const globRoot = options.scope ? resolve(projectRoot, options.scope) : projectRoot;
   const files = await globby(SOURCE_GLOBS, {
     absolute: false,
@@ -144,11 +146,7 @@ try {
     maxThreads: Math.max(1, Math.min(availableParallelism(), prefixed.length, 4)),
   });
   const batches = await Promise.all(
-    prefixed
-      .sort()
-      .map((file) =>
-        piscina.run({ absolutePath: resolve(projectRoot, file), file }),
-      ),
+    prefixed.sort().map((file) => piscina.run({ absolutePath: resolve(projectRoot, file), file })),
   );
   await piscina.close();
   const findings = batches.flatMap((batch) => batch.findings);
@@ -164,10 +162,7 @@ try {
   );
   const dialogue = buildDialogueEnvelope({
     role: "retrieve",
-    extraBlindSpots: [
-      "catalog-is-not-exhaustive",
-      "dynamic-and-framework-specific-patterns",
-    ],
+    extraBlindSpots: ["catalog-is-not-exhaustive", "dynamic-and-framework-specific-patterns"],
     extraMustNotClaim: ["complete-teaching-surface", "defect-proof"],
     extraNextAsks: [
       {

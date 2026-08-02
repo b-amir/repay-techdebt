@@ -5,8 +5,8 @@ import {
   formatCapabilityTable,
   probeCommand,
   resolveTargetRoot,
-} from "./lib/tooling.js";
-import { projectStoragePaths } from "./lib/private-storage.js";
+} from "../src/tools/tooling.js";
+import { projectStoragePaths } from "../src/foundations/private-storage.js";
 
 const DEFINITIONS = [
   {

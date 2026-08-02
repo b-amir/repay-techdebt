@@ -1,12 +1,12 @@
 import { lstat, mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
-import { projectStoragePaths, pathExists } from "./lib/private-storage.js";
+import { projectStoragePaths, pathExists } from "../src/foundations/private-storage.js";
 import {
   formatTargetError,
   resolveTargetRoot,
   runCommand,
   sanitizeDiagnostic,
-} from "./lib/tooling.js";
+} from "../src/tools/tooling.js";
 
 function help() {
   process.stdout.write(`Usage:

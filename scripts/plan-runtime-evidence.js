@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { basename, resolve } from "node:path";
 import { globby } from "globby";
-import { formatTargetError, resolveTargetRoot } from "./lib/targeting.js";
+import { formatTargetError, resolveTargetRoot } from "../src/foundations/targeting.js";
 
 function help() {
   process.stdout.write(`Usage:

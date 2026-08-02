@@ -1,9 +1,10 @@
+// @category C6
 import { test } from "vite-plus/test";
 import * as assert from "node:assert/strict";
 import {
   assertSafeAnalyzerOutputDirectory,
   createAnalyzerResult,
-} from "../scripts/lib/analyzer-result.js";
+} from "../src/tools/analyzer-result.js";
 
 test("createAnalyzerResult enforces status constraints and returns a uniform shape", () => {
   const result = createAnalyzerResult({

@@ -1,3 +1,4 @@
+// @category C1
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
@@ -5,8 +6,8 @@ import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { promisify } from "node:util";
 import { test } from "vite-plus/test";
-import { createIdentityRegistry, stableId } from "../scripts/lib/identity.js";
-import { parseManifest } from "../scripts/lib/manifest-intelligence.js";
+import { createIdentityRegistry, stableId } from "../src/program/identity.js";
+import { parseManifest } from "../src/program/manifest-intelligence.js";
 import {
   analysisPlanSchema,
   buildProgramModel,
@@ -15,8 +16,8 @@ import {
   programNodeSchema,
   programModelSchema,
   summarizeModel,
-} from "../scripts/lib/program-intelligence.js";
-import { resolveTargetRoot } from "../scripts/lib/targeting.js";
+} from "../src/program/program-intelligence.js";
+import { resolveTargetRoot } from "../src/foundations/targeting.js";
 
 const execute = promisify(execFile);
 const root = resolve(import.meta.dirname, "..");
@@ -163,18 +164,28 @@ test("coverage limits and unknown ecosystems remain explicit", async () => {
 test("uses canonical cryptographic identities and detects injected collisions", () => {
   assert.equal(stableId("file", "src/app.ts"), stableId("file", "src/app.ts"));
   assert.notEqual(stableId("file", "src/app.ts"), stableId("test", "src/app.ts"));
-  
+
   // Test new semantic entity kinds
   assert.equal(stableId("route", "GET /api"), stableId("route", "GET /api"));
   assert.notEqual(stableId("route", "GET /api"), stableId("endpoint", "GET /api"));
-  
+
   const registry = createIdentityRegistry(() => "forced:collision");
   assert.equal(registry.id("file", "a.ts"), "forced:collision");
   assert.throws(() => registry.id("file", "b.ts"), /Identity collision detected/);
 });
 
 test("programNodeSchema accepts new semantic entity kinds", () => {
-  const kinds = ["route", "screen", "command", "endpoint", "job", "event", "state-owner", "database-entity", "config-key"];
+  const kinds = [
+    "route",
+    "screen",
+    "command",
+    "endpoint",
+    "job",
+    "event",
+    "state-owner",
+    "database-entity",
+    "config-key",
+  ];
   for (const kind of kinds) {
     const node = { id: `test-id-${kind}`, kind, name: `Test ${kind}` };
     assert.doesNotThrow(() => {

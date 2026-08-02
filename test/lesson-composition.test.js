@@ -1,3 +1,4 @@
+// @category C4
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
@@ -5,9 +6,9 @@ import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { promisify } from "node:util";
 import { test } from "vite-plus/test";
-import { lessonPlanSchema, planLesson } from "../scripts/lib/lesson-composition.js";
-import { buildProgramModel } from "../scripts/lib/program-intelligence.js";
-import { resolveTargetRoot } from "../scripts/lib/targeting.js";
+import { lessonPlanSchema, planLesson } from "../src/lessons/lesson-composition.js";
+import { buildProgramModel } from "../src/program/program-intelligence.js";
+import { resolveTargetRoot } from "../src/foundations/targeting.js";
 
 const execute = promisify(execFile);
 const root = resolve(import.meta.dirname, "..");
@@ -148,7 +149,9 @@ test("planLesson includes diagramIntent according to topic and evidence", async 
     const model = await buildProgramModel(target);
     const plan = planLesson(model, { focus: "auth session", depth: "balanced" });
     assert.ok(plan.diagramIntent);
-    assert.ok(["none", "flowchart", "sequence", "state", "er", "class"].includes(plan.diagramIntent.type));
+    assert.ok(
+      ["none", "flowchart", "sequence", "state", "er", "class"].includes(plan.diagramIntent.type),
+    );
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
