@@ -30,6 +30,7 @@ import {
 } from "./lib/private-storage.js";
 import { renderCurriculumMarkdown } from "./lib/curriculum-planning.js";
 import { inspectLesson } from "./lib/lesson-quality.js";
+import { recordExercise, scheduleReview } from "./lib/learning-progress.js";
 
 const MEMORY_DIRECTORY = LOCAL_MEMORY_DIRECTORY;
 const CONFIG_FILE = "config.json";
@@ -1523,6 +1524,20 @@ async function migrate(targetRoot, options) {
   emit({ type: "memory-migrated", status: "ready", targetRoot, schemaVersion: 2 });
 }
 
+async function recordExerciseAction(targetRoot, options) {
+  if (!options["topic-id"] || !options.type || !options.answer) {
+    throw new Error("--topic-id, --type, and --answer are required");
+  }
+  const result = recordExercise(options["topic-id"], options.type, options.answer, !!options["session-only"]);
+  process.stdout.write(`Exercise recorded (stored: ${result.stored}).\n`);
+}
+
+async function scheduleReviewAction(targetRoot, options) {
+  if (!options["topic-id"]) throw new Error("--topic-id is required");
+  scheduleReview(options["topic-id"], parseInt(options.days, 10) || 3);
+  process.stdout.write("Review scheduled.\n");
+}
+
 try {
   const { action, options, targetInput } = parseArguments(process.argv.slice(2));
   if (
@@ -1536,11 +1551,13 @@ try {
       "record-decision",
       "repair-index",
       "migrate",
+      "record-exercise",
+      "schedule-review",
     ]).has(action)
   ) {
     printHelp();
     throw new Error(
-      "Expected status, init, configure-output, save-curriculum, save-lesson, save-artifact, record-decision, migrate, or repair-index",
+      "Expected status, init, configure-output, save-curriculum, save-lesson, save-artifact, record-decision, migrate, repair-index, record-exercise, or schedule-review",
     );
   }
   const { targetRoot } = await resolveTargetRoot(targetInput);
@@ -1552,7 +1569,9 @@ try {
   else if (action === "save-artifact") await saveArtifact(targetRoot, options);
   else if (action === "record-decision") await recordDecision(targetRoot, options);
   else if (action === "migrate") await migrate(targetRoot, options);
-  else await repairIndex(targetRoot, options);
+  else if (action === "repair-index") await repairIndex(targetRoot, options);
+  else if (action === "record-exercise") await recordExerciseAction(targetRoot, options);
+  else if (action === "schedule-review") await scheduleReviewAction(targetRoot, options);
 } catch (error) {
   process.stderr.write(
     `${formatTargetError(error) ?? `Project memory failed: ${error.message}`}\n`,

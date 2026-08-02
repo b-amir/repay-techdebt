@@ -87,8 +87,9 @@ Before saving:
 4. Remove repetition, throat-clearing, generic best practices, and AI-flavored filler such as
    “delve,” “seamlessly,” or “game-changer.”
 5. Check that the opening promises a concrete outcome and every section fulfills it.
-6. Check that the ending asks for one useful act of recall, tracing, debugging, or change.
-7. Run `check-lesson-quality.js`; fix every error. Treat warnings as revision prompts, not noise.
+6. Check that the ending asks for one useful act of recall, tracing, debugging, modification, or design challenge. Provide private rubric or answer guidance.
+7. Ensure the lesson establishes clear motivation, teaches a causal mental model, anticipates at least one misconception, and manages cognitive load appropriately.
+8. Run `check-lesson-quality.js`; fix every error. Treat warnings as revision prompts, not noise.
 
 The automated check is a floor, not proof of an excellent lesson. A passing lesson can still be
 unimportant, incorrect, or dull; source verification and editorial judgment remain required.

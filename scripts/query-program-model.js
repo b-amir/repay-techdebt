@@ -76,7 +76,7 @@ function renderTable(result) {
 }
 
 try {
-  const { targetInput, query, depth, limit, format, scope } = parse(process.argv.slice(2));
+  const { targetInput, query, depth, limit, format, scope, workflow } = parse(process.argv.slice(2));
   if (!query?.trim()) throw new Error("A non-empty path-or-name query is required");
   const target = await resolveTargetRoot(targetInput);
   const model = await buildProgramModel(target, { scope });

@@ -83,3 +83,29 @@ export function inspectLesson(markdown, { depth = "balanced", expectedEvidencePa
     warnings,
   };
 }
+
+export function evaluateSpecification(markdown, spec) {
+  const errors = [];
+  
+  // A simplistic heuristic since we don't have an LLM here:
+  // We check if required claims are mentioned by keywords.
+  for (const claim of spec.requiredClaims) {
+    // Basic heuristic: check if any word of the claim > 4 letters is in the markdown
+    const keyWords = claim.split(/\s+/).filter(w => w.length > 4).map(w => w.toLowerCase());
+    const mdLower = markdown.toLowerCase();
+    const missing = keyWords.filter(w => !mdLower.includes(w));
+    if (missing.length === keyWords.length && keyWords.length > 0) {
+      errors.push(`Missing required claim: ${claim}`);
+    }
+  }
+
+  // Also verify challenge exists
+  if (!/challenge|task|exercise/i.test(markdown)) {
+    errors.push("Missing transfer challenge/task at the end of the lesson.");
+  }
+
+  return {
+    ok: errors.length === 0,
+    errors
+  };
+}
