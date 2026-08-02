@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
-import { resolveMemoryPaths } from "./project-memory.js";
+import { resolveMemoryPaths } from "./lib/memory-paths.js";
 import { readCurriculum } from "./lib/curriculum-store.js";
 
 const { values, positionals } = parseArgs({

@@ -1,11 +1,11 @@
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
-import { resolveMemoryPaths } from "../project-memory.js";
+import { resolveMemoryPaths } from "./memory-paths.js";
 import { buildProgramModel } from "./program-intelligence.js";
 import { planLesson } from "./lesson-composition.js";
 import { inspectLesson } from "./lesson-quality.js";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 
 const exec = promisify(execFile);
 

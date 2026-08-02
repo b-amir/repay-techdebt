@@ -1,9 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { assessClaimFaithfulness } from "./lib/claim-faithfulness.js";
-import { verifyLessonCitations } from "./lib/lesson-citation-check.js";
-import { inspectLesson } from "./lib/lesson-quality.js";
-import { evaluatePedagogy } from "./lib/pedagogy.js";
+import { runTeachFloors } from "./lib/save-lesson.js";
 import { formatTargetError, resolveTargetRoot } from "./lib/targeting.js";
 
 /**
@@ -63,16 +60,9 @@ try {
   if (args.length !== 2) throw new Error("Expected <target-root> and <lesson.md>");
   const target = await resolveTargetRoot(args[0]);
   const markdown = await readFile(resolve(args[1]), "utf8");
-  const quality = inspectLesson(markdown, { depth });
-  const citations = await verifyLessonCitations(target.targetRoot, quality.citations);
-  if (citations.problems.length > 0) {
-    quality.ok = false;
-    quality.errors.push(...citations.problems);
-  }
-  const pedagogy = evaluatePedagogy(markdown);
-  const faithfulness = await assessClaimFaithfulness(target.targetRoot, markdown);
+  const floors = await runTeachFloors(target.targetRoot, markdown, { depth });
+  const { floorOk, quality, citations, pedagogy, faithfulness } = floors;
   const rubric = rubricProxies(markdown, quality, pedagogy);
-  const floorOk = quality.ok;
   const payload = {
     analyzer: "evaluate-lesson",
     role: "check",

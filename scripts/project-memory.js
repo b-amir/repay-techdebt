@@ -24,18 +24,18 @@ import {
 } from "./lib/targeting.js";
 import {
   LOCAL_MEMORY_DIRECTORY,
-  locateProjectMemory,
   pathExists,
   projectStoragePaths,
 } from "./lib/private-storage.js";
+import { resolveMemoryPaths } from "./lib/memory-paths.js";
 import { computeEvidenceDigests } from "./lib/curriculum-refresh.js";
 import { readCurriculum, writeCurriculum, CurriculumConflictError } from "./lib/curriculum-store.js";
 import { renderCurriculumMarkdown } from "./lib/curriculum-planning.js";
-import { inspectLesson } from "./lib/lesson-quality.js";
-import { verifyLessonCitations } from "./lib/lesson-citation-check.js";
-import { assessClaimFaithfulness } from "./lib/claim-faithfulness.js";
+import { evaluateLessonForSave } from "./lib/save-lesson.js";
 import { recordExercise, scheduleReview } from "./lib/learning-progress.js";
-import { validateAgentApproval } from "./lib/curriculum-approval.js";
+import { validateCurriculum } from "./lib/approve-curriculum.js";
+
+export { resolveMemoryPaths } from "./lib/memory-paths.js";
 
 const MEMORY_DIRECTORY = LOCAL_MEMORY_DIRECTORY;
 const CONFIG_FILE = "config.json";
@@ -92,22 +92,6 @@ function parseArguments(argv) {
   return { action, options, targetInput };
 }
 
-function memoryPaths(root) {
-  return {
-    root,
-    config: resolve(root, CONFIG_FILE),
-    curriculum: resolve(root, "curriculum.md"),
-    curriculumData: resolve(root, "curriculum.json"),
-    decisions: resolve(root, "decisions.md"),
-    lessonIndex: resolve(root, "lessons", "index.md"),
-    lessonLock: resolve(root, ".lesson-index.lock"),
-    lessons: resolve(root, "lessons"),
-    artifacts: resolve(root, "artifacts"),
-    artifactIndex: resolve(root, "artifacts", "index.json"),
-    artifactLock: resolve(root, ".artifact-index.lock"),
-  };
-}
-
 function workbookPaths(memory, config) {
   const location = config.output?.location ?? "private";
   const root = location === "private" ? memory.root : resolve(config.output.root);
@@ -118,11 +102,6 @@ function workbookPaths(memory, config) {
     lessonIndex:
       location === "private" ? resolve(root, "lessons", "index.md") : resolve(root, "INDEX.md"),
   };
-}
-
-export async function resolveMemoryPaths(targetRoot, options = {}) {
-  const location = await locateProjectMemory(targetRoot, options.storage);
-  return { ...memoryPaths(location.root), location };
 }
 
 async function requireSafePath(path, kind) {
@@ -822,54 +801,6 @@ async function replaceLessonIndex(paths, content) {
   }
 }
 
-function validateCurriculum(value, targetRoot) {
-  if (!value || value.schemaVersion !== 1 || !Array.isArray(value.topics))
-    throw new Error("Curriculum input must be a schema-v1 plan with a topics array");
-  if (resolve(value.target?.root ?? "") !== targetRoot)
-    throw new Error("Curriculum target does not match the requested target root");
-  const approvalCheck = validateAgentApproval(value);
-  if (!approvalCheck.ok) throw new Error(approvalCheck.error);
-  value.topics = approvalCheck.topics;
-  const ids = new Set();
-  const focuses = new Set();
-  for (const topic of value.topics) {
-    if (!/^topic-[a-f0-9]{12}$/.test(topic.id) || ids.has(topic.id))
-      throw new Error("Curriculum topic IDs must be unique planner-generated IDs");
-    ids.add(topic.id);
-    if (
-      !topic.title ||
-      !topic.focus ||
-      !topic.learnerOutcome ||
-      !topic.chapter ||
-      !Array.isArray(topic.evidencePaths)
-    )
-      throw new Error(`Curriculum topic ${topic.id} is incomplete`);
-    if (focuses.has(topic.focus)) throw new Error(`Curriculum repeats the focus ${topic.focus}`);
-    focuses.add(topic.focus);
-    topic.status = "planned";
-    topic.lessonPath = null;
-    delete topic.writtenAt;
-  }
-  const modeledFiles = Number(value.coverage?.modeledFiles ?? 0);
-  const expectedMinimum = modeledFiles >= 1000 ? 60 : modeledFiles >= 100 ? 25 : 12;
-  const available = Number(value.scale?.availableCandidates ?? value.topics.length);
-  const required = Math.min(expectedMinimum, available);
-  if (value.topics.length < required)
-    throw new Error(
-      `Curriculum has ${value.topics.length} topics; ${modeledFiles} modeled files and ${available} candidates require at least ${required}. Do not compress the repository into omnibus lessons.`,
-    );
-  if (value.topics.length > 150) throw new Error("Curriculum cannot exceed 150 focused topics");
-  if (
-    modeledFiles >= 1000 &&
-    available >= 60 &&
-    new Set(value.topics.map((topic) => topic.chapter)).size < 5
-  )
-    throw new Error(
-      "A large-repository curriculum must cover at least five distinct learning chapters",
-    );
-  return value;
-}
-
 async function saveCurriculum(targetRoot, options) {
   if (!options.input) throw new Error("--input is required");
   const paths = await resolveMemoryPaths(targetRoot, options);
@@ -1099,32 +1030,11 @@ async function saveLesson(targetRoot, options) {
   const inputPath = await realpath(resolve(options.input));
   const body = await readFile(inputPath, "utf8");
   const content = `# ${title}\n\n${body.trim()}\n`;
-  const quality = inspectLesson(content, {
+  const { ok, quality } = await evaluateLessonForSave(targetRoot, content, {
     depth: config.defaults.lessonDepth,
     expectedEvidencePaths: topic?.evidencePaths ?? [],
   });
-  quality.evidenceProblems = (
-    await verifyLessonCitations(targetRoot, quality.citations)
-  ).problems;
-  if (quality.evidenceProblems.length > 0) {
-    quality.ok = false;
-    quality.errors.push("Every source citation must resolve to a current target file and line.");
-  }
-  const faithfulness = await assessClaimFaithfulness(targetRoot, content);
-  quality.faithfulness = {
-    mode: faithfulness.mode,
-    ok: faithfulness.ok,
-    problems: faithfulness.problems,
-  };
-  // Explicit CLAIMS: support:yes that fail snippet overlap block save (B6).
-  // Auto near-citation mode is advisory on save (use check-lesson-faithfulness --strict).
-  if (faithfulness.mode === "explicit-claims" && faithfulness.problems.length > 0) {
-    quality.ok = false;
-    quality.errors.push(...faithfulness.problems);
-  } else if (faithfulness.problems.length > 0) {
-    quality.warnings = [...(quality.warnings ?? []), ...faithfulness.problems];
-  }
-  if (!quality.ok) {
+  if (!ok) {
     emit({
       type: "lesson-quality-failed",
       status: "not-saved",

@@ -36,9 +36,13 @@ Run tools with an external working/output directory when they have implicit file
 cannot redirect writes must run with the target mounted read-only or be skipped in favor of a
 target-pure fallback.
 
-## The AnalyzerAdapter Protocol
+## Analyzer result contract
 
-To ensure stability across all tools (CLI or MCP), all integrated wrappers must return a standard `AnalyzerResult` via the `AnalyzerAdapter` base class (`scripts/lib/analyzer-adapter.js`). No adapter is allowed to silently install into or write inside the target repository.
+Enhanced-tool wrappers should return a standard `AnalyzerResult` via
+`createAnalyzerResult` in `scripts/lib/analyzer-result.js` (re-exported from
+`analyzer-adapter.js` for compatibility). There is no required base class — prefer the shared
+factory and status vocabulary. No wrapper may silently install into or write inside the target
+repository (`assertSafeAnalyzerOutputDirectory`).
 
 ### Status model
 

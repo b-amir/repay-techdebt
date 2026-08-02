@@ -1,3 +1,5 @@
+import { extractLessonCitations } from "./lesson-citation-check.js";
+
 const DEPTH_RANGES = {
   concise: [250, 650],
   balanced: [450, 950],
@@ -8,8 +10,6 @@ const EMPTY_HEADING =
   /^(?:introduction|overview|details|more information|conclusion|predict|read|run|investigate|modify|make)$/i;
 const AI_PUFFERY =
   /\b(?:delve|game[- ]changer|revolutionary|cutting[- ]edge|robust and scalable|seamlessly|in today(?:'s)? (?:fast-paced|digital) world)\b/i;
-const EVIDENCE_PATH =
-  /(?:^|[\s`(])([A-Za-z0-9_.@+-]+(?:\/[A-Za-z0-9_.@+()[\]-]+)+\.[A-Za-z0-9]+):([1-9]\d*)(?:-[1-9]\d*)?(?=$|[\s`),.;])/gm;
 
 function wordCount(markdown) {
   return markdown
@@ -22,7 +22,7 @@ function wordCount(markdown) {
 export function inspectLesson(markdown, { depth = "balanced", expectedEvidencePaths = [] } = {}) {
   if (!DEPTH_RANGES[depth]) throw new Error("depth must be concise, balanced, or deep");
   const headings = [...markdown.matchAll(/^##\s+(.+)$/gm)].map((match) => match[1].trim());
-  const evidence = [...markdown.matchAll(EVIDENCE_PATH)].map((match) => `${match[1]}:${match[2]}`);
+  const evidence = extractLessonCitations(markdown);
   const paragraphs = markdown
     .replace(/```[\s\S]*?```/g, "")
     .split(/\n\s*\n/)

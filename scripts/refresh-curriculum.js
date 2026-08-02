@@ -1,7 +1,7 @@
 import { parseArgs } from "node:util";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolveTargetRoot } from "./lib/targeting.js";
-import { resolveMemoryPaths } from "./project-memory.js";
+import { resolveMemoryPaths } from "./lib/memory-paths.js";
 import { refreshCurriculum } from "./lib/curriculum-refresh.js";
 
 function parse(args) {

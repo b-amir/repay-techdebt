@@ -1,41 +1,21 @@
 import { test } from "vite-plus/test";
 import * as assert from "node:assert/strict";
-import { AnalyzerAdapter } from "../scripts/lib/analyzer-adapter.js";
+import {
+  assertSafeAnalyzerOutputDirectory,
+  createAnalyzerResult,
+} from "../scripts/lib/analyzer-result.js";
 
-class MockAdapter extends AnalyzerAdapter {
-  constructor(options) {
-    super(options);
-  }
+test("createAnalyzerResult enforces status constraints and returns a uniform shape", () => {
+  const result = createAnalyzerResult({
+    analyzer: "MockLinter",
+    version: "1.0.0",
+    status: "successful",
+    targetRoot: "/fake/project",
+    scope: ["src/**/*.js"],
+    evidence: { issuesFound: 42 },
+    limitations: ["Did not parse JSX"],
+  });
 
-  async analyze(targetRoot, options = {}) {
-    if (options.failWith) {
-      return this.createResult({
-        status: options.failWith,
-        targetRoot,
-        error: new Error(`Simulated failure: ${options.failWith}`),
-      });
-    }
-
-    if (options.writeToTarget) {
-      // Simulate writing to a target directory, which should fail the assertion
-      this.assertSafeOutputDirectory(targetRoot, `${targetRoot}/.cache/analyzer`);
-    }
-
-    return this.createResult({
-      status: "successful",
-      targetRoot,
-      scope: ["src/**/*.js"],
-      evidence: { issuesFound: 42 },
-      limitations: ["Did not parse JSX"],
-    });
-  }
-}
-
-test("AnalyzerAdapter enforces status constraints and returns a uniform shape", async () => {
-  const adapter = new MockAdapter({ name: "MockLinter", version: "1.0.0" });
-  
-  const result = await adapter.analyze("/fake/project");
-  
   assert.equal(result.analyzer, "MockLinter");
   assert.equal(result.version, "1.0.0");
   assert.equal(result.status, "successful");
@@ -47,36 +27,38 @@ test("AnalyzerAdapter enforces status constraints and returns a uniform shape", 
   assert.ok(result.timestamp);
 });
 
-test("AnalyzerAdapter handles expected failure statuses", async () => {
-  const adapter = new MockAdapter({ name: "MockLinter", version: "1.0.0" });
-  
+test("createAnalyzerResult accepts expected failure statuses", () => {
   const statuses = ["unavailable", "unconfigured", "refused", "failed", "partial", "stale"];
-  
   for (const status of statuses) {
-    const result = await adapter.analyze("/fake/project", { failWith: status });
+    const result = createAnalyzerResult({
+      analyzer: "MockLinter",
+      version: "1.0.0",
+      status,
+      targetRoot: "/fake/project",
+      error: new Error(`Simulated failure: ${status}`),
+    });
     assert.equal(result.status, status);
     assert.match(result.error, new RegExp(status));
   }
 });
 
-test("AnalyzerAdapter rejects invalid statuses", () => {
-  const adapter = new MockAdapter({ name: "MockLinter", version: "1.0.0" });
-  
+test("createAnalyzerResult rejects invalid statuses", () => {
   assert.throws(() => {
-    adapter.createResult({ status: "done", targetRoot: "/fake/project" });
+    createAnalyzerResult({ status: "done", analyzer: "x", targetRoot: "/fake/project" });
   }, /Invalid analyzer status: done/);
 });
 
-test("AnalyzerAdapter prevents writing inside target directory", async () => {
-  const adapter = new MockAdapter({ name: "MockLinter", version: "1.0.0" });
-  
-  await assert.rejects(
-    async () => adapter.analyze("/fake/project", { writeToTarget: true }),
-    /Security Violation/
+test("assertSafeAnalyzerOutputDirectory prevents writing inside target", () => {
+  assert.throws(
+    () =>
+      assertSafeAnalyzerOutputDirectory(
+        "MockLinter",
+        "/fake/project",
+        "/fake/project/.cache/analyzer",
+      ),
+    /Security Violation/,
   );
-  
-  // Safe write outside target should not throw
   assert.doesNotThrow(() => {
-    adapter.assertSafeOutputDirectory("/fake/project", "/tmp/repay-cache");
+    assertSafeAnalyzerOutputDirectory("MockLinter", "/fake/project", "/tmp/repay-cache");
   });
 });

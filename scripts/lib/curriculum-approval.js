@@ -2,7 +2,7 @@
  * Agent shortlist approval required before persisting a curriculum proposal.
  */
 
-import { findOmnibusTopics } from "./claim-faithfulness.js";
+import { findOmnibusTopics } from "./curriculum-policy.js";
 
 const PURPOSE_STATUSES = new Set(["accepted", "unresolved"]);
 

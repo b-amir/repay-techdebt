@@ -8,9 +8,9 @@ import { promisify } from "node:util";
 import { test } from "vite-plus/test";
 import {
   assessClaimFaithfulness,
-  isOmnibusTopic,
   parseClaimsBlock,
 } from "../scripts/lib/claim-faithfulness.js";
+import { isOmnibusTopic } from "../scripts/lib/curriculum-policy.js";
 import { validateAgentApproval } from "../scripts/lib/curriculum-approval.js";
 import {
   stubWorkbookTrajectory,

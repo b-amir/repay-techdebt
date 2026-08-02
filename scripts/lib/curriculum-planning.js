@@ -5,7 +5,7 @@ import { rankCandidate } from "./curriculum-ranking.js";
 import { deduplicateAndSplitTopics } from "./topic-decomposition.js";
 import { buildStudyOrder } from "./curriculum-graph.js";
 import { applyLearnerProfile } from "./learner-profile.js";
-import { findOmnibusTopics } from "./claim-faithfulness.js";
+import { findOmnibusTopics } from "./curriculum-policy.js";
 
 const NON_PRODUCT =
   /(^|\/)(?:test|tests|__tests__|spec|specs|fixtures|mocks|scripts|tools|docs?|examples?|generated|dist|build|coverage|vendor|node_modules|storybook-static|\.storybook|\.react-router|e2e)(\/|$)/i;
