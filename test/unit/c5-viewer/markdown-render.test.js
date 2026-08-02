@@ -29,3 +29,19 @@ test("renderMarkdown emits mermaid blocks for client rendering", () => {
   assert.match(html, /flowchart TD/);
   assert.doesNotMatch(html, /ds-codeblock/);
 });
+
+test("renderMarkdown infers TypeScript for untagged JS fences, not highlightAuto guesses", () => {
+  const html = renderMarkdown(
+    "```\nconst existingRequest = store.requests[targetChatId];\nif (existingRequest && existingRequest.phase !== \"idle\") {\n  return;\n}\n```\n",
+  );
+  assert.doesNotMatch(html, /Kotlin|C#|Php|PHP/i);
+  assert.match(html, /TypeScript/);
+  assert.match(html, /hljs/);
+});
+
+test("renderMarkdown leaves unknown untagged snippets as plain code", () => {
+  const html = renderMarkdown("```\nhello world\nplain text\n```\n");
+  assert.match(html, /ds-code-plain/);
+  assert.doesNotMatch(html, /hljs-keyword/);
+  assert.match(html, />Code</);
+});

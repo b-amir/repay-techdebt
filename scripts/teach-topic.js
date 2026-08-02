@@ -3,9 +3,7 @@
 import { parseArgs } from "node:util";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveTargetRoot } from "../src/foundations/targeting.js";
-import { ensureSkillRuntime } from "../src/foundations/ensure-runtime.js";
-import { runTopicWorkflow } from "../src/curriculum/topic-workflow.js";
+import { bootstrapSkillRuntime } from "../src/foundations/runtime-install.js";
 
 const skillRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -58,7 +56,11 @@ Examples:
 }
 
 try {
+  await bootstrapSkillRuntime(skillRoot);
+  const { ensureSkillRuntime } = await import("../src/foundations/ensure-runtime.js");
   await ensureSkillRuntime({ skillRoot });
+  const { resolveTargetRoot } = await import("../src/foundations/targeting.js");
+  const { runTopicWorkflow } = await import("../src/curriculum/topic-workflow.js");
   const { targetInput, options } = parse(process.argv.slice(2));
   const target = await resolveTargetRoot(targetInput);
 

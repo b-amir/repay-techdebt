@@ -1,16 +1,10 @@
 // Bootstrap bundled skill dependencies inside <skill-root> only (never the target app).
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { execa } from "execa";
+import { runPackageInstall, RuntimeBootstrapError } from "./runtime-install.js";
 import { auditSkillRuntime } from "./runtime-audit.js";
 
-export class RuntimeBootstrapError extends Error {
-  constructor(message, report) {
-    super(message);
-    this.name = "RuntimeBootstrapError";
-    this.report = report;
-  }
-}
+export { RuntimeBootstrapError } from "./runtime-install.js";
 
 const CONSENT_DIR = ".repay-skill-runtime";
 const CONSENT_FILE = "bundled-deps-consent.json";
@@ -31,30 +25,6 @@ async function recordRuntimeConsent(skillRoot, details) {
     resolve(dir, CONSENT_FILE),
     `${JSON.stringify({ bundledDeps: true, ...details }, null, 2)}\n`,
     "utf8",
-  );
-}
-
-async function runPackageInstall(skillRoot) {
-  const attempts = [
-    { command: "corepack", args: ["pnpm", "install"] },
-    { command: "pnpm", args: ["install"] },
-    { command: "npm", args: ["install", "--no-audit", "--no-fund"] },
-  ];
-  for (const { command, args } of attempts) {
-    try {
-      await execa(command, args, { cwd: skillRoot, stdio: "inherit" });
-      return `${command} ${args.join(" ")}`.trim();
-    } catch (error) {
-      if (error.errno === "ENOENT") continue;
-      throw new RuntimeBootstrapError(
-        `Skill dependency install failed (${command}): ${error.message}`,
-        null,
-      );
-    }
-  }
-  throw new RuntimeBootstrapError(
-    "No package manager available to install skill dependencies (tried corepack pnpm, pnpm, npm).",
-    null,
   );
 }
 
@@ -97,3 +67,6 @@ export async function ensureSkillRuntime({ skillRoot, install = true } = {}) {
     consent: await readRuntimeConsent(skillRoot),
   };
 }
+
+// Re-export bootstrap for scripts that must install before importing bundled deps.
+export { bootstrapSkillRuntime } from "./runtime-install.js";

@@ -1017,6 +1017,15 @@ html[data-theme="dark"] .ds-settings-panel {
   color: inherit;
 }
 
+.ds-code-plain,
+.ds-code-plain code {
+  font-family: var(--font-mono);
+  color: var(--text);
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
 .hljs {
   color: var(--hljs-fg);
 }

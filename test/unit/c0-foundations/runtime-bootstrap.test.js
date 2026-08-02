@@ -34,3 +34,10 @@ test("auditSkillRuntime reports ready when node_modules exists", async () => {
   assert.equal(report.status, "ready");
   assert.ok(report.packages.length > 0);
 });
+
+test("bootstrapSkillRuntime is ready when node_modules exists", async () => {
+  const { bootstrapSkillRuntime } = await import("../../../src/foundations/runtime-install.js");
+  const result = await bootstrapSkillRuntime(skillRoot);
+  assert.equal(result.report.status, "ready");
+  assert.equal(result.installed, false);
+});

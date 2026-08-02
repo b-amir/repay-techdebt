@@ -5,15 +5,11 @@
 //   node scripts/view-lessons.js <target-root> [--port 8765] [--open] [--lesson <rel-path>]
 import { spawn } from "node:child_process";
 import { parseArgs } from "node:util";
-import {
-  resolveTargetRoot,
-  formatTargetError,
-  TargetRootError,
-  skillRoot,
-} from "../src/foundations/targeting.js";
-import { ensureSkillRuntime } from "../src/foundations/ensure-runtime.js";
-import { resolveWorkbook } from "../src/viewer/resolve-workbook.js";
-import { createViewerServer } from "../src/viewer/server.js";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { bootstrapSkillRuntime } from "../src/foundations/runtime-install.js";
+
+const skillRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 
 const { values, positionals } = parseArgs({
   options: {
@@ -48,7 +44,17 @@ function openInBrowser(url) {
 }
 
 async function main() {
+  await bootstrapSkillRuntime(skillRoot);
+
+  const { ensureSkillRuntime } = await import("../src/foundations/ensure-runtime.js");
   await ensureSkillRuntime({ skillRoot });
+
+  const { resolveTargetRoot, formatTargetError, TargetRootError } = await import(
+    "../src/foundations/targeting.js",
+  );
+  const { resolveWorkbook } = await import("../src/viewer/resolve-workbook.js");
+  const { createViewerServer } = await import("../src/viewer/server.js");
+
   const { targetRoot } = await resolveTargetRoot(positionals[0]);
   const workbook = await resolveWorkbook(targetRoot);
   const requestedPort = Number(values.port);
@@ -88,7 +94,8 @@ function listenWithFallback(server, requested) {
   });
 }
 
-main().catch((error) => {
+main().catch(async (error) => {
+  const { formatTargetError, TargetRootError } = await import("../src/foundations/targeting.js");
   if (error instanceof TargetRootError) {
     const formatted = formatTargetError(error);
     process.stderr.write(formatted ? `${formatted}\n` : `${error.message}\n`);

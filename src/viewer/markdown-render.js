@@ -55,17 +55,41 @@ function resolveLanguage(info) {
   return LANG_ALIASES[lower] ?? lower;
 }
 
-function languageLabel(lang) {
+function languageLabel(lang, { inferred = false } = {}) {
   if (!lang) return "Code";
+  if (inferred && lang === "typescript") return "TypeScript";
   return LANG_LABELS[lang] ?? lang.replace(/^\w/, (c) => c.toUpperCase());
 }
 
+/** Infer TS/JS from lesson snippets; never use highlight.js auto-detect (guesses Kotlin/C#/PHP). */
+function inferLessonLanguage(code) {
+  const sample = String(code ?? "").slice(0, 4000);
+  const tsSignals =
+    /\b(interface|type)\s+\w+/.test(sample) ||
+    /:\s*(string|number|boolean|void|unknown|Promise|UseChatReturn)/.test(sample) ||
+    /<[A-Z][A-Za-z0-9]*>/.test(sample);
+  const jsSignals =
+    /\b(import|export)\s+/.test(sample) ||
+    /=>/.test(sample) ||
+    /\b(const|let|var)\s+\w+/.test(sample) ||
+    /\bfunction\s+\w+/.test(sample) ||
+    /\buse[A-Z]\w*\(/.test(sample);
+  if (tsSignals || jsSignals) return "typescript";
+  return "";
+}
+
 function highlightCode(code, lang) {
-  if (lang && hljs.getLanguage(lang)) {
-    return { html: hljs.highlight(code, { language: lang }).value, lang };
+  const inferred = lang ? "" : inferLessonLanguage(code);
+  const resolved = lang || inferred;
+  if (resolved && hljs.getLanguage(resolved)) {
+    return {
+      html: hljs.highlight(code, { language: resolved }).value,
+      lang: resolved,
+      inferred: Boolean(inferred),
+      plain: false,
+    };
   }
-  const auto = hljs.highlightAuto(code);
-  return { html: auto.value, lang: auto.language ?? "" };
+  return { html: escapeFenceText(code), lang: "", inferred: false, plain: true };
 }
 
 md.renderer.rules.fence = function renderFence(tokens, idx) {
@@ -78,13 +102,14 @@ md.renderer.rules.fence = function renderFence(tokens, idx) {
   }
 
   const lang = resolveLanguage(info);
-  const { html, lang: resolvedLang } = highlightCode(code, lang);
-  const label = languageLabel(resolvedLang || lang);
-  const langClass = resolvedLang || lang ? ` language-${resolvedLang || lang}` : "";
+  const { html, lang: resolvedLang, inferred, plain } = highlightCode(code, lang);
+  const label = languageLabel(resolvedLang, { inferred });
+  const langClass = resolvedLang ? ` language-${resolvedLang}` : "";
+  const preClass = plain ? "ds-code-plain" : "hljs";
 
   return `<div class="ds-codeblock">
   <div class="ds-codeblock-header"><span class="ds-codeblock-lang">${label}</span></div>
-  <pre class="hljs"><code class="hljs${langClass}">${html}</code></pre>
+  <pre class="${preClass}"><code class="${plain ? "ds-code-plain" : `hljs${langClass}`}">${html}</code></pre>
 </div>\n`;
 };
 
