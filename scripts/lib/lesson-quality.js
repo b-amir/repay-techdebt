@@ -60,6 +60,42 @@ export function inspectLesson(markdown, { depth = "balanced", expectedEvidencePa
     errors.push("Cite at least one source anchor selected for this curriculum topic.");
   if (AI_PUFFERY.test(markdown))
     errors.push("Remove generic or promotional AI phrasing; use concrete project language.");
+
+  // Diagram constraints (Task 19)
+  const mermaidBlocks = [...markdown.matchAll(/```mermaid\n([\s\S]*?)\n```/g)];
+  for (const block of mermaidBlocks) {
+    const code = block[1];
+    
+    // Prohibited experimental/unsupported diagrams
+    if (/^\s*(pie|gitGraph|mindmap|sankey-beta|C4Context|C4Container|C4Component|C4Dynamic)/m.test(code)) {
+      errors.push("Lesson uses prohibited experimental Mermaid type. Use only flowchart, sequenceDiagram, stateDiagram-v2, erDiagram, or classDiagram.");
+    }
+    
+    // Accessibility
+    if (!/^\s*accTitle:/m.test(code)) {
+      errors.push("Mermaid diagram is missing accTitle.");
+    }
+    if (!/^\s*accDescr:/m.test(code)) {
+      errors.push("Mermaid diagram is missing accDescr.");
+    }
+
+    // Size constraints
+    const lines = code.split("\n").length;
+    if (lines > 30) {
+      errors.push("Mermaid diagram is too long (> 30 lines). Simplify or use prose.");
+    }
+  }
+
+  // Check for the mandatory takeaway if a diagram exists
+  if (mermaidBlocks.length > 0 && !/\*\*What this shows:\*\*/i.test(markdown)) {
+    errors.push("Lesson with a diagram must include a '**What this shows:**' summary.");
+  }
+
+  // Reject diagram sidecars
+  if (/!\[.*?\]\(.*?\.(?:mmd|svg|png|jpg)\)/.test(markdown)) {
+    errors.push("Do not use external image or diagram sidecars. Use fenced Mermaid blocks.");
+  }
+
   const longParagraphs = paragraphs.filter((paragraph) => paragraph.words > 140);
   if (longParagraphs.length > 0)
     warnings.push(

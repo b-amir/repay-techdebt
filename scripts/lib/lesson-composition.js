@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { selectDiagramType } from "./diagram-selection.js";
 
 const LESSON_PLAN_VERSION = 1;
 
@@ -84,6 +85,13 @@ export const lessonPlanSchema = z.object({
   ),
   evidenceGaps: z.array(z.string()),
   compositionRules: z.array(z.string()),
+  diagramIntent: z.object({
+    type: z.enum(["none", "flowchart", "sequence", "state", "er", "class"]),
+    teachingQuestion: z.string().optional(),
+    reason: z.string().optional(),
+    nodes: z.array(z.string()).optional(),
+    edges: z.array(z.any()).optional()
+  }).optional()
 });
 
 const SHAPES = {
@@ -948,6 +956,15 @@ export function planLesson(model, options = {}) {
     8,
   );
   const focusLabel = focus ?? context.anchors[0]?.path ?? model.profile.primaryArchetype;
+
+  const topicForDiagram = { chapter: shape.label };
+  const packetForDiagram = {
+    callers: signals.find(s => s.id === "relationships")?.evidenceIds || [],
+    dependencies: context.anchors.flatMap(a => a.evidenceIds || []),
+    stateEffects: signals.find(s => s.id === "data-state")?.evidenceIds || []
+  };
+  const diagramIntent = selectDiagramType(topicForDiagram, packetForDiagram);
+
   return lessonPlanSchema.parse({
     schemaVersion: LESSON_PLAN_VERSION,
     generatedAt: new Date().toISOString(),
@@ -966,6 +983,7 @@ export function planLesson(model, options = {}) {
       name: node.name,
     })),
     evidenceGaps,
+    diagramIntent,
     compositionRules: [
       "Keep the visible lesson to the planned sections; do not print scoring or empty placeholders.",
       "Verify every claim in live source and cite exact project-relative lines before teaching it.",
@@ -974,3 +992,38 @@ export function planLesson(model, options = {}) {
     ],
   });
 }
+
+export function composeMermaidBlock(intent) {
+  if (!intent || intent.type === "none") return "";
+  
+  const lines = [
+    "```mermaid",
+    intent.type === "flowchart" ? "flowchart TD" : 
+    intent.type === "sequence" ? "sequenceDiagram" : 
+    intent.type === "state" ? "stateDiagram-v2" :
+    intent.type === "er" ? "erDiagram" :
+    "classDiagram",
+    `    accTitle: ${intent.teachingQuestion || "Diagram"}`,
+    `    accDescr: ${intent.reason || "Visual representation of relationships."}`,
+    ""
+  ];
+
+  if (intent.type === "sequence") {
+    // Basic sequence boilerplate
+    intent.nodes?.forEach(node => lines.push(`    participant ${node.replace(/[^a-zA-Z0-9]/g, "")} as ${node}`));
+    if (intent.nodes && intent.nodes.length >= 2) {
+      const from = intent.nodes[0].replace(/[^a-zA-Z0-9]/g, "");
+      const to = intent.nodes[1].replace(/[^a-zA-Z0-9]/g, "");
+      lines.push(`    ${from}->>${to}: Interacts`);
+    }
+  } else if (intent.type === "flowchart") {
+    intent.nodes?.forEach((node, i) => lines.push(`    N${i}["${node}"]`));
+  } else {
+    intent.nodes?.forEach((node, i) => lines.push(`    ${node.replace(/[^a-zA-Z0-9]/g, "")}`));
+  }
+
+  lines.push("```", "");
+  lines.push("**What this shows:** " + (intent.reason || "Visual representation of relationships."));
+  return lines.join("\n");
+}
+

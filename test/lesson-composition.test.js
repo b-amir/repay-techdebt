@@ -140,3 +140,16 @@ test("CLI Markdown exposes a simple plan while JSON retains selection evidence",
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test("planLesson includes diagramIntent according to topic and evidence", async () => {
+  const directory = await richFixture();
+  try {
+    const target = await resolveTargetRoot(directory);
+    const model = await buildProgramModel(target);
+    const plan = planLesson(model, { focus: "auth session", depth: "balanced" });
+    assert.ok(plan.diagramIntent);
+    assert.ok(["none", "flowchart", "sequence", "state", "er", "class"].includes(plan.diagramIntent.type));
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
