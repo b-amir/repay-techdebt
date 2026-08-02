@@ -278,6 +278,8 @@ test("planned topic page is clickable and shows --create instruction", async () 
     assert.match(html, /Planned topic/);
     assert.match(html, new RegExp(`/repay-techdebt --create ${plannedTopicId}`));
     assert.match(html, /teach-topic\.js/);
+    assert.match(html, /ds-btn-copy/);
+    assert.doesNotMatch(html, /<skill-root>/);
     server.close();
   } finally {
     await rm(base, { recursive: true, force: true });

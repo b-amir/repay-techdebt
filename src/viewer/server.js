@@ -250,7 +250,7 @@ export function createViewerServer({ workbook, now = defaultNow }) {
           sidebar,
           topic,
           targetRoot,
-          skillRootHint: "<skill-root>/scripts/teach-topic.js",
+          teachTopicScript: resolve(skillRoot, "scripts", "teach-topic.js"),
         });
         return send(res, 200, "text/html; charset=utf-8", html);
       }
