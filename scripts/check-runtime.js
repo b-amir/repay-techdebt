@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { auditSkillRuntime } from "../src/foundations/runtime-audit.js";
 
 const skillRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 
@@ -23,31 +24,7 @@ function parseArguments(argv) {
 
 try {
   const format = parseArguments(process.argv.slice(2));
-  const manifest = JSON.parse(await readFile(resolve(skillRoot, "package.json"), "utf8"));
-  const packages = Object.keys(manifest.dependencies ?? {});
-  const currentNodeMajor = Number.parseInt(process.versions.node.split(".")[0], 10);
-  const nodeSupported = currentNodeMajor >= 22;
-  const results = packages.map((name) => {
-    const installed = existsSync(resolve(skillRoot, "node_modules", ...name.split("/")));
-    return {
-      package: name,
-      status: installed ? "ready" : "missing",
-      expectedVersion: manifest.dependencies[name],
-    };
-  });
-  const report = {
-    node: {
-      current: process.versions.node,
-      required: manifest.engines?.node ?? "unspecified",
-      status: nodeSupported ? "ready" : "unsupported",
-    },
-    status: !nodeSupported
-      ? "unsupported-runtime"
-      : results.every((item) => item.status === "ready")
-        ? "ready"
-        : "missing-dependencies",
-    packages: results,
-  };
+  const report = await auditSkillRuntime(skillRoot);
   if (format === "json") {
     process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
   } else {
@@ -55,7 +32,7 @@ try {
       `Bundled runtime: ${report.status} (Node ${report.node.current}: ${report.node.status}; required ${report.node.required})\n\n`,
     );
     process.stdout.write("| Package | Expected | Status |\n| --- | --- | --- |\n");
-    for (const item of results)
+    for (const item of report.packages)
       process.stdout.write(`| ${item.package} | ${item.expectedVersion} | ${item.status} |\n`);
   }
   if (report.status !== "ready") process.exitCode = 2;

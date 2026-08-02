@@ -407,18 +407,11 @@ export function renderEmpty({ workbookTitle, reason }) {
 }
 
 /**
- * Placeholder for a curriculum topic with no lesson yet. Includes --create activation hint.
+ * Placeholder for a curriculum topic with no lesson yet. Chat activation only.
  */
-export function renderPlanned({
-  workbookTitle,
-  sidebar,
-  topic,
-  targetRoot,
-  teachTopicScript,
-}) {
+export function renderPlanned({ workbookTitle, sidebar, topic }) {
   const createArg = topic.id;
   const chatCmd = `/repay-techdebt --create ${createArg}`;
-  const cliCmd = `node ${teachTopicScript} ${targetRoot} ${createArg}`;
   const main = `<article class="ds-plaque ds-plaque-planned">
     <p class="ds-planned-badge">Not written yet</p>
     <h1 class="ds-plaque-title">${escapeHtml(topic.title)}</h1>
@@ -427,10 +420,9 @@ export function renderPlanned({
         ? `<p class="ds-planned-outcome">${escapeHtml(topic.learnerOutcome)}</p>`
         : ""
     }
-    <p class="ds-planned-lead">This lesson is not written yet. Ask your agent to create it from project evidence.</p>
+    <p class="ds-planned-lead">Ask your agent to write this lesson from project evidence.</p>
     <div class="ds-create-box">
       ${renderCopyBlock("In chat", chatCmd)}
-      ${renderCopyBlock("Or run", cliCmd)}
     </div>
   </article>`;
   return renderShell({

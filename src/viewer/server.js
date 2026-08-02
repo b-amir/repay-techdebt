@@ -244,13 +244,10 @@ export function createViewerServer({ workbook, now = defaultNow }) {
         const currentKey = `planned:${topicId}`;
         const { sidebar } = await buildModel(workbook, currentKey);
         const title = await workbookTitle(curriculum, workbook.workbookRoot);
-        const targetRoot = curriculum?.target?.root ?? workbook.targetRoot ?? workbook.workbookRoot;
         const html = renderPlanned({
           workbookTitle: title,
           sidebar,
           topic,
-          targetRoot,
-          teachTopicScript: resolve(skillRoot, "scripts", "teach-topic.js"),
         });
         return send(res, 200, "text/html; charset=utf-8", html);
       }

@@ -9,7 +9,9 @@ import {
   resolveTargetRoot,
   formatTargetError,
   TargetRootError,
+  skillRoot,
 } from "../src/foundations/targeting.js";
+import { ensureSkillRuntime } from "../src/foundations/ensure-runtime.js";
 import { resolveWorkbook } from "../src/viewer/resolve-workbook.js";
 import { createViewerServer } from "../src/viewer/server.js";
 
@@ -46,6 +48,7 @@ function openInBrowser(url) {
 }
 
 async function main() {
+  await ensureSkillRuntime({ skillRoot });
   const { targetRoot } = await resolveTargetRoot(positionals[0]);
   const workbook = await resolveWorkbook(targetRoot);
   const requestedPort = Number(values.port);

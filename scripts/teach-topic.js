@@ -4,6 +4,7 @@ import { parseArgs } from "node:util";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveTargetRoot } from "../src/foundations/targeting.js";
+import { ensureSkillRuntime } from "../src/foundations/ensure-runtime.js";
 import { runTopicWorkflow } from "../src/curriculum/topic-workflow.js";
 
 const skillRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -57,6 +58,7 @@ Examples:
 }
 
 try {
+  await ensureSkillRuntime({ skillRoot });
   const { targetInput, options } = parse(process.argv.slice(2));
   const target = await resolveTargetRoot(targetInput);
 

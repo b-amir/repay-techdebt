@@ -90,12 +90,19 @@ After `save-lesson`, the emit includes `viewer.script`, `viewer.deepLinkRel`, an
 
 ### Teach one planned topic (`--create`)
 
+Chat activation (recommended): `/repay-techdebt --create topic-abc123`. Planned topics in the
+viewer show this command on their placeholder page — create the lesson in chat with your agent.
+
+Script (agents / automation only):
+
 ```text
 node <skill-root>/scripts/teach-topic.js <target-root> <topic-id-or-slug> [--draft <path>]
 ```
 
-Chat activation: `/repay-techdebt --create topic-abc123` (same as above). Planned topics in the
-viewer show this command on their placeholder page.
+### Skill runtime
+
+After skills.sh sync, `node_modules` may be missing. CLIs auto-run `ensure-runtime` (installs into
+`<skill-root>` only). Manual: `node <skill-root>/scripts/ensure-runtime.js`.
 
 ### Session stepper
 

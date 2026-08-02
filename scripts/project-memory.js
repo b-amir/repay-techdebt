@@ -18,6 +18,8 @@ import { stdin, stdout } from "node:process";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { isSameOrInside, resolveTargetRoot, skillRoot } from "../src/foundations/targeting.js";
+import { ensureSkillRuntime } from "../src/foundations/ensure-runtime.js";
+import { isDirectCliInvocation } from "../src/foundations/cli-entry.js";
 import {
   LOCAL_MEMORY_DIRECTORY,
   pathExists,
@@ -1775,8 +1777,9 @@ async function openViewer(targetRoot, options) {
   });
 }
 
-if (import.meta.url.startsWith("file:") && process.argv[1] === fileURLToPath(import.meta.url)) {
+if (isDirectCliInvocation(import.meta.url)) {
   try {
+    await ensureSkillRuntime({ skillRoot });
     const { action, options, targetInput } = parseArguments(process.argv.slice(2));
     if (
       !new Set([

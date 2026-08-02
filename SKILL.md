@@ -99,6 +99,11 @@ node <skill-root>/scripts/project-memory.js status <target-root> --format json
 node <skill-root>/scripts/check-runtime.js --format table
 ```
 
+Bundled skill CLIs (`project-memory.js`, `view-lessons.js`, `teach-topic.js`) call
+`ensure-runtime` on start — they run `pnpm install` inside `<skill-root>` when `node_modules` is
+missing (e.g. after skills.sh sync). Consent is recorded in `<skill-root>/.repay-skill-runtime/`.
+Manual repair: `node <skill-root>/scripts/ensure-runtime.js`.
+
 **Agent:** confirm roots; if `first-run`, run the two-step wizard from
 `templates/introduction-wizard.md`:
 
