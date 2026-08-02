@@ -15,9 +15,7 @@ import { test } from "vite-plus/test";
 import { parse } from "acorn";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const libraryRoots = [resolve(root, "src"), resolve(root, "scripts/lib")].filter((d) =>
-  existsSync(d),
-);
+const libraryRoots = [resolve(root, "src")].filter((d) => existsSync(d));
 const importerRoots = [
   resolve(root, "src"),
   resolve(root, "scripts"),

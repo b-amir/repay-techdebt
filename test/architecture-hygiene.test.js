@@ -12,7 +12,6 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const libDir = resolve(root, "scripts/lib");
 const srcDir = resolve(root, "src");
 const projectMemoryCli = resolve(root, "scripts/project-memory.js");
 
@@ -27,19 +26,10 @@ async function listJsRecursive(dir) {
   return out;
 }
 
-/** The "lib layer" that must never reach up into a CLI entrypoint: every category folder
- *  under src/, plus scripts/lib if it still exists (legacy location, tolerated when absent). */
+/** The library layer that must never reach up into a CLI entrypoint: every module under src/. */
 async function listLayerJs() {
-  const out = [];
-  if (existsSync(libDir)) {
-    for (const entry of await readdir(libDir, { withFileTypes: true })) {
-      const full = resolve(libDir, entry.name);
-      if (entry.isDirectory()) out.push(...(await listJsRecursive(full)));
-      else if (entry.isFile() && entry.name.endsWith(".js")) out.push(full);
-    }
-  }
-  if (existsSync(srcDir)) out.push(...(await listJsRecursive(srcDir)));
-  return out;
+  if (!existsSync(srcDir)) return [];
+  return listJsRecursive(srcDir);
 }
 
 /** Relative import specifiers (static + dynamic) from a source string. */
@@ -48,9 +38,8 @@ function relativeSpecs(source) {
 }
 
 test("the lib layer must not import the project-memory CLI facade", async () => {
-  // Generalized to path-resolution so it holds for scripts/lib AND src/<cat>/ after a
-  // move (a relative import of project-memory.js resolves to the same absolute
-  // CLI path regardless of where the importer lives).
+  // Path-resolution: a relative import of project-memory.js resolves to the same absolute
+  // CLI path regardless of where the importer lives under src/.
   const files = await listLayerJs();
   const offenders = [];
   for (const file of files) {
@@ -65,9 +54,8 @@ test("the lib layer must not import the project-memory CLI facade", async () => 
 });
 
 test("the lib layer must not import anything under a future cli/ path", async () => {
-  // H4 layer rule. Forward-looking: a lib module reaching into a (future) cli/ tree
-  // inverts the dependency direction (CLI → lib is the allowed edge). Covers scripts/lib
-  // and src/<cat>/ so the rule survives a folder move.
+  // H4 layer rule. Forward-looking: a library module reaching into a (future) cli/ tree
+  // inverts the dependency direction (CLI → lib is the allowed edge).
   const files = await listLayerJs();
   const offenders = [];
   for (const file of files) {

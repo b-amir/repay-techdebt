@@ -168,7 +168,7 @@ test("src/ has no import cycles (soft — logged, not fatal)", async () => {
     const uniq = [...new Set(cycles.map((c) => c.join(" → ")))];
     // eslint-disable-next-line no-console
     console.warn(
-      `[import-graph] ${uniq.length} cycle(s) in scripts/lib (non-fatal):\n` +
+      `[import-graph] ${uniq.length} cycle(s) in src/ (non-fatal):\n` +
         uniq.map((c) => `  ${c}`).join("\n"),
     );
   }

@@ -4,7 +4,12 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./foundations": "./src/foundations/index.js"
+    "./foundations": "./src/foundations/index.js",
+    "./program": "./src/program/index.js",
+    "./dialogue": "./src/dialogue/index.js",
+    "./curriculum": "./src/curriculum/index.js",
+    "./lessons": "./src/lessons/index.js",
+    "./tools": "./src/tools/index.js"
   },
   "scripts": {
     "test": "vp test",

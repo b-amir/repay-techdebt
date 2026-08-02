@@ -633,6 +633,12 @@ Evidence language: `references/evidence-contract.md`.
 | `src/lessons/save-lesson.js`            | `evaluateLessonForSave` + `runTeachFloors`                   |
 | `src/tools/analyzer-result.js`          | Shared analyzer result factory (no base-class port)          |
 | `src/dialogue/trajectory.js`            | Mode trajectories                                            |
+| `src/memory/curriculum-store.js`        | Read/write curriculum JSON                                   |
+| `src/memory/curriculum-refresh.js`      | Evidence digests + curriculum refresh                        |
+| `src/memory/learning-progress.js`       | Exercise records + review scheduling                         |
+| `src/evaluation/evaluation.js`          | Fixture curriculum evaluation runner                         |
+| `src/evaluation/evaluation-schema.js`   | Fixture + expectation Zod schemas                            |
+| `src/packs/pack-registry.js`            | Pack catalog load + detect                                   |
 | `scripts/project-memory.js`             | status/init/save-curriculum/save-lesson CLI                  |
 
 ---

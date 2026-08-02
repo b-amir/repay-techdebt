@@ -4,9 +4,11 @@ Category → file index for the test suite. Every `*.test.js` carries a `// @cat
 first-line tag; this file is the human-readable companion. Update both together when you add
 or move a test.
 
-Production code lives under `src/<category>/` (one folder per category, each with a public
-`index.js` barrel); CLI entrypoints live under `scripts/`. See `docs/how-it-works.md` for the
-control-flow contracts these tests lock.
+Production code lives under `src/<category>/`; CLI entrypoints live under `scripts/`. Six
+categories expose a public `index.js` barrel (`foundations`, `program`, `dialogue`,
+`curriculum`, `lessons`, `tools`). `memory/`, `evaluation/`, and `packs/` are imported
+directly by path (no barrel). See `docs/how-it-works.md` for the control-flow contracts
+these tests lock.
 
 ## How to run
 
@@ -36,7 +38,7 @@ behind. Run `pnpm test:hygiene` after every move before touching behavior tests.
 
 ## Category barrels (`src/<cat>/index.js`)
 
-Each category has a barrel that re-exports its public surface. Callers depend on the barrel,
+Six categories re-export their public surface through a barrel. Callers depend on the barrel,
 not individual modules; a folder move updates the barrel, not every call site.
 
 | Barrel                     | Category |
@@ -48,8 +50,11 @@ not individual modules; a folder move updates the barrel, not every call site.
 | `src/lessons/index.js`     | C4       |
 | `src/tools/index.js`       | C6       |
 
-**Rule:** when you make a function public, add it to its category barrel. Guarded by
-`test/hygiene/public-api.test.js`.
+**No barrel (direct imports):** `src/memory/` (C5 persistence), `src/evaluation/` (C8),
+`src/packs/` (C7). These folders have no `index.js`; CLIs and tests import modules by path.
+
+**Rule:** when you make a function public in a barrel category, add it to that category's
+`index.js`. Guarded by `test/hygiene/public-api.test.js`.
 
 ## Unit floors (`test/unit/`)
 
