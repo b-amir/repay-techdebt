@@ -1,26 +1,28 @@
-/* repay-techdebt lesson viewer — Gallery wall labels visual system.
-   Flat surfaces, hairlines, one patina accent. No shadows/glow/glass. */
+/* repay-techdebt lesson viewer — Read mode. Light, minimal, calm. */
 :root {
-  --patina: #3f6f6c;
-  --patina-deep: #2f5553;
-  --ink: #1a1d21;
-  --ink-muted: #5c6570;
-  --plaster: #f3f4f6;
-  --plaque: #fafbfc;
-  --stone: #1f2429;
-  --stone-elevated: #2a3138;
-  --hairline: #d5d9de;
-  --code-well: #eceef1;
-  --danger: #8f3d3a;
-  --measure: 70ch;
-  --sidebar: 280px;
-  --pad-xl: 40px;
-  --pad-lg: 24px;
-  --pad-md: 16px;
-  --pad-sm: 8px;
-  --pad-xs: 4px;
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --dur: 180ms;
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --sidebar-bg: #f0f0ee;
+  --border: #e4e4e7;
+  --border-subtle: #ebebeb;
+  --text: #18181b;
+  --text-secondary: #52525b;
+  --text-tertiary: #a1a1aa;
+  --accent: #0d9488;
+  --accent-hover: #0f766e;
+  --accent-soft: rgba(13, 148, 136, 0.1);
+  --accent-muted: #5eead4;
+  --code-bg: #f4f4f5;
+  --danger: #b91c1c;
+  --font-ui: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Source Serif 4", "Georgia", "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sidebar: 272px;
+  --measure: 42rem;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --dur: 160ms;
 }
 
 * {
@@ -29,14 +31,15 @@
 
 html {
   color-scheme: light;
+  -webkit-font-smoothing: antialiased;
 }
 
 body.ds-shell {
   margin: 0;
-  background: var(--plaster);
-  color: var(--ink);
-  font-family: "Public Sans", "Segoe UI", "Helvetica Neue", sans-serif;
-  font-size: 16px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 15px;
   line-height: 1.5;
 }
 
@@ -46,296 +49,493 @@ body.ds-shell {
   min-height: 100vh;
 }
 
-/* ---- Directory rail (stone) ---- */
+/* ---- Sidebar ---- */
 .ds-rail {
-  background: var(--stone);
-  color: #c8ced4;
-  padding: var(--pad-lg) 0;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  padding: var(--pad-lg, 20px) 0;
   position: sticky;
   top: 0;
   align-self: start;
   height: 100vh;
   overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.ds-rail-header {
+  padding: 0 16px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 8px;
+}
+
+.ds-rail-title {
+  margin: 0 0 10px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text);
+  letter-spacing: -0.01em;
 }
 
 .ds-rail-progress {
-  padding: 0 var(--pad-md) var(--pad-md);
+  padding: 0 16px 12px;
 }
 
 .ds-progress {
-  display: inline-block;
-  background: var(--stone-elevated);
-  color: var(--plaque);
-  padding: var(--pad-xs) var(--pad-sm);
-  border-radius: 2px;
-  font:
-    500 0.75rem/1.3 "Public Sans",
-    "Segoe UI",
-    sans-serif;
-  letter-spacing: 0.04em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+}
+
+.ds-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+}
+
+.ds-stat strong {
+  font-weight: 600;
+  color: var(--text);
 }
 
 .ds-nav-list {
-  padding: 0 var(--pad-sm);
+  padding: 4px 10px;
 }
 
 .ds-chapter {
-  margin-bottom: var(--pad-md);
+  margin-bottom: 4px;
 }
 
 .ds-chapter-title {
-  margin: 0 var(--pad-xs) var(--pad-xs);
-  color: #a8b0b8;
-  font:
-    600 0.75rem/1.3 "Public Sans",
-    "Segoe UI",
-    sans-serif;
+  margin: 16px 8px 6px;
+  color: var(--text-tertiary);
+  font-size: 0.6875rem;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.ds-chapter:first-child .ds-chapter-title {
+  margin-top: 8px;
 }
 
 .ds-nav,
 .ds-nav-planned {
   display: block;
-  padding: var(--pad-sm) var(--pad-md);
-  border-left: 2px solid transparent;
+  padding: 7px 10px;
+  margin: 1px 0;
+  border-radius: var(--radius-sm);
   text-decoration: none;
-  color: #c8ced4;
-  font:
-    600 0.9375rem/1.35 "Public Sans",
-    "Segoe UI",
-    sans-serif;
-  transition: background var(--dur) var(--ease);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.4;
+  transition:
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease);
 }
 
 .ds-nav:hover {
-  background: var(--stone-elevated);
-  color: var(--plaque);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--text);
 }
 
 .ds-nav-current {
-  background: var(--stone-elevated);
-  color: var(--plaque);
-  border-left-color: var(--patina);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .ds-nav-done {
-  color: #a8b0b8;
-  font-weight: 600;
+  color: var(--text-tertiary);
 }
+
 .ds-nav-done:hover {
-  color: #c8ced4;
+  color: var(--text-secondary);
 }
+
 .ds-nav .ds-check {
-  color: var(--patina);
-  font-weight: 700;
-  margin-right: var(--pad-xs);
+  color: var(--accent);
+  font-weight: 600;
+  margin-right: 2px;
 }
 
 .ds-nav-planned {
-  color: #8b939c;
-  font-weight: 500;
+  color: var(--text-tertiary);
+  font-weight: 400;
 }
+
 .ds-nav-planned:hover {
-  color: #c8ced4;
+  color: var(--text-secondary);
 }
+
+.ds-nav-planned.ds-nav-current {
+  color: var(--text);
+  font-weight: 600;
+}
+
 .ds-nav-hint {
   display: block;
-  font:
-    500 0.7rem/1.3 "Public Sans",
-    "Segoe UI",
-    sans-serif;
-  color: #5c6570;
-  letter-spacing: 0.03em;
+  margin-top: 2px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: 0.01em;
+}
+
+.ds-nav-current .ds-nav-hint {
+  color: var(--text-secondary);
 }
 
 .ds-empty {
-  padding: var(--pad-sm) var(--pad-md);
-  color: #8a929b;
-  font-size: 0.85rem;
+  padding: 8px 16px;
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
 }
 
-/* ---- Main column (plaster) ---- */
+/* ---- Main ---- */
 .ds-main {
-  padding: var(--pad-xl);
+  padding: 48px 56px 80px;
+  min-width: 0;
 }
 
-/* Dashboard home */
+.ds-main-inner {
+  max-width: var(--measure);
+}
+
+/* Home */
 .ds-home {
   max-width: var(--measure);
 }
+
 .ds-home-title {
-  margin: 0 0 var(--pad-md);
-  font:
-    600 2rem/1.2 Spectral,
-    "Palatino Linotype",
-    Palatino,
-    serif;
-  letter-spacing: -0.01em;
-  color: var(--ink);
-}
-.ds-home-lead {
-  font:
-    400 1.0625rem/1.6 "Source Serif 4",
-    Georgia,
-    serif;
-  color: var(--ink);
-}
-.ds-home-next {
-  margin-top: var(--pad-lg);
-}
-.ds-muted {
-  color: var(--ink-muted);
+  margin: 0 0 16px;
+  font-family: var(--font-ui);
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: var(--text);
 }
 
-/* Lesson plaque */
+.ds-home-lead {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.ds-home-next {
+  margin-top: 28px;
+}
+
+.ds-muted {
+  color: var(--text-secondary);
+}
+
+/* Article / lesson */
 .ds-plaque {
-  background: var(--plaque);
-  border: 1px solid var(--hairline);
-  padding: var(--pad-xl);
   max-width: var(--measure);
 }
+
 .ds-plaque-title {
-  margin: 0 0 var(--pad-md);
-  font:
-    600 1.5rem/1.25 Spectral,
-    "Palatino Linotype",
-    Palatino,
-    serif;
-  color: var(--ink);
+  margin: 0 0 24px;
+  font-family: var(--font-ui);
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  color: var(--text);
 }
+
 .ds-plaque-body {
-  font:
-    400 1.125rem/1.65 "Source Serif 4",
-    "Source Serif Pro",
-    Georgia,
-    serif;
-  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.72;
+  color: var(--text);
 }
+
+.ds-plaque-body > :first-child {
+  margin-top: 0;
+}
+
 .ds-plaque-body h2,
 .ds-plaque-body h3 {
-  font-family: Spectral, "Palatino Linotype", Palatino, serif;
-  color: var(--ink);
-  margin-top: var(--pad-lg);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
 }
+
+.ds-plaque-body h2 {
+  font-size: 1.25rem;
+}
+
+.ds-plaque-body h3 {
+  font-size: 1.0625rem;
+}
+
+.ds-plaque-body p {
+  margin: 0 0 1rem;
+}
+
+.ds-plaque-body ul,
+.ds-plaque-body ol {
+  margin: 0 0 1rem;
+  padding-left: 1.35rem;
+}
+
+.ds-plaque-body li {
+  margin-bottom: 0.35rem;
+}
+
 .ds-plaque-body a {
-  color: var(--patina);
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: rgba(13, 148, 136, 0.35);
+  text-underline-offset: 2px;
 }
+
+.ds-plaque-body a:hover {
+  text-decoration-color: var(--accent);
+}
+
 .ds-plaque-body code {
-  font:
-    400 0.875rem/1.55 "JetBrains Mono",
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    monospace;
+  font-family: var(--font-mono);
+  font-size: 0.84em;
 }
+
 .ds-plaque-body pre {
-  margin: var(--pad-md) 0;
-  padding: var(--pad-md);
-  background: var(--code-well);
-  border-radius: 2px;
+  margin: 1.25rem 0;
+  padding: 16px 18px;
+  background: var(--code-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
   overflow: auto;
+  font-size: 0.8125rem;
+  line-height: 1.55;
 }
+
 .ds-plaque-body pre code {
-  color: var(--ink);
+  color: var(--text);
+  background: none;
+  padding: 0;
 }
+
 .ds-plaque-body :not(pre) > code {
-  background: var(--code-well);
-  padding: 1px var(--pad-xs);
-  border-radius: 2px;
+  background: var(--code-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+}
+
+.ds-plaque-body blockquote {
+  margin: 1.25rem 0;
+  padding-left: 1rem;
+  border-left: 2px solid var(--border);
+  color: var(--text-secondary);
 }
 
 .ds-plaque-actions {
-  margin-top: var(--pad-xl);
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-subtle);
 }
 
 /* Controls */
 .ds-btn-primary,
 .ds-btn-ghost {
-  display: inline-block;
-  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   text-decoration: none;
-  font:
-    600 0.9375rem/1.35 "Public Sans",
-    "Segoe UI",
-    sans-serif;
-  transition: background var(--dur) var(--ease);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  transition:
+    background var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease);
 }
+
 .ds-btn-primary {
-  background: var(--patina);
-  color: var(--plaque);
-  padding: 12px 20px;
+  background: var(--accent);
+  color: #fff;
+  padding: 10px 18px;
   border: 0;
 }
+
 .ds-btn-primary:hover {
-  background: var(--patina-deep);
+  background: var(--accent-hover);
 }
+
 .ds-btn-primary:focus-visible {
-  outline: 2px solid var(--patina);
-  outline-offset: 3px;
+  outline: 2px solid var(--accent-muted);
+  outline-offset: 2px;
 }
+
 .ds-btn-primary:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: progress;
 }
 
 .ds-btn-ghost {
-  background: transparent;
-  color: var(--ink);
-  padding: var(--pad-sm) var(--pad-md);
-  border: 1px solid var(--hairline);
+  background: var(--surface);
+  color: var(--text-secondary);
+  padding: 9px 14px;
+  border: 1px solid var(--border);
 }
+
 .ds-btn-ghost:hover {
-  background: var(--code-well);
+  color: var(--text);
+  border-color: #d4d4d8;
+  background: var(--surface);
 }
+
 .ds-btn-ghost:focus-visible {
-  outline: 2px solid var(--patina);
+  outline: 2px solid var(--accent-muted);
   outline-offset: 2px;
 }
 
 .ds-prevnext {
   display: flex;
   justify-content: space-between;
-  gap: var(--pad-md);
-  margin-top: var(--pad-lg);
+  gap: 12px;
+  margin-top: 20px;
   flex-wrap: wrap;
 }
 
-/* CLAIMS evidence panel */
+/* Claims */
 .ds-claims {
-  margin-top: var(--pad-lg);
-  padding: var(--pad-md);
-  border-top: 1px solid var(--hairline);
-  font:
-    400 0.9375rem/1.55 "JetBrains Mono",
-    ui-monospace,
-    monospace;
-  color: var(--ink-muted);
-}
-.ds-claims > summary {
-  cursor: pointer;
-  font:
-    600 0.8125rem/1.3 "Public Sans",
-    "Segoe UI",
-    sans-serif;
-  letter-spacing: 0.04em;
-  color: var(--patina);
+  margin-top: 2rem;
+  padding: 14px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
 }
 
-/* Responsive: below 900px the rail collapses to a drawer toggle. */
+.ds-claims > summary {
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.ds-claims > summary:hover {
+  color: var(--text);
+}
+
+/* Planned placeholder */
+.ds-plaque-planned .ds-planned-badge {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  font-family: var(--font-ui);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent-hover);
+}
+
+.ds-planned-outcome {
+  margin: 0 0 16px;
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.ds-planned-lead {
+  margin: 0 0 24px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.ds-create-box {
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.ds-create-label {
+  margin: 0 0 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.ds-create-cmd {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--code-bg);
+  border: 1px solid var(--border-subtle);
+  overflow-x: auto;
+}
+
+.ds-create-cmd:last-child {
+  margin-bottom: 0;
+}
+
+.ds-create-cmd code {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+/* Responsive */
 @media (max-width: 900px) {
   .ds-layout {
     grid-template-columns: 1fr;
   }
+
   .ds-rail {
     position: relative;
     height: auto;
-    max-height: 40vh;
-    border-bottom: 1px solid var(--stone-elevated);
+    max-height: 42vh;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
   }
+
   .ds-main {
-    padding: var(--pad-lg);
+    padding: 28px 20px 48px;
+  }
+
+  .ds-home-title,
+  .ds-plaque-title {
+    font-size: 1.5rem;
   }
 }
 
@@ -343,65 +543,4 @@ body.ds-shell {
   * {
     transition: none !important;
   }
-}
-
-.ds-plaque-planned .ds-planned-badge {
-  display: inline-block;
-  margin-bottom: var(--pad-sm);
-  padding: 0.2rem 0.5rem;
-  border: 1px solid var(--hairline);
-  border-radius: 4px;
-  font:
-    600 0.75rem/1.3 "Public Sans",
-    "Segoe UI",
-    sans-serif;
-  letter-spacing: 0.04em;
-  color: var(--ink-muted);
-  text-transform: uppercase;
-}
-.ds-planned-outcome {
-  margin: 0 0 var(--pad-md);
-  color: var(--ink-muted);
-  font:
-    400 1rem/1.5 "Source Serif 4",
-    Georgia,
-    serif;
-}
-.ds-planned-lead {
-  margin: 0 0 var(--pad-lg);
-  color: var(--ink);
-}
-.ds-create-box {
-  padding: var(--pad-md);
-  border: 1px solid var(--hairline);
-  border-radius: 6px;
-  background: var(--code-well);
-}
-.ds-create-label {
-  margin: 0 0 var(--pad-xs);
-  font:
-    600 0.75rem/1.3 "Public Sans",
-    "Segoe UI",
-    sans-serif;
-  letter-spacing: 0.04em;
-  color: var(--ink-muted);
-  text-transform: uppercase;
-}
-.ds-create-cmd {
-  margin: 0 0 var(--pad-md);
-  padding: var(--pad-sm);
-  border-radius: 4px;
-  background: var(--plaque);
-  overflow-x: auto;
-}
-.ds-create-cmd:last-child {
-  margin-bottom: 0;
-}
-.ds-create-cmd code {
-  font:
-    400 0.8125rem/1.5 "JetBrains Mono",
-    ui-monospace,
-    Menlo,
-    monospace;
-  color: var(--ink);
 }

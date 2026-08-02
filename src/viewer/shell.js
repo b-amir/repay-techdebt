@@ -1,7 +1,5 @@
-// Single workbook shell HTML. One layout always: stone directory rail + plaster
-// main column (dashboard home or reading plaque). Flat surfaces, hairlines, patina
-// only for current row / focus / primary Mark done — Gallery wall labels visual system.
-// Server injects pre-rendered plaque HTML and a small vanilla client script.
+// Single workbook shell HTML. Light Read-mode layout: soft sidebar rail + open
+// reading column. Server injects pre-rendered article HTML and a small vanilla client script.
 import { CLIENT_SCRIPT } from "./client-script.js";
 
 export function escapeHtml(value) {
@@ -22,10 +20,14 @@ export function plannedHref(topicId) {
 }
 
 function progressChip(counts) {
-  return `<span class="ds-progress">${counts.done} done · ${counts.written} written · ${counts.planned} planned</span>`;
+  return `<div class="ds-progress" aria-label="Progress summary">
+    <span class="ds-stat"><strong>${counts.done}</strong> done</span>
+    <span class="ds-stat"><strong>${counts.written}</strong> written</span>
+    <span class="ds-stat"><strong>${counts.planned}</strong> planned</span>
+  </div>`;
 }
 
-function renderSidebar(sidebar) {
+function renderSidebar(sidebar, workbookTitle) {
   const chapters = sidebar.chapters
     .map((chapter) => {
       const items = chapter.items
@@ -33,7 +35,10 @@ function renderSidebar(sidebar) {
           if (item.state === "planned") {
             const classes = ["ds-nav", "ds-nav-planned"];
             if (item.current) classes.push("ds-nav-current");
-            return `<a class="${classes.join(" ")}" href="${plannedHref(item.id)}" title="${escapeHtml(item.outcome ?? "Not written yet")}">${escapeHtml(item.title)} <span class="ds-nav-hint">Not written yet</span></a>`;
+            const hint = item.current
+              ? `<span class="ds-nav-hint">Not written yet</span>`
+              : "";
+            return `<a class="${classes.join(" ")}" href="${plannedHref(item.id)}" title="${escapeHtml(item.outcome ?? "Not written yet")}">${escapeHtml(item.title)}${hint}</a>`;
           }
           const classes = ["ds-nav"];
           if (item.current) classes.push("ds-nav-current");
@@ -46,10 +51,20 @@ function renderSidebar(sidebar) {
       return `<div class="ds-chapter"><h2 class="ds-chapter-title">${escapeHtml(chapter.title)}</h2>${items}</div>`;
     })
     .join("\n");
+  const header = workbookTitle
+    ? `<div class="ds-rail-header"><p class="ds-rail-title">${escapeHtml(workbookTitle)}</p></div>`
+    : "";
   return `<aside class="ds-rail">
+    ${header}
     <div class="ds-rail-progress">${progressChip(sidebar.counts)}</div>
-    <nav class="ds-nav-list">${chapters || '<p class="ds-empty">No curriculum yet.</p>'}</nav>
+    <nav class="ds-nav-list" aria-label="Lessons">${chapters || '<p class="ds-empty">No curriculum yet.</p>'}</nav>
   </aside>`;
+}
+
+function fontLinks() {
+  return `<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;500&display=swap">`;
 }
 
 function renderShell({ documentTitle, sidebarHtml, mainHtml }) {
@@ -58,14 +73,15 @@ function renderShell({ documentTitle, sidebarHtml, mainHtml }) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light">
 <title>${escapeHtml(documentTitle)}</title>
+${fontLinks()}
 <link rel="stylesheet" href="/assets/viewer.css">
 </head>
 <body class="ds-shell">
 <div class="ds-layout">
 ${sidebarHtml}
-<main class="ds-main">${mainHtml}</main>
+<main class="ds-main"><div class="ds-main-inner">${mainHtml}</div></main>
 </div>
 <script>${CLIENT_SCRIPT}</script>
 </body>
@@ -76,19 +92,18 @@ export function renderHome({ workbookTitle, sidebar }) {
   const next = firstOpenLesson(sidebar);
   const main = `<header class="ds-home">
     <h1 class="ds-home-title">${escapeHtml(workbookTitle)}</h1>
-    ${progressChip(sidebar.counts)}
-    <p class="ds-home-lead">This workbook has <strong>${sidebar.total}</strong> ${sidebar.total === 1 ? "subject" : "subjects"}: ${sidebar.counts.written} ${sidebar.counts.written === 1 ? "lesson is" : "lessons are"} written, ${sidebar.counts.done} ${sidebar.counts.done === 1 ? "is" : "are"} marked done.</p>
+    <p class="ds-home-lead"><strong>${sidebar.counts.written}</strong> ${sidebar.counts.written === 1 ? "lesson" : "lessons"} written · <strong>${sidebar.counts.done}</strong> marked done · <strong>${sidebar.counts.planned}</strong> planned.</p>
     ${
       next
-        ? `<p class="ds-home-next"><a class="ds-btn-primary" href="${lessonHref(next)}">Continue with the next written lesson</a></p>`
+        ? `<p class="ds-home-next"><a class="ds-btn-primary" href="${lessonHref(next)}">Continue next lesson</a></p>`
         : sidebar.counts.written > 0
-          ? `<p class="ds-home-next ds-muted">Every written lesson is marked done. Pick any subject from the directory.</p>`
-          : `<p class="ds-home-next ds-muted">No lessons are written yet. Click a planned subject in the directory to see how to create it.</p>`
+          ? `<p class="ds-home-next ds-muted">All written lessons are done. Pick any subject from the sidebar.</p>`
+          : `<p class="ds-home-next ds-muted">No lessons yet. Select a planned topic in the sidebar to create one.</p>`
     }
   </header>`;
   return renderShell({
     documentTitle: workbookTitle,
-    sidebarHtml: renderSidebar(sidebar),
+    sidebarHtml: renderSidebar(sidebar, workbookTitle),
     mainHtml: main,
   });
 }
@@ -125,7 +140,7 @@ export function renderLesson({
   next,
 }) {
   const buttonClass = completed ? "ds-btn-ghost ds-mark-done" : "ds-btn-primary ds-mark-done";
-  const buttonLabel = completed ? "Mark as not done" : "Mark lesson as done";
+  const buttonLabel = completed ? "Mark not done" : "Mark done";
   const button = `<button type="button" class="${buttonClass}" data-lesson="${escapeHtml(lessonKey)}" data-completed="${completed ? "true" : "false"}">${buttonLabel}</button>`;
   const prevHtml = prev
     ? `<a class="ds-btn-ghost" href="${lessonHref(prev.key)}" rel="prev">← ${escapeHtml(prev.title)}</a>`
@@ -134,7 +149,7 @@ export function renderLesson({
     ? `<a class="ds-btn-ghost" href="${lessonHref(next.key)}" rel="next">${escapeHtml(next.title)} →</a>`
     : "";
   const prevNext =
-    prevHtml || nextHtml ? `<nav class="ds-prevnext">${prevHtml}${nextHtml}</nav>` : "";
+    prevHtml || nextHtml ? `<nav class="ds-prevnext" aria-label="Lesson navigation">${prevHtml}${nextHtml}</nav>` : "";
   const main = `<article class="ds-plaque">
     <h1 class="ds-plaque-title">${escapeHtml(title)}</h1>
     <div class="ds-plaque-body">${wrapClaims(bodyHtml)}</div>
@@ -143,7 +158,7 @@ export function renderLesson({
   </article>`;
   return renderShell({
     documentTitle: `${title} · ${workbookTitle}`,
-    sidebarHtml: renderSidebar(sidebar),
+    sidebarHtml: renderSidebar(sidebar, workbookTitle),
     mainHtml: main,
   });
 }
@@ -155,7 +170,10 @@ export function renderEmpty({ workbookTitle, reason }) {
   </header>`;
   return renderShell({
     documentTitle: workbookTitle,
-    sidebarHtml: renderSidebar({ chapters: [], counts: { written: 0, done: 0, planned: 0 } }),
+    sidebarHtml: renderSidebar(
+      { chapters: [], counts: { written: 0, done: 0, planned: 0 } },
+      workbookTitle,
+    ),
     mainHtml: main,
   });
 }
@@ -189,7 +207,7 @@ export function renderPlanned({
   </article>`;
   return renderShell({
     documentTitle: `${topic.title} · ${workbookTitle}`,
-    sidebarHtml: renderSidebar(sidebar),
+    sidebarHtml: renderSidebar(sidebar, workbookTitle),
     mainHtml: main,
   });
 }
