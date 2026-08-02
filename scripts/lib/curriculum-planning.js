@@ -384,14 +384,21 @@ export function renderCurriculumMarkdown(curriculum) {
     lines.push(
       `## ${chapter}`,
       "",
-      "| # | Subject | What you will learn | Priority | Status |",
-      "| ---: | --- | --- | --- | --- |",
     );
     for (const topic of curriculum.topics.filter((item) => item.chapter === chapter)) {
+      const isCompleted = curriculum.learnerCompletion?.[topic.id] === true;
+      const checkbox = topic.lessonPath ? (isCompleted ? "- [x] " : "- [ ] ") : "- ";
       const subject = topic.lessonPath ? `[${topic.title}](${topic.lessonPath})` : topic.title;
-      const status = topic.lessonPath ? "Written" : "Planned";
+      
+      let status = "";
+      if (topic.status === "stale") {
+        status = " *(Stale ⚠️)*";
+      } else if (!topic.lessonPath) {
+        status = " *(Planned)*";
+      }
+
       lines.push(
-        `| ${topic.rank} | ${subject.replaceAll("|", "\\|")} | ${topic.learnerOutcome.replaceAll("|", "\\|")} | ${topic.tier} | ${status} |`,
+        `${checkbox}**${subject}**${status} — ${topic.learnerOutcome}`
       );
     }
     lines.push("");

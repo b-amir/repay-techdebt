@@ -28,6 +28,8 @@ import {
   pathExists,
   projectStoragePaths,
 } from "./lib/private-storage.js";
+import { computeEvidenceDigests } from "./lib/curriculum-refresh.js";
+import { readCurriculum, writeCurriculum, CurriculumConflictError } from "./lib/curriculum-store.js";
 import { renderCurriculumMarkdown } from "./lib/curriculum-planning.js";
 import { inspectLesson } from "./lib/lesson-quality.js";
 import { recordExercise, scheduleReview } from "./lib/learning-progress.js";
@@ -348,7 +350,7 @@ async function status(targetRoot, options) {
   await requireSafePath(workbook.lessonIndex, "file");
   if (await pathExists(paths.curriculumData)) {
     await requireSafePath(paths.curriculumData, "file");
-    const curriculum = JSON.parse(await readFile(paths.curriculumData, "utf8"));
+    const { data: curriculum } = await readCurriculum(paths.curriculumData);
     if (Array.isArray(curriculum.topics) && curriculum.topics.length > 0) {
       curriculumTopicCount = curriculum.topics.length;
       pendingTopicCount = curriculum.topics.filter((topic) => !topic.lessonPath).length;
@@ -882,8 +884,10 @@ async function saveCurriculum(targetRoot, options) {
     JSON.parse(await readFile(await realpath(resolve(options.input)), "utf8")),
     targetRoot,
   );
+  let priorRevision = undefined;
   if (await pathExists(paths.curriculumData)) {
-    const prior = JSON.parse(await readFile(paths.curriculumData, "utf8"));
+    const { data: prior, revision } = await readCurriculum(paths.curriculumData);
+    priorRevision = revision;
     const completed = new Map(
       (prior.topics ?? []).filter((topic) => topic.lessonPath).map((topic) => [topic.id, topic]),
     );
@@ -907,7 +911,9 @@ async function saveCurriculum(targetRoot, options) {
   }
   await acquireLessonLock(paths);
   try {
-    await replaceJsonFile(paths.curriculumData, input);
+    input.history = input.history || [];
+    input.history.push({ action: "save-curriculum", date: new Date().toISOString() });
+    await writeCurriculum(paths.curriculumData, input, priorRevision);
     await replaceLessonIndex(workbook, markdown);
   } finally {
     await rm(paths.lessonLock, { force: true, recursive: true });
@@ -1061,8 +1067,11 @@ async function saveLesson(targetRoot, options) {
   await requireSafePath(workbook.lessonIndex, "file");
   if (!options.title || !options.input) throw new Error("--title and --input are required");
   let curriculum = null;
+  let expectedRevision = undefined;
   if (await pathExists(paths.curriculumData)) {
-    curriculum = JSON.parse(await readFile(paths.curriculumData, "utf8"));
+    const { data, revision } = await readCurriculum(paths.curriculumData);
+    curriculum = data;
+    expectedRevision = revision;
     if (curriculum.topics?.length > 0 && !options["topic-id"])
       throw new Error("--topic-id is required so the lesson can be linked from the learning index");
   }
@@ -1130,11 +1139,19 @@ async function saveLesson(targetRoot, options) {
         topic.status = "written";
         topic.lessonPath = `lessons/${candidate.name}`;
         topic.writtenAt = new Date().toISOString();
+        if (topic.evidencePaths && topic.evidencePaths.length > 0) {
+          topic.evidenceDigests = await computeEvidenceDigests(targetRoot, topic.evidencePaths);
+        } else {
+          topic.evidenceDigests = {};
+        }
         try {
-          await replaceJsonFile(paths.curriculumData, curriculum);
+          curriculum.history = curriculum.history || [];
+          curriculum.history.push({ action: "save-lesson", topicId: topic.id, date: new Date().toISOString() });
+          await writeCurriculum(paths.curriculumData, curriculum, expectedRevision);
           await replaceLessonIndex(workbook, renderCurriculumMarkdown(curriculum));
         } catch (error) {
-          await replaceJsonFile(paths.curriculumData, previousCurriculum);
+          // Revert on failure, pass previous curriculum (blind overwrite to restore, lock held in writeCurriculum)
+          await writeCurriculum(paths.curriculumData, previousCurriculum);
           throw error;
         }
       } else {
@@ -1194,22 +1211,56 @@ async function repairIndex(targetRoot, options) {
   }
   await acquireLessonLock(paths);
   try {
+    let expectedRevision = undefined;
     if (await pathExists(paths.curriculumData)) {
-      const curriculum = JSON.parse(await readFile(paths.curriculumData, "utf8"));
+      const { data, revision } = await readCurriculum(paths.curriculumData);
+      const curriculum = data;
+      expectedRevision = revision;
       if ((curriculum.topics ?? []).length > 0) {
+        let indexContent = "";
+        try {
+          indexContent = await readFile(workbook.lessonIndex, "utf8");
+        } catch (err) {
+          // Ignore if missing
+        }
+        
+        curriculum.learnerCompletion = curriculum.learnerCompletion || {};
+        const lines = indexContent.split(/\r?\n/);
+        for (const line of lines) {
+          const match = line.match(/^- \[(x|X| )\] \*\*\[(.*?)\]\((.*?)\)\*\*/);
+          if (match) {
+            const isChecked = match[1].toLowerCase() === "x";
+            const lessonPath = match[3];
+            const topic = curriculum.topics.find((t) => t.lessonPath === lessonPath);
+            if (topic) {
+              curriculum.learnerCompletion[topic.id] = isChecked;
+            }
+          }
+        }
+
         const files = new Set(
           (await readdir(workbook.lessons)).filter((name) => name.endsWith(".md")),
         );
+        let changed = false;
         for (const topic of curriculum.topics) {
           const name = topic.lessonPath?.split("/").at(-1);
           if (name && files.has(name)) topic.status = "written";
-          else {
+          const isWritten = name && files.has(name);
+          if (isWritten && topic.status !== "written") {
+            topic.status = "written";
+            changed = true;
+          } else if (!isWritten && topic.status !== "planned") {
             topic.status = "planned";
             topic.lessonPath = null;
             delete topic.writtenAt;
+            changed = true;
           }
         }
-        await replaceJsonFile(paths.curriculumData, curriculum);
+        if (changed) {
+          curriculum.history = curriculum.history || [];
+          curriculum.history.push({ action: "status-sync", date: new Date().toISOString() });
+          await writeCurriculum(paths.curriculumData, curriculum, expectedRevision);
+        }
         await replaceLessonIndex(workbook, renderCurriculumMarkdown(curriculum));
         emit({
           type: "lesson-index-repaired",
