@@ -19,6 +19,9 @@ Every major script return includes:
 
 Prefer `--format summary-json` / compact tables on agent turns.
 
+**User chat:** terse by default. Follow `templates/agent-experience.md` — no narrating script runs,
+no filler, no prose after tables. One ask per message. Depth only when the user asks.
+
 **Caps:** ≤1 extra investigate turn per phase; ≤1 lesson rewrite; then ship with gaps or ask the user.
 
 **Skip:** inventory/propose/retrieve only with ledger reason when stronger evidence exists. Never skip
@@ -36,8 +39,8 @@ consent, secrets, or capability-failure prompts.
 
 ## Agent reply forms (internal, tiny)
 
-**Never paste these tokens in user-facing chat.** Use plain questions from `templates/session-status.md`
-and `templates/introduction-wizard.md` instead.
+**Never paste these tokens in user-facing chat.** User copy: `templates/agent-experience.md`
+(rail, reply footers, ask templates), `templates/session-status.md`, `templates/introduction-wizard.md`.
 
 - `ACCEPT purpose | UNRESOLVED purpose + questions` (B0; set `purposeStatus` on approval)
 - `NEED tools: […] | SKIP tool X because […]`
@@ -50,23 +53,37 @@ and `templates/introduction-wizard.md` instead.
 Checkpoint cards: `bottleneck-checkpoints.md` (B0–B6). Complete them in trajectory order.
 Validate ask fidelity with `scripts/check-trajectory.js` (workbook: B0→B1→B2→B5→B3→B4a→B4b→B6).
 
-## User-facing progress stepper (mandatory)
+## User-facing progress rail (mandatory)
 
-Every user-visible turn must open with the stepper from `templates/session-status.md` (human phase
-names only). Update `[!]` and lesson counts honestly each turn.
+Every turn: **2-column rail** from `templates/session-status.md` first (🔵 now · ✅ done · ⬜ later).
+Never a code block. Exactly one 🔵. Last line: **👉 Reply:** … from `agent-experience.md`. First-run:
+only **Get ready** is 🔵 until `init --yes`.
 
 ## Plain-language asks (user chat)
 
-| Internal     | Say to the user instead                                          |
-| ------------ | ---------------------------------------------------------------- |
-| B0 purpose   | “What is this product for, in one sentence?”                     |
-| B2 retrieve  | “What would you like me to trace first?” (≤5 concrete questions) |
-| B3 shortlist | “Here’s the study list I suggest — OK to keep these topics?”     |
-| Save policy  | “Save this lesson to your workbook?”                             |
-| B4b / B6     | Fold into lesson review; no checkpoint codes                     |
+Use the ask blocks in `templates/agent-experience.md` (headline + table + 👉 Reply footer).
+
+| Internal     | Template block        |
+| ------------ | --------------------- |
+| B0 purpose   | What matters          |
+| B2 retrieve  | (inline questions, ≤5) |
+| B3 shortlist | Study list            |
+| Save policy  | Save lesson           |
+| First-run    | introduction-wizard   |
+| B4b / B6     | Fold into lesson review |
+| Open viewer  | Open workbook         |
+
+| User-facing step | Replaces old label               |
+| ---------------- | -------------------------------- |
+| Get ready        | Setup                            |
+| What matters     | Confirm purpose                  |
+| Study list       | Pick study plan / shortlist      |
+| Write lessons    | Lesson batch (show honest count) |
+| Open workbook    | Browser viewer                   |
+| Wrap up          | Done                             |
 
 After **three** saved lessons in a workbook batch (or when the batch finishes with fewer than three),
-run `view-lessons.js --open` and move the stepper to **Open workbook**.
+run `view-lessons.js --open` and set **Open workbook** to 🔵, then ✅ after opening.
 
 Omnibus topics (“understand the whole app”) must be split/demoted; save rejects them.
 
@@ -74,7 +91,7 @@ Omnibus topics (“understand the whole app”) must be split/demoted; save reje
 
 ```text
 Script gate:  project-memory.js status → check-runtime.js
-Agent:        confirm skill vs target roots; consent wizard if first-run; pick mode
+Agent:        confirm skill vs target roots; Express/Control wizard if first-run; pick mode
 Script:       profile-project.js … --format json   (inventory)
 Agent:        ACCEPT|UNRESOLVED purpose; phrase retrieve questions
 Script:       plan-analysis.js … --format summary-json   (propose)

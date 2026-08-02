@@ -6,7 +6,8 @@ description: Analyze a codebase, pull request, branch, commit, or whole applicat
 # Repay Tech Debt
 
 Act as a senior engineering mentor. Teach from verified project evidence. Do not turn the response
-into a generic review or programming course.
+into a generic review or programming course. **In chat, stay terse:** progress rail + tables + one
+ask — never narrate scripts or pad with filler (`templates/agent-experience.md`).
 
 Scripts and the agent take turns from 0→100. Read
 `<skill-root>/references/script-agent-dialogue.md` and
@@ -51,11 +52,31 @@ on `<target-root>` first. Full manual: `<skill-root>/docs/manual.md`.
 
 Modifiers: `--keep-lessons`, `--keep-config`, `--revert-target-markers`, `--dry-run` (preview).
 
-## Session stepper (required every user turn)
+## Agent experience (required every user turn)
 
-At the **top** of every user-visible message in workbook, focused, and PR flows, print the
-progress stepper from `templates/session-status.md`. Use human phase names only — never expose
-B0–B6, RETRIEVEQs, SHORTLIST, or checkpoint codes to the user.
+Copy system: `templates/agent-experience.md`. **Do not be verbose:** no narrating scripts, no
+preambles (“I’ll now…”), no repeating tables in prose. Routine turns = rail + one line; ask turns =
+rail + table + `👉 Reply`. ≤40 words outside tables on routine turns; ≤80 on asks.
+
+At the **top** of every user-visible message, paste the **2-column progress rail** from
+`templates/session-status.md` (markdown table — never a code block). Use 🔵 / ✅ / ⬜ in the first
+column; exactly one 🔵 row. End every ask with a **👉 Reply** footer.
+
+| Phase name (user-facing) | Internal only             |
+| ------------------------ | ------------------------- |
+| Get ready                | setup, first-run, runtime |
+| What matters             | B0 purpose                |
+| Study list               | B3 shortlist              |
+| Write lessons            | teach handshake           |
+| Open workbook            | `view-lessons.js --open`  |
+| Wrap up                  | end of batch              |
+
+Never expose B0–B6, RETRIEVEQs, SHORTLIST, or checkpoint codes in user chat.
+
+First-run: `templates/introduction-wizard.md` + `agent-experience.md`. **Message 1:** paths + rail +
+Express/Control only. **Express:** summary table → `yes` → recommended `init`. **Control:** full
+tables. Mid-session asks (purpose, study list, save, workbook): reuse ask templates in
+`agent-experience.md`. No skill symlink paths unless the user asks.
 
 ## Script ↔ agent contract
 
@@ -79,9 +100,14 @@ node <skill-root>/scripts/project-memory.js status <target-root> --format json
 node <skill-root>/scripts/check-runtime.js --format table
 ```
 
-**Agent:** confirm roots; if `first-run`, run the consent wizard from
-`templates/introduction-wizard.md` and `references/project-memory.md` (recommend private memory,
-sister workbook, `ask`/`balanced`/`ask`). Repair/migrate/unlock memory only with approval.
+**Agent:** confirm roots; if `first-run`, run the two-step wizard from
+`templates/introduction-wizard.md`:
+
+1. **Message 1:** intro + progress table + **Express vs Control** only (no full config tables).
+2. **Express** → show recommended summary table → `yes` → `init` with private + sister + balanced + ask.
+3. **Control** → show full option tables → map replies → `init` with chosen flags.
+
+Do not show storage taxonomy until the user picks Control. Repair/migrate/unlock memory only with approval.
 
 **Script inventory → Agent B0/B1**
 

@@ -1,53 +1,61 @@
-# Session progress stepper (mandatory user-facing UX)
+# Session progress rail (mandatory)
 
-Print or update this line at the **top of every user-visible turn** in workbook, focused, and PR
-flows. Use human phase names only — never B0–B6, RETRIEVEQs, SHORTLIST, or checkpoint codes in the
-same message.
+Paste at the **top** of every user-visible turn. **2-column markdown table** — never a code block.
 
-## Workbook spine (default)
+## Emoji rules
 
-Copy and edit the bracket markers:
+| Emoji | Meaning |
+| ----- | ------- |
+| 🔵 | You are here (exactly **one** per message) |
+| ✅ | Done |
+| ⬜ | Not started |
 
-```text
-Progress: [x] Setup → [x] Confirm what matters → [!] Pick study plan → [ ] Write lessons (0/3) → [ ] Open workbook → [ ] Done
-```
+Steps before current = ✅. Current = 🔵. After = ⬜.
 
-| Marker | Meaning       |
-| ------ | ------------- |
-| `[x]`  | Step complete |
-| `[!]`  | Current step  |
-| `[ ]`  | Upcoming      |
+## Workbook rail (copy each turn)
 
-### Step definitions
+| | Step |
+| ⬜ | **Get ready** — setup & tools |
+| ⬜ | **What matters** — product purpose |
+| ⬜ | **Study list** — topics you approve |
+| ⬜ | **Write lessons** — batch count e.g. 2/3 |
+| ⬜ | **Open workbook** — browser reader |
+| ⬜ | **Wrap up** — pause or next |
 
-1. **Setup** — Memory initialized, runtime preflight done, target roots confirmed.
-2. **Confirm what matters** — User agreed what the product is for (or marked unknown gaps).
-3. **Pick study plan** — Curriculum proposed; user approved the topic list (shortlist).
-4. **Write lessons** — Teaching handshake for this batch. Show honest count, e.g. `(2/3)` for two
-   saved of three planned this run. If only one lesson remains in the batch, show `(1/1)`.
-5. **Open workbook** — Script viewer opened or user knows how to reopen (`--view`).
-6. **Done / next lesson** — Batch complete; offer next session or next topic.
+Edit emojis each turn. Bold step name; note after em dash, ≤8 words.
 
-## Focused / PR spine (shorter)
+### When to mark ✅
 
-```text
-Progress: [x] Setup → [!] Investigate & teach → [ ] Save lesson → [ ] Open workbook → [ ] Done
-```
+| Step | ✅ when |
+| ---- | ------- |
+| Get ready | Memory initialized; runtime OK |
+| What matters | Purpose recorded or skipped with reason |
+| Study list | Curriculum saved with approval |
+| Write lessons | 🔵 while drafting; show honest count |
+| Open workbook | 🔵 then run `view-lessons.js --open` after 3rd save or batch done |
+| Wrap up | Viewer opened or `--view` explained |
 
-Skip “Pick study plan” when using mini-curriculum only; still show **Write lessons** as one step.
+## Focused / PR rail
 
-## Rules
+| | Step |
+| ⬜ | **Get ready** |
+| ⬜ | **Investigate & teach** |
+| ⬜ | **Save lesson** |
+| ⬜ | **Open workbook** |
+| ⬜ | **Wrap up** |
 
-- Update the stepper every turn — one line, compact.
-- Remaining work must be honest (“2 lessons left in this batch”, not fake totals).
-- Internal ledger may still record B0–B6; that stays out of user-facing copy.
-- After the **third** saved lesson in a workbook batch, or when the batch is complete with fewer
-  than three, move **Open workbook** to `[!]` and run `view-lessons.js --open` (see SKILL.md).
+Skip study-list row unless full workbook.
 
-## Example (mid workbook batch)
+## Example (lesson 2 of 3)
 
-```text
-Progress: [x] Setup → [x] Confirm what matters → [x] Pick study plan → [!] Write lessons (2/3) → [ ] Open workbook → [ ] Done
+| | Step |
+| ✅ | **Get ready** |
+| ✅ | **What matters** — chat + permissions |
+| ✅ | **Study list** — 12 topics, 3 this session |
+| 🔵 | **Write lessons** — 2/3 saved |
+| ⬜ | **Open workbook** |
+| ⬜ | **Wrap up** |
 
-Next: I’ll draft the third lesson on authentication boundaries, then open the workbook in your browser.
-```
+One line after the rail: what you’re doing next.
+
+See `templates/agent-experience.md` for reply footers and ask templates.

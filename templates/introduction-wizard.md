@@ -1,40 +1,107 @@
-# Welcome to Repay Tech Debt
+# First-run wizard
 
-I’ll help you **understand code you didn’t write** — architecture, flows, and safe changes — using
-evidence from your repo. I won’t change your application unless you separately ask for that.
+Follow `templates/agent-experience.md`. **Message 1 = paths + progress + Express/Control only.**
 
-## What happens next
+---
 
-1. I check that analysis can run on your machine.
-2. I ask **where to store** my notes and your lesson workbook (recommended: private on your computer
-   - a folder **next to** your Git repo, not inside it).
-3. I scan the repo and propose what to study.
-4. You approve a study list; I write **1–3 lessons per session** and open a browser workbook to read them.
+## Message 1
 
-Nothing is saved until you say yes to the paths I show you.
+Your code → **short lessons** → **browser workbook**. I read the repo; I don’t change your app.
 
-## What I need from you now
+| 📁 **Project** | `<target-root>` |
+| 📖 **Lessons** | `<suggested-workbook>` _(beside Git)_ |
+| 🔒 **Your repo** | Untouched — notes live on your machine |
 
-**Recommended setup** _(one short reply is enough):_
+| | Step |
+| 🔵 | **Get ready** — pick setup style |
+| ⬜ | **What matters** |
+| ⬜ | **Study list** |
+| ⬜ | **Write lessons** |
+| ⬜ | **Open workbook** |
+| ⬜ | **Wrap up** |
 
-- **yes** — private notes on your machine, workbook beside the repo, balanced lesson length, ask before each save.
+### Setup
 
-Or pick options:
+| | Mode | Reply |
+| ⚡ | **Express** — recommended defaults, one confirm | `express` |
+| 🎛️ | **Control** — choose every setting | `control` |
 
-1. **Where notes live**
-   - **Private** _(recommended)_ — on your computer; your repo stays untouched.
-   - **Session only** — nothing saved after this chat.
-   - **Inside the repo** — only if you explicitly want `.repay-techdebt/` in the project (gitignored or shared).
+👉 **Reply:** `express` or `control`
 
-2. **Where lessons appear**
-   - **Sister folder** _(recommended)_ — `repay-<project>-techdebt` next to your Git root.
-   - **Private app data** — lessons only in private storage.
-   - **Custom path** — you choose after I show the exact path.
+Do **not** paste Express summary or Control tables until they pick.
 
-3. **How I teach**
-   - **Depth:** concise / balanced _(recommended)_ / deep
-   - **Saving lessons:** ask me each time _(recommended)_ / save when you’ve already approved
+---
 
-**How to answer:** reply `yes` for recommended, or e.g. `private, sister, balanced, ask`.
+## Message 2a — Express
 
-Optional: name critical areas (“payments”, “auth”) or workflows you care about most.
+### Express — confirm & start
+
+| | Setting | Value |
+| ✅ | Notes | Private on your machine |
+| ✅ | Lessons | Beside repo (path above) |
+| ✅ | Depth | Balanced |
+| ✅ | Saves | Ask before each lesson |
+| ✅ | Mode | Ask each run (workbook / PR / focused) |
+
+Optional: priority areas — e.g. `auth, chat` in your `yes` reply.
+
+👉 **Reply:** `yes` to save settings and start
+
+After `yes` → `init` with flags in Agent notes → mark **Get ready** ✅.
+
+---
+
+## Message 2b — Control
+
+### Control — your settings
+
+| Topic | Pick one | Default |
+| ----- | -------- | ------- |
+| Notes | `private` · `session-only` · `project-local` · `team` | `private` |
+| Lessons | `sister` · `private` · `custom` | `sister` |
+| Depth | `concise` · `balanced` · `deep` | `balanced` |
+| Saves | `ask` · `automatic` | `ask` |
+| Mode | `ask` · `pr` · `workbook` | `ask` |
+
+| Optional | Example |
+| -------- | ------- |
+| Priority areas | auth, chat, permissions |
+
+👉 **Reply:** e.g. `private, sister, balanced, ask, workbook` or `yes` for all defaults
+
+---
+
+## Skill tools (only if `check-runtime` fails)
+
+| 🛠️ **Skill packages** | Install inside skill folder only |
+| 🔒 **Your frontend** | Not touched |
+
+👉 **Reply:** `yes` to install · `skip` to continue · combine with setup: `yes, install`
+
+---
+
+## After setup ✅ (paste once, after init)
+
+| Next | You do |
+| ---- | ------ |
+| 📋 Study list | Approve topics |
+| ✍️ Lessons | 1–3 per session |
+| 🌐 Workbook | Read in browser |
+
+---
+
+## Agent notes
+
+Express `init` after user `yes`:
+
+```text
+node <skill-root>/scripts/project-memory.js init <target-root> \
+  --storage private --output-location sister \
+  --mode ask --depth balanced --save-policy ask --yes
+```
+
+Use `--mode workbook` / `pr` / `focused` if user already stated intent.
+
+If user says `yes` without picking a mode → Express summary first, then init.
+
+No skill symlink paths unless asked.

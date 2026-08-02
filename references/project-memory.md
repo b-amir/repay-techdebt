@@ -64,11 +64,18 @@ Run the read-only locator first:
 node <skill-root>/scripts/project-memory.js status <target-root> --format json
 ```
 
-When it returns `first-run`, ask whether to persist memory or remain session-only. Recommend:
+When it returns `first-run`, follow `templates/introduction-wizard.md` and
+`templates/agent-experience.md` (rail + 👉 Reply footers):
+
+1. Ask **Express** (recommended defaults + summary) or **Control** (full option tables).
+2. Express → show summary only → user `yes` → init with recommended flags below.
+3. Control → user picks settings → init with mapped flags.
+
+Recommended Express defaults:
 
 - storage: `private`;
 - lesson output: `sister`, after previewing `suggestedOutputRoot`;
-- default mode: `ask`;
+- default mode: `ask` (or `workbook` / `pr` if the user already stated intent);
 - depth: `balanced`;
 - save policy: `ask`.
 
