@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "name": "dummy-frontend",
+  "description": "A very simple vanilla JS frontend component.",
+  "topics": [
+    {
+      "id": "ui-interaction",
+      "intent": "must-find",
+      "description": "Event listener logic for the button click is crucial."
+    }
+  ],
+  "workflows": [
+    {
+      "id": "mount-and-click",
+      "mustIncludeNodes": ["mountApp"],
+      "mustIncludeEdges": []
+    }
+  ],
+  "lessons": {},
+  "allowedSideEffects": []
+}

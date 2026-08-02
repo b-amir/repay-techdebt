@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "name": "dummy-library",
+  "description": "A very simple math library.",
+  "topics": [
+    {
+      "id": "addition",
+      "intent": "useful",
+      "description": "Addition logic."
+    },
+    {
+      "id": "subtraction",
+      "intent": "useful",
+      "description": "Subtraction logic."
+    }
+  ],
+  "workflows": [],
+  "lessons": {},
+  "allowedSideEffects": []
+}

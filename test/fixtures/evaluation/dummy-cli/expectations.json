@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "name": "dummy-cli",
+  "description": "A very simple Node.js CLI script.",
+  "topics": [
+    {
+      "id": "command-execution",
+      "intent": "must-find",
+      "description": "The logic that routes and executes commands is the core of this script."
+    },
+    {
+      "id": "argument-parsing",
+      "intent": "useful",
+      "description": "Argument parsing is helpful context."
+    }
+  ],
+  "workflows": [
+    {
+      "id": "cli-execution-flow",
+      "mustIncludeNodes": ["main", "executeCommand", "parseArgs"],
+      "mustIncludeEdges": [
+        { "from": "main", "to": "parseArgs" },
+        { "from": "main", "to": "executeCommand" }
+      ]
+    }
+  ],
+  "lessons": {},
+  "allowedSideEffects": []
+}
