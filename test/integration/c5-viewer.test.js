@@ -149,6 +149,7 @@ test("mini-curriculum save-lesson exposes viewer hint and server lists the lesso
     assert.equal(payload.type, "lesson-saved");
     assert.equal(payload.viewer.script, "scripts/view-lessons.js");
     assert.equal(payload.viewer.deepLinkRel, payload.file);
+    assert.equal(payload.viewer.openRecommended, true);
 
     const workbook = {
       ready: true,
@@ -193,6 +194,90 @@ test("mini-curriculum save-lesson exposes viewer hint and server lists the lesso
     assert.equal(completion.status, 200);
     const progress = JSON.parse(await readFile(workbook.progressPath, "utf8"));
     assert.ok(progress.completed[lessonKey]);
+    server.close();
+  } finally {
+    await rm(base, { recursive: true, force: true });
+  }
+});
+
+test("planned topic page is clickable and shows --create instruction", async () => {
+  const base = await mkdtemp(resolve(tmpdir(), "repay-c5-planned-"));
+  const target = resolve(base, "app");
+  const draft = resolve(base, "lesson.md");
+  const environment = { REPAY_TECHDEBT_STATE_DIR: resolve(base, "state") };
+  try {
+    await writeLessonEvidence(target);
+    await writeFile(draft, validConciseLesson());
+
+    const init = await runMemory(
+      ["init", target, "--output-location", "sister", "--depth", "concise", "--yes"],
+      environment,
+    );
+    assert.equal(init.code, 0, init.stderr);
+    const outputRoot = JSON.parse(init.stdout).outputRoot;
+    const canonicalTarget = await realpath(target);
+
+    const curriculum = buildTeachingCurriculum({
+      targetRoot: canonicalTarget,
+      approvedAt: "2026-08-02T12:00:00.000Z",
+      subjects: [
+        {
+          title: "Written topic",
+          focus: "written-boundary",
+          evidencePaths: ["src/routes/admin.ts", "src/auth/permission.ts"],
+        },
+        {
+          title: "Planned topic",
+          focus: "planned-boundary",
+          evidencePaths: ["src/routes/admin.ts"],
+        },
+      ],
+    });
+    const curriculumPath = resolve(base, "mini.json");
+    await writeFile(curriculumPath, JSON.stringify(curriculum, null, 2));
+    await runMemory(["save-curriculum", target, "--input", curriculumPath, "--yes"], environment);
+
+    const writtenTopicId = curriculum.topics[0].id;
+    const plannedTopicId = curriculum.topics[1].id;
+    await runMemory(
+      [
+        "save-lesson",
+        target,
+        "--topic-id",
+        writtenTopicId,
+        "--title",
+        "Written topic",
+        "--input",
+        draft,
+        "--yes",
+      ],
+      environment,
+    );
+
+    const status = await runMemory(["status", target, "--format", "json"], environment);
+    const memoryRoot = JSON.parse(status.stdout).memoryRoot;
+    const server = createViewerServer({
+      workbook: {
+        ready: true,
+        targetRoot: canonicalTarget,
+        workbookRoot: outputRoot,
+        lessonsDir: resolve(outputRoot, "lessons"),
+        indexPath: resolve(outputRoot, "INDEX.md"),
+        progressPath: resolve(outputRoot, "progress.json"),
+        curriculumPath: resolve(memoryRoot, "curriculum.json"),
+      },
+      now: () => "2026-08-02T12:00:00.000Z",
+    });
+    const port = await listen(server);
+    const plannedRes = await fetch(
+      `http://127.0.0.1:${port}/planned/${encodeURIComponent(plannedTopicId)}`,
+    );
+    assert.equal(plannedRes.status, 200);
+    const html = await plannedRes.text();
+    assert.match(html, /Not written yet/);
+    assert.match(html, /Planned topic/);
+    assert.match(html, new RegExp(`/repay-techdebt --create ${plannedTopicId}`));
+    assert.match(html, /teach-topic\.js/);
     server.close();
   } finally {
     await rm(base, { recursive: true, force: true });

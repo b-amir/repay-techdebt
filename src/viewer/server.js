@@ -10,7 +10,7 @@ import { readCurriculum, writeCurriculum } from "../memory/curriculum-store.js";
 import { renderCurriculumMarkdown } from "../curriculum/curriculum-planning.js";
 import { readProgress, setCompletion, normalizeLessonKey } from "./progress-store.js";
 import { buildSidebar, buildLessonsSidebar } from "./sidebar.js";
-import { renderHome, renderLesson, renderEmpty } from "./shell.js";
+import { renderHome, renderLesson, renderEmpty, renderPlanned, lessonHref } from "./shell.js";
 import { renderMarkdown, extractTitle } from "./markdown-render.js";
 
 const CSS_PATH = resolve(skillRoot, "src", "viewer", "static", "viewer.css");
@@ -228,6 +228,31 @@ export function createViewerServer({ workbook, now = defaultNow }) {
           "text/html; charset=utf-8",
           renderHome({ workbookTitle: title, sidebar }),
         );
+      }
+
+      if (req.method === "GET" && pathname.startsWith("/planned/")) {
+        const topicId = decodeURIComponent(pathname.slice("/planned/".length));
+        const curriculum = await readCurriculumSafe(workbook.curriculumPath);
+        const topic = curriculum?.topics?.find((item) => item.id === topicId);
+        if (!topic) return send(res, 404, "text/plain; charset=utf-8", "Topic not found.\n");
+        if (topic.lessonPath) {
+          const redirectKey = topic.lessonPath.replaceAll("\\", "/");
+          res.writeHead(302, { Location: lessonHref(redirectKey) });
+          res.end();
+          return;
+        }
+        const currentKey = `planned:${topicId}`;
+        const { sidebar } = await buildModel(workbook, currentKey);
+        const title = await workbookTitle(curriculum, workbook.workbookRoot);
+        const targetRoot = curriculum?.target?.root ?? workbook.targetRoot ?? workbook.workbookRoot;
+        const html = renderPlanned({
+          workbookTitle: title,
+          sidebar,
+          topic,
+          targetRoot,
+          skillRootHint: "<skill-root>/scripts/teach-topic.js",
+        });
+        return send(res, 200, "text/html; charset=utf-8", html);
       }
 
       if (req.method === "GET" && pathname.startsWith("/lesson/")) {

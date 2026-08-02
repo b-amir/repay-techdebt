@@ -17,6 +17,10 @@ export function lessonHref(key) {
   return `/lesson/${encodeURIComponent(key)}`;
 }
 
+export function plannedHref(topicId) {
+  return `/planned/${encodeURIComponent(topicId)}`;
+}
+
 function progressChip(counts) {
   return `<span class="ds-progress">${counts.done} done · ${counts.written} written · ${counts.planned} planned</span>`;
 }
@@ -27,7 +31,9 @@ function renderSidebar(sidebar) {
       const items = chapter.items
         .map((item) => {
           if (item.state === "planned") {
-            return `<span class="ds-nav-planned" title="${escapeHtml(item.outcome ?? "Not written yet")}">${escapeHtml(item.title)} <span class="ds-nav-hint">Not written yet</span></span>`;
+            const classes = ["ds-nav", "ds-nav-planned"];
+            if (item.current) classes.push("ds-nav-current");
+            return `<a class="${classes.join(" ")}" href="${plannedHref(item.id)}" title="${escapeHtml(item.outcome ?? "Not written yet")}">${escapeHtml(item.title)} <span class="ds-nav-hint">Not written yet</span></a>`;
           }
           const classes = ["ds-nav"];
           if (item.current) classes.push("ds-nav-current");
@@ -77,7 +83,7 @@ export function renderHome({ workbookTitle, sidebar }) {
         ? `<p class="ds-home-next"><a class="ds-btn-primary" href="${lessonHref(next)}">Continue with the next written lesson</a></p>`
         : sidebar.counts.written > 0
           ? `<p class="ds-home-next ds-muted">Every written lesson is marked done. Pick any subject from the directory.</p>`
-          : `<p class="ds-home-next ds-muted">No lessons are written yet. Planned subjects appear in the directory but are not openable until written.</p>`
+          : `<p class="ds-home-next ds-muted">No lessons are written yet. Click a planned subject in the directory to see how to create it.</p>`
     }
   </header>`;
   return renderShell({
@@ -150,6 +156,40 @@ export function renderEmpty({ workbookTitle, reason }) {
   return renderShell({
     documentTitle: workbookTitle,
     sidebarHtml: renderSidebar({ chapters: [], counts: { written: 0, done: 0, planned: 0 } }),
+    mainHtml: main,
+  });
+}
+
+/**
+ * Placeholder for a curriculum topic with no lesson yet. Includes --create activation hint.
+ */
+export function renderPlanned({
+  workbookTitle,
+  sidebar,
+  topic,
+  targetRoot,
+  skillRootHint = "scripts/teach-topic.js",
+}) {
+  const createArg = topic.id;
+  const main = `<article class="ds-plaque ds-plaque-planned">
+    <p class="ds-planned-badge">Not written yet</p>
+    <h1 class="ds-plaque-title">${escapeHtml(topic.title)}</h1>
+    ${
+      topic.learnerOutcome
+        ? `<p class="ds-planned-outcome">${escapeHtml(topic.learnerOutcome)}</p>`
+        : ""
+    }
+    <p class="ds-planned-lead">This lesson is not written yet. Ask your agent to create it from project evidence.</p>
+    <div class="ds-create-box">
+      <p class="ds-create-label">In chat</p>
+      <pre class="ds-create-cmd"><code>/repay-techdebt --create ${escapeHtml(createArg)}</code></pre>
+      <p class="ds-create-label">Or run</p>
+      <pre class="ds-create-cmd"><code>node ${escapeHtml(skillRootHint)} ${escapeHtml(targetRoot)} ${escapeHtml(createArg)}</code></pre>
+    </div>
+  </article>`;
+  return renderShell({
+    documentTitle: `${topic.title} · ${workbookTitle}`,
+    sidebarHtml: renderSidebar(sidebar),
     mainHtml: main,
   });
 }

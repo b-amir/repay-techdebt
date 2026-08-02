@@ -1109,6 +1109,9 @@ async function saveLesson(targetRoot, options) {
       await rm(candidate.path, { force: true });
       throw error;
     }
+    const writtenCount = curriculum?.topics?.filter((item) => item.lessonPath).length ?? 0;
+    const pendingCount = curriculum?.topics?.filter((item) => !item.lessonPath).length ?? 0;
+    const openRecommended = writtenCount >= 3 || (writtenCount > 0 && pendingCount === 0);
     emit({
       type: "lesson-saved",
       status: "saved",
@@ -1117,7 +1120,14 @@ async function saveLesson(targetRoot, options) {
       outputRoot: workbook.root,
       topicId: topic?.id ?? null,
       file: lessonRel,
-      viewer: { script: "scripts/view-lessons.js", deepLinkRel: lessonRel },
+      writtenLessonCount: writtenCount,
+      pendingTopicCount: pendingCount,
+      viewer: {
+        script: "scripts/view-lessons.js",
+        deepLinkRel: lessonRel,
+        openRecommended,
+        openFlags: ["--open", `--lesson ${lessonRel}`],
+      },
     });
   } finally {
     await rm(paths.lessonLock, { force: true, recursive: true });

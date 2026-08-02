@@ -17,10 +17,12 @@ export { buildSidebar, buildLessonsSidebar } from "./sidebar.js";
 export {
   escapeHtml,
   lessonHref,
+  plannedHref,
   wrapClaims,
   renderHome,
   renderLesson,
   renderEmpty,
+  renderPlanned,
 } from "./shell.js";
 
 export { createViewerServer } from "./server.js";

@@ -47,8 +47,15 @@ on `<target-root>` first. Full manual: `<skill-root>/docs/manual.md`.
 | `--reset`        | `reset`        | Output + cache.                                                                   |
 | `--reconfig`     | `reconfig`     | Update mode/depth/save-policy in existing config.                                 |
 | `--view`         | `open-viewer`  | Script-owned browser UI only — never hand-build viewer HTML.                      |
+| `--create <id>`  | `teach-topic`  | Teach one planned topic (`teach-topic.js` with topic id/slug/focus).              |
 
 Modifiers: `--keep-lessons`, `--keep-config`, `--revert-target-markers`, `--dry-run` (preview).
+
+## Session stepper (required every user turn)
+
+At the **top** of every user-visible message in workbook, focused, and PR flows, print the
+progress stepper from `templates/session-status.md`. Use human phase names only — never expose
+B0–B6, RETRIEVEQs, SHORTLIST, or checkpoint codes to the user.
 
 ## Script ↔ agent contract
 
@@ -145,7 +152,10 @@ check. Persist only with `agentApproval` including `purposeStatus: accepted|unre
 node <skill-root>/scripts/project-memory.js save-curriculum <target-root> --input <approved.json> --yes
 ```
 
-Write 1–3 lessons per run; resume from `INDEX.md`. Partial coverage forbids whole-app absence
+Write 1–3 lessons per run; resume from `INDEX.md`. After the **third** saved lesson in a batch, or
+when the batch is complete with fewer than three topics, **must** open the script viewer with
+`view-lessons.js <target-root> --open --lesson <rel-path>` and tell the user how to reopen with
+`--view`. Partial coverage forbids whole-app absence
 claims unless `acceptedPartialScope` is set.
 
 ## Teach handshake (compose → check → semantic → save)
@@ -174,14 +184,17 @@ node <skill-root>/scripts/evaluate-lesson.js <target-root> <draft.md> --depth <c
    (`CLAIMS:` with support yes|no|gap). ≤1 rewrite if quality, evidence, faithfulness, or sense failed.
 6. **Script save** via `project-memory.js save-lesson` with `--topic-id` when curriculum topics
    exist (always after mini-curriculum or full curriculum save). Explicit `CLAIMS:` failures block
-   save. On `lesson-saved`, open or offer the workbook viewer:
+   save. On `lesson-saved`, when `viewer.openRecommended` is true, **must** run:
 
 ```text
-node <skill-root>/scripts/view-lessons.js <target-root> [--open] [--lesson <lessons/...>]
+node <skill-root>/scripts/view-lessons.js <target-root> --open --lesson <lessons/...>
 ```
 
-The save emit includes `viewer.script` and `viewer.deepLinkRel`. Always show Markdown paths too. 7. **Agent ledger:** every tool, operation, outcome, fallback, limitation; unresolved gaps; next
-concepts; checkpoint skips.
+Otherwise offer the viewer link. The emit includes `viewer.script`, `viewer.deepLinkRel`, and
+`viewer.openRecommended`. Always show Markdown paths too.
+
+7. **Agent ledger:** every tool, operation, outcome, fallback, limitation; unresolved gaps; next
+   concepts; checkpoint skips (internal codes only — not in user-facing copy).
 
 ## Enhanced tools (pointers only)
 

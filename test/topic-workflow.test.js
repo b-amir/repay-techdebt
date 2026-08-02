@@ -46,7 +46,7 @@ test("teach-topic workflow requires target and topic-id or next", async () => {
   const directory = await mkdtemp(resolve(tmpdir(), "workflow-"));
   try {
     await assert.rejects(execute(process.execPath, [script, directory], { cwd: root }), (err) =>
-      err.stderr.includes("Must specify --topic-id <id> or --next."),
+      err.stderr.includes("Must specify a topic selector, --topic-id <id>, or --next."),
     );
   } finally {
     await rm(directory, { recursive: true, force: true });

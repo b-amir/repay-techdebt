@@ -9,6 +9,8 @@ import { resolve } from "node:path";
 
 const exec = promisify(execFile);
 
+import { resolveTopicSelector } from "./topic-resolve.js";
+
 export async function runTopicWorkflow(target, options) {
   const paths = await resolveMemoryPaths(target.targetRoot);
 
@@ -28,7 +30,7 @@ export async function runTopicWorkflow(target, options) {
   // 2. Select topic
   let topic;
   if (options.topicId) {
-    topic = curriculum.topics?.find((t) => t.id === options.topicId);
+    topic = resolveTopicSelector(curriculum, options.topicId);
     if (!topic) {
       throw new Error(`Topic not found: ${options.topicId}`);
     }
@@ -64,7 +66,7 @@ export async function runTopicWorkflow(target, options) {
     // Attempt to save
     // We use the project-memory.js save-lesson CLI to preserve atomic writes and locks
     const args = [
-      resolve(process.cwd(), "scripts/project-memory.js"),
+      resolve(options.skillRoot ?? process.cwd(), "scripts/project-memory.js"),
       "save-lesson",
       target.targetRoot,
       "--topic-id",

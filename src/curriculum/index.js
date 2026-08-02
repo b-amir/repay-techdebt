@@ -19,3 +19,5 @@ export { deduplicateAndSplitTopics } from "./topic-decomposition.js";
 export { runTopicWorkflow } from "./topic-workflow.js";
 
 export { buildTeachingCurriculum, TEACHING_CHAPTER } from "./mini-curriculum.js";
+
+export { resolveTopicSelector } from "./topic-resolve.js";

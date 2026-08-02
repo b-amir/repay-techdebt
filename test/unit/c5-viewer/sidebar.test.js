@@ -20,6 +20,7 @@ test("buildSidebar marks done, written, and planned rows", () => {
       },
       {
         title: "Planned only",
+        id: "topic-planned123",
         chapter: "Architecture",
         lessonPath: null,
         learnerOutcome: "outcome",

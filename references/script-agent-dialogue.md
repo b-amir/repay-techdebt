@@ -36,6 +36,9 @@ consent, secrets, or capability-failure prompts.
 
 ## Agent reply forms (internal, tiny)
 
+**Never paste these tokens in user-facing chat.** Use plain questions from `templates/session-status.md`
+and `templates/introduction-wizard.md` instead.
+
 - `ACCEPT purpose | UNRESOLVED purpose + questions` (B0; set `purposeStatus` on approval)
 - `NEED tools: […] | SKIP tool X because […]`
 - `RETRIEVEQs: […]` (B2; ≤5 specific questions)
@@ -46,6 +49,24 @@ consent, secrets, or capability-failure prompts.
 
 Checkpoint cards: `bottleneck-checkpoints.md` (B0–B6). Complete them in trajectory order.
 Validate ask fidelity with `scripts/check-trajectory.js` (workbook: B0→B1→B2→B5→B3→B4a→B4b→B6).
+
+## User-facing progress stepper (mandatory)
+
+Every user-visible turn must open with the stepper from `templates/session-status.md` (human phase
+names only). Update `[!]` and lesson counts honestly each turn.
+
+## Plain-language asks (user chat)
+
+| Internal     | Say to the user instead                                          |
+| ------------ | ---------------------------------------------------------------- |
+| B0 purpose   | “What is this product for, in one sentence?”                     |
+| B2 retrieve  | “What would you like me to trace first?” (≤5 concrete questions) |
+| B3 shortlist | “Here’s the study list I suggest — OK to keep these topics?”     |
+| Save policy  | “Save this lesson to your workbook?”                             |
+| B4b / B6     | Fold into lesson review; no checkpoint codes                     |
+
+After **three** saved lessons in a workbook batch (or when the batch finishes with fewer than three),
+run `view-lessons.js --open` and move the stepper to **Open workbook**.
 
 Omnibus topics (“understand the whole app”) must be split/demoted; save rejects them.
 

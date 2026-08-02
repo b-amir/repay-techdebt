@@ -1,36 +1,40 @@
 # Welcome to Repay Tech Debt
 
-I analyze and teach unfamiliar code without changing the application. By default, private machine
-state stays in user storage and the readable workbook gets a clearly named folder outside the
-repository.
+I’ll help you **understand code you didn’t write** — architecture, flows, and safe changes — using
+evidence from your repo. I won’t change your application unless you separately ask for that.
 
-## Storage choice
+## What happens next
 
-Choose one:
+1. I check that analysis can run on your machine.
+2. I ask **where to store** my notes and your lesson workbook (recommended: private on your computer
+   - a folder **next to** your Git repo, not inside it).
+3. I scan the repo and propose what to study.
+4. You approve a study list; I write **1–3 lessons per session** and open a browser workbook to read them.
 
-- **Private** _(recommended)_: durable external memory and private external tool caches; no target
-  files, dependencies, ignore rules, hooks, or agent instructions.
-- **Session only**: no durable memory; temporary artifacts are removed after the run.
-- **Project local**: create a gitignored `.repay-techdebt/` in the target. This is opt-in.
-- **Team**: create version-controlled `.repay-techdebt/` in the target. This is opt-in and requires
-  a suitable Git repository.
+Nothing is saved until you say yes to the paths I show you.
 
-Optional enhanced CLIs are installed only in isolated user tool environments after separate
-approval. Bundled Node packages stay under the skill installation. Neither kind is added to the
-target's manifest or lockfile.
+## What I need from you now
 
-## Analysis preferences
+**Recommended setup** _(one short reply is enough):_
 
-1. **Lesson output:** Sister workbook _(recommended)_, private application-data storage, or a custom
-   path. Preview the exact proposed path before approval. The sister folder is named
-   `repay-<project>-techdebt` and sits beside the Git repository, not inside it.
-2. **Mode:** Ask _(recommended)_, PR, or Workbook.
-3. **Lesson depth:** Balanced _(recommended)_, Concise, or Deep.
-4. **Lesson saving:** Ask _(recommended)_ or Automatic for explicitly requested lessons.
-5. **Optional hints:** unusual boundaries, component aliases, and critical workflows.
-6. **Optional budgets:** defaults are 30,000 files, 1,000 manifests, 1,500 relationship files, and
-   12 MiB of relationship source.
+- **yes** — private notes on your machine, workbook beside the repo, balanced lesson length, ask before each save.
 
-Reply with the memory storage, lesson output, mode, depth, and save policy. “Recommended” means
-**Private memory, Sister workbook, Ask, Balanced, Ask**. Nothing is persisted until you approve the
-exact paths.
+Or pick options:
+
+1. **Where notes live**
+   - **Private** _(recommended)_ — on your computer; your repo stays untouched.
+   - **Session only** — nothing saved after this chat.
+   - **Inside the repo** — only if you explicitly want `.repay-techdebt/` in the project (gitignored or shared).
+
+2. **Where lessons appear**
+   - **Sister folder** _(recommended)_ — `repay-<project>-techdebt` next to your Git root.
+   - **Private app data** — lessons only in private storage.
+   - **Custom path** — you choose after I show the exact path.
+
+3. **How I teach**
+   - **Depth:** concise / balanced _(recommended)_ / deep
+   - **Saving lessons:** ask me each time _(recommended)_ / save when you’ve already approved
+
+**How to answer:** reply `yes` for recommended, or e.g. `private, sister, balanced, ask`.
+
+Optional: name critical areas (“payments”, “auth”) or workflows you care about most.

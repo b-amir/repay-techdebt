@@ -15,6 +15,7 @@ agent runs the matching script **before** analysis. These map to `project-memory
 | `--reset`        | `reset`        | `--clear-output` plus `--clear-cache`. Fresh skill state for the target.                                                                |
 | `--reconfig`     | `reconfig`     | Updates preferences in existing `config.json` (mode, depth, save policy, hints). Does not move workbook paths.                          |
 | `--view`         | `open-viewer`  | Opens the script-owned workbook viewer in the browser (`view-lessons.js --open`).                                                       |
+| `--create <id>`  | `teach-topic`  | Start teaching one planned topic by id, title slug, or focus (`teach-topic.js`).                                                        |
 
 Optional modifiers (combine with clear/reset):
 
@@ -84,7 +85,22 @@ node <skill-root>/scripts/project-memory.js open-viewer <target-root>
 node <skill-root>/scripts/view-lessons.js <target-root> [--port 8765] [--open] [--lesson lessons/...]
 ```
 
-After `save-lesson`, the emit includes `viewer.script` and `viewer.deepLinkRel`.
+After `save-lesson`, the emit includes `viewer.script`, `viewer.deepLinkRel`, and
+`viewer.openRecommended` (open browser when true — after 3rd lesson or batch complete).
+
+### Teach one planned topic (`--create`)
+
+```text
+node <skill-root>/scripts/teach-topic.js <target-root> <topic-id-or-slug> [--draft <path>]
+```
+
+Chat activation: `/repay-techdebt --create topic-abc123` (same as above). Planned topics in the
+viewer show this command on their placeholder page.
+
+### Session stepper
+
+Agents must print the progress line from `templates/session-status.md` at the top of every
+user-visible turn. See `docs/manual.md` and `SKILL.md`.
 
 ## What maintenance never touches
 

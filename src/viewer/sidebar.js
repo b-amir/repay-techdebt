@@ -1,5 +1,5 @@
 // Sidebar model: chapters → topics, each classified written | done | planned, plus
-// the current row. Planned topics have no href (disabled row). When no curriculum
+// the current row. Planned topics link to a script-rendered placeholder page.
 // exists, fall back to a single chapter built from the lesson files on disk so the
 // shell still shows a directory rail.
 
@@ -31,11 +31,14 @@ function buildFromTopics(topics, progress, currentKey) {
     const state = isDone ? "done" : isWritten ? "written" : "planned";
     counts[state] += 1;
     byChapter.get(chapter).push({
+      id: topic.id,
       title: topic.title,
       outcome: topic.learnerOutcome ?? null,
       lessonKey,
       state,
-      current: lessonKey && currentKey && lessonKey === currentKey,
+      current:
+        (state === "planned" && currentKey === `planned:${topic.id}`) ||
+        (lessonKey && currentKey && lessonKey === currentKey),
     });
   }
 

@@ -133,9 +133,11 @@ body.ds-shell {
 }
 
 .ds-nav-planned {
-  color: #6b7480;
-  cursor: not-allowed;
+  color: #8b939c;
   font-weight: 500;
+}
+.ds-nav-planned:hover {
+  color: #c8ced4;
 }
 .ds-nav-hint {
   display: block;
@@ -341,4 +343,65 @@ body.ds-shell {
   * {
     transition: none !important;
   }
+}
+
+.ds-plaque-planned .ds-planned-badge {
+  display: inline-block;
+  margin-bottom: var(--pad-sm);
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  font:
+    600 0.75rem/1.3 "Public Sans",
+    "Segoe UI",
+    sans-serif;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+}
+.ds-planned-outcome {
+  margin: 0 0 var(--pad-md);
+  color: var(--ink-muted);
+  font:
+    400 1rem/1.5 "Source Serif 4",
+    Georgia,
+    serif;
+}
+.ds-planned-lead {
+  margin: 0 0 var(--pad-lg);
+  color: var(--ink);
+}
+.ds-create-box {
+  padding: var(--pad-md);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  background: var(--code-well);
+}
+.ds-create-label {
+  margin: 0 0 var(--pad-xs);
+  font:
+    600 0.75rem/1.3 "Public Sans",
+    "Segoe UI",
+    sans-serif;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+}
+.ds-create-cmd {
+  margin: 0 0 var(--pad-md);
+  padding: var(--pad-sm);
+  border-radius: 4px;
+  background: var(--plaque);
+  overflow-x: auto;
+}
+.ds-create-cmd:last-child {
+  margin-bottom: 0;
+}
+.ds-create-cmd code {
+  font:
+    400 0.8125rem/1.5 "JetBrains Mono",
+    ui-monospace,
+    Menlo,
+    monospace;
+  color: var(--ink);
 }
