@@ -27,14 +27,14 @@ function largeModel() {
   };
 }
 
-test("large repositories receive a book-sized ranked subject inventory", () => {
+test("large repositories receive a complete ranked subject inventory without arbitrary limits", () => {
   const curriculum = planCurriculum(largeModel());
   assert.equal(curriculum.repositorySize, "large");
-  assert.equal(curriculum.topics.length, 100);
+  assert.ok(curriculum.topics.length > 150); // Ceilings are removed, so it can be 305
   assert.equal(curriculum.topics[0].focus, "customer checkout");
   assert.ok(curriculum.topics.every((topic) => topic.learnerOutcome && topic.evidencePaths));
   const markdown = renderCurriculumMarkdown(curriculum);
-  assert.match(markdown, /100 focused subjects/);
+  assert.match(markdown, /focused subjects/); // Don't match the exact number, it varies
   assert.match(markdown, /Purpose and critical workflows/);
 });
 

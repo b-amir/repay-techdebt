@@ -1,5 +1,9 @@
 import { createHash } from "node:crypto";
 import { basename, dirname } from "node:path";
+import { rankCandidate } from "./curriculum-ranking.js";
+import { deduplicateAndSplitTopics } from "./topic-decomposition.js";
+import { buildStudyOrder } from "./curriculum-graph.js";
+import { applyLearnerProfile } from "./learner-profile.js";
 
 const NON_PRODUCT =
   /(^|\/)(?:test|tests|__tests__|spec|specs|fixtures|mocks|scripts|tools|docs?|examples?|generated|dist|build|coverage|vendor|node_modules|storybook-static|\.storybook|\.react-router|e2e)(\/|$)/i;
@@ -76,9 +80,9 @@ function outcomeFor(kind, path) {
 }
 
 function desiredTopicRange(modeledFiles) {
-  if (modeledFiles < 100) return { minimum: 12, target: 20, maximum: 30, size: "small" };
-  if (modeledFiles < 1000) return { minimum: 25, target: 45, maximum: 70, size: "medium" };
-  return { minimum: 60, target: 100, maximum: 150, size: "large" };
+  if (modeledFiles < 100) return { size: "small" };
+  if (modeledFiles < 1000) return { size: "medium" };
+  return { size: "large" };
 }
 
 function pathPenalty(path, kind) {
@@ -107,14 +111,23 @@ function entryImportance(path) {
 
 function makeCandidate({ kind, focus, paths, importance, reasons, relationCount = 0 }) {
   const evidencePaths = [...new Set(paths.filter(Boolean))].slice(0, 5);
+  
+  const rankResult = rankCandidate({ kind, focus, relationCount });
+  const finalImportance = Math.max(1, Math.min(100, rankResult.score));
+  const finalReasons = [
+    ...reasons,
+    ...rankResult.features.positive.map(p => `(+) ${p.reason}`),
+    ...rankResult.features.negative.map(n => `(-) ${n.reason}`)
+  ];
+
   return {
     id: stableTopicId(kind, focus),
     chapter: chapterFor(focus, kind),
     title: titleFor(kind, focus),
     focus,
     learnerOutcome: outcomeFor(kind, focus),
-    importance: Math.max(1, Math.min(100, Math.round(importance - pathPenalty(focus, kind)))),
-    importanceReasons: [...new Set(reasons)].slice(0, 4),
+    importance: finalImportance,
+    importanceReasons: [...new Set(finalReasons)].slice(0, 4),
     evidencePaths,
     relationCount,
     status: "planned",
@@ -315,12 +328,15 @@ export function planCurriculum(model) {
       }),
     );
 
+  const processedCandidates = deduplicateAndSplitTopics(candidates);
+  
   const unique = new Map();
-  for (const candidate of candidates) {
+  for (const candidate of processedCandidates) {
     const key = candidate.focus.toLowerCase();
     const prior = unique.get(key);
     if (!prior || candidate.importance > prior.importance) unique.set(key, candidate);
   }
+  
   const range = desiredTopicRange(model.coverage.modeledFiles);
   const ranked = [...unique.values()].sort(
     (a, b) =>
@@ -328,26 +344,10 @@ export function planCurriculum(model) {
       b.relationCount - a.relationCount ||
       a.focus.localeCompare(b.focus),
   );
-  const desired = Math.min(
-    range.maximum,
-    Math.max(range.target, Math.min(range.minimum, ranked.length)),
-  );
-  const minimumByChapter = {
-    "Architecture and ownership": range.size === "large" ? 5 : 2,
-    "Dependencies and ecosystem": range.size === "large" ? 5 : 2,
-    "Reliability and operations": range.size === "large" ? 5 : 2,
-    "User-facing features and interactions": range.size === "large" ? 8 : 2,
-    "Verification and change safety": range.size === "large" ? 6 : 2,
-  };
-  const selectedIds = new Set();
-  for (const [chapter, minimum] of Object.entries(minimumByChapter))
-    for (const candidate of ranked.filter((item) => item.chapter === chapter).slice(0, minimum))
-      selectedIds.add(candidate.id);
-  for (const candidate of ranked) {
-    if (selectedIds.size >= desired) break;
-    selectedIds.add(candidate.id);
-  }
-  const selected = ranked.filter((candidate) => selectedIds.has(candidate.id)).slice(0, desired);
+  
+  let selected = buildStudyOrder(ranked);
+  selected = applyLearnerProfile(selected, model.profile.learnerProfile);
+  
   selected.forEach((topic, index) => {
     topic.rank = index + 1;
     topic.tier =
