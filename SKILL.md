@@ -58,8 +58,8 @@ Copy system: `templates/agent-experience.md`. **Tables over prose.** No narratio
 table + ≤10 words. Ask: progress table + ask table + `👉 Reply`. ≤40 words outside tables.
 
 At the **top** of every user-visible message, paste the **progress table** from
-`templates/session-status.md` (markdown table — never a code block). Row 1 = `{done}/{total}` · current
-step. Exactly one 🔵. End asks with **👉 Reply**.
+`templates/session-status.md` (markdown table — never a code block). Row 1 = `{done}/{total}` · `—`
+(count ✅ only; never repeat the 🔵 step). Exactly one 🔵. End asks with **👉 Reply**.
 
 | Phase name (user-facing) | Internal only             |
 | ------------------------ | ------------------------- |

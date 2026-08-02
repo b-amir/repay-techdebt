@@ -13,7 +13,7 @@ Follow `templates/agent-experience.md`. **Message 1 = paths + progress + Express
 | 🔒 | Repo untouched |
 
 | | Step |
-| **0/6** | get ready |
+| **0/6** | — |
 | 🔵 | **Get ready** |
 | ⬜ | What matters |
 | ⬜ | Study list |

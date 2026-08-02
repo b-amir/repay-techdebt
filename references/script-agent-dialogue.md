@@ -55,7 +55,7 @@ Validate ask fidelity with `scripts/check-trajectory.js` (workbook: B0→B1→B2
 ## User-facing progress table (mandatory)
 
 Every turn: **progress table** from `templates/session-status.md` first. Row 1 = `{done}/{total}` ·
-current step; 🔵/✅/⬜ rows below. **Never** bullets or prose above the table. Ask turns add more
+`—` (never repeat the 🔵 step); 🔵/✅/⬜ rows below. **Never** bullets or prose above the table. Ask turns add more
 tables + `👉 Reply`. First-run: only **Get ready** is 🔵 until `init --yes`.
 
 ## Plain-language asks (user chat)

@@ -48,7 +48,7 @@ checkpoint codes (B0–B6, SHORTLIST, RETRIEVEQs) in user-visible text.
 | ---- | ----- |
 | Columns | 2–3 max |
 | Rows per table | 7 max |
-| Row 1 of progress | `{done}/{total}` · current step name |
+| Row 1 of progress | `{done}/{total}` · col 2 `—` (never repeat 🔵 step) |
 | Bold | 🔵 row only in progress |
 | Headers | Short — `Step`, `Reply`, or emoji label |
 | Empty col 1 header | `·` or blank — never a wordy title |
@@ -57,9 +57,9 @@ checkpoint codes (B0–B6, SHORTLIST, RETRIEVEQs) in user-visible text.
 
 ```markdown
 | | Step |
-| **4/5** | wrap up |
+| **3/6** | — |
 | ✅ | Get ready |
-| 🔵 | **Wrap up** |
+| 🔵 | **Write lessons** — 2/3 |
 ```
 
 ### Paths (2 col)

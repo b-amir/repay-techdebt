@@ -12,12 +12,22 @@ test("renderMarkdown renders GFM tables", () => {
   assert.match(html, /403 CSRF rejection/);
 });
 
-test("renderMarkdown highlights fenced code", () => {
+test("renderMarkdown highlights fenced code with explicit language", () => {
   const html = renderMarkdown("```typescript\nconst x: number = 1;\n```\n");
   assert.match(html, /ds-codeblock/);
   assert.match(html, /hljs/);
-  assert.match(html, /TypeScript/);
+  assert.doesNotMatch(html, /ds-codeblock-lang/);
   assert.match(html, /number/);
+});
+
+test("renderMarkdown highlights untagged fences without a language label", () => {
+  const html = renderMarkdown(
+    "```\nexport function hasPermission(permissions) {\n  return permissions.some((p) => p.module === module);\n}\n```\n",
+  );
+  assert.match(html, /hljs/);
+  assert.doesNotMatch(html, /ds-codeblock-header/);
+  assert.doesNotMatch(html, />Code</);
+  assert.doesNotMatch(html, /ds-code-plain/);
 });
 
 test("renderMarkdown emits mermaid blocks for client rendering", () => {
@@ -28,20 +38,4 @@ test("renderMarkdown emits mermaid blocks for client rendering", () => {
   assert.match(html, /<pre class="mermaid">/);
   assert.match(html, /flowchart TD/);
   assert.doesNotMatch(html, /ds-codeblock/);
-});
-
-test("renderMarkdown infers TypeScript for untagged JS fences, not highlightAuto guesses", () => {
-  const html = renderMarkdown(
-    "```\nconst existingRequest = store.requests[targetChatId];\nif (existingRequest && existingRequest.phase !== \"idle\") {\n  return;\n}\n```\n",
-  );
-  assert.doesNotMatch(html, /Kotlin|C#|Php|PHP/i);
-  assert.match(html, /TypeScript/);
-  assert.match(html, /hljs/);
-});
-
-test("renderMarkdown leaves unknown untagged snippets as plain code", () => {
-  const html = renderMarkdown("```\nhello world\nplain text\n```\n");
-  assert.match(html, /ds-code-plain/);
-  assert.doesNotMatch(html, /hljs-keyword/);
-  assert.match(html, />Code</);
 });
