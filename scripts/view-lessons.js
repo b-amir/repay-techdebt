@@ -57,6 +57,14 @@ async function main() {
 
   const { targetRoot } = await resolveTargetRoot(positionals[0]);
   const workbook = await resolveWorkbook(targetRoot);
+  if (workbook.ready && workbook.location !== "private") {
+    const { ensureWorkbookReadme } = await import("../src/memory/workbook-readme.js");
+    const { basename } = await import("node:path");
+    await ensureWorkbookReadme(workbook.workbookRoot, {
+      targetRoot,
+      projectName: basename(targetRoot),
+    });
+  }
   const requestedPort = Number(values.port);
   if (!Number.isInteger(requestedPort) || requestedPort < 1 || requestedPort > 65535) {
     throw new Error("--port must be an integer from 1 to 65535");

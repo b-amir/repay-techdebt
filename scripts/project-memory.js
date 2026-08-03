@@ -37,6 +37,7 @@ import {
   planSkillCacheClear,
   planSkillMaintenance,
 } from "../src/memory/skill-maintenance.js";
+import { renderWorkbookReadme } from "../src/memory/workbook-readme.js";
 
 export { resolveMemoryPaths } from "../src/foundations/memory-paths.js";
 
@@ -745,6 +746,15 @@ async function init(targetRoot, initialOptions) {
         "# Learning index\n\nNo curriculum has been generated yet. Run `plan-curriculum.js`, then save it with `project-memory.js save-curriculum`.\n",
         "utf8",
       );
+      await writeFile(
+        resolve(outputStaging, "README.md"),
+        renderWorkbookReadme({
+          targetRoot,
+          workbookRoot: output.root,
+          projectName: basename(targetRoot),
+        }),
+        "utf8",
+      );
     }
     await rename(stagingRoot, paths.root);
     if (outputStaging) await rename(outputStaging, output.root);
@@ -945,6 +955,15 @@ async function configureOutput(targetRoot, options) {
       .replace(/^# Saved Lessons/m, "# Learning index")
       .replaceAll("](./", "](lessons/");
     await writeFile(resolve(staging, "INDEX.md"), sanitizeContent(visibleIndex), "utf8");
+    await writeFile(
+      resolve(staging, "README.md"),
+      renderWorkbookReadme({
+        targetRoot,
+        workbookRoot: destination.root,
+        projectName: basename(targetRoot),
+      }),
+      "utf8",
+    );
     await rename(staging, destination.root);
     await replaceJsonFile(paths.config, {
       ...config,
