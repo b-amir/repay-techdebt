@@ -54,14 +54,15 @@ Validate ask fidelity with `scripts/check-trajectory.js` (workbook: B0→B1→B2
 
 ## User-facing progress table (mandatory)
 
-Every turn: progress from `templates/session-status.md` first — header `| Step | {done}/{total} |`
-(count ✅ only; **no empty headers**). **One blank line between tables.** Ask turns: one lead line
-before the ask table + `👉 Reply`. First-run: paste `templates/introduction-wizard.md` Message 1
-verbatim (only **Get ready** is 🔵 until `init --yes`).
+Every turn: progress from `templates/session-status.md` first — header `| Step | {current}/{total} |`
+(**current** = 1-based index of 🔵, never 0, never ✅-count; **no empty headers**). **One blank line
+between tables.** Ask turns: `###` heading + why-line + ask table + `👉 Reply`. First-run: paste
+`templates/introduction-wizard.md` Message 1 verbatim (only **Get ready** is 🔵 until `init --yes`).
+**Fast** mode: 5 steps, auto-save, auto-open viewer — no save/open yes-no.
 
 ## Plain-language asks (user chat)
 
-Use the **exact** ask blocks in `templates/agent-experience.md` (lead line + table + 👉 Reply).
+Use the **exact** ask blocks in `templates/agent-experience.md` (`###` + why + table + 👉 Reply).
 
 | Internal     | Template block        |
 | ------------ | --------------------- |
@@ -83,7 +84,9 @@ Use the **exact** ask blocks in `templates/agent-experience.md` (lead line + tab
 | Wrap up          | Done                             |
 
 After **three** saved lessons in a workbook batch (or when the batch finishes with fewer than three),
-run `view-lessons.js --open` and set **Open workbook** to 🔵, then ✅ after opening.
+run `view-lessons.js --open`. In **Fast** mode do not ask — open, then **Wrap up**. In Control with
+save-policy `ask`, you may confirm open. Explain: we start with 3 lessons so tokens stay sane; the
+rest of the curriculum stays planned and is easy to continue with guidance.
 
 Omnibus topics (“understand the whole app”) must be split/demoted; save rejects them.
 
@@ -91,7 +94,7 @@ Omnibus topics (“understand the whole app”) must be split/demoted; save reje
 
 ```text
 Script gate:  project-memory.js status → check-runtime.js
-Agent:        confirm skill vs target roots; Express/Control wizard if first-run; pick mode
+Agent:        confirm skill vs target roots; Fast/Control wizard if first-run; pick mode
 Script:       profile-project.js … --format json   (inventory)
 Agent:        ACCEPT|UNRESOLVED purpose; phrase retrieve questions
 Script:       plan-analysis.js … --format summary-json   (propose)

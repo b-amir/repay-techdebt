@@ -65,28 +65,29 @@ node <skill-root>/scripts/project-memory.js status <target-root> --format json
 ```
 
 When it returns `first-run`, follow `templates/introduction-wizard.md` and
-`templates/agent-experience.md` (rail + 👉 Reply footers):
+`templates/agent-experience.md` (headings + 👉 Reply footers):
 
-1. Ask **Express** (recommended defaults + summary) or **Control** (full option tables).
-2. Express → show summary only → user `yes` → init with recommended flags below.
+1. Ask **Fast** (recommended defaults + auto-save) or **Control** (full option tables).
+2. Fast → show summary only → user `yes` → init with recommended flags below.
 3. Control → user picks settings → init with mapped flags.
+4. Treat reply `express` as `fast` (legacy alias).
 
-Recommended Express defaults:
+Recommended Fast defaults:
 
 - storage: `private`;
 - lesson output: `sister`, after previewing `suggestedOutputRoot`;
-- default mode: `ask` (or `workbook` / `pr` if the user already stated intent);
+- default mode: `workbook` (or `pr` / `ask` if the user already stated intent);
 - depth: `balanced`;
-- save policy: `ask`.
+- save policy: **`automatic`** (no per-lesson save prompts).
 
 Private initialization must report `targetWrites: []`. It must not create `.repay-techdebt`, edit
 ignore files, install target dependencies, add hooks, or add agent instructions.
 
-After approval:
+After approval (Fast):
 
 ```text
 node <skill-root>/scripts/project-memory.js init <target-root> \
-  --storage private --output-location sister --mode ask --depth balanced --save-policy ask --yes
+  --storage private --output-location sister --mode workbook --depth balanced --save-policy automatic --yes
 ```
 
 Use `--storage project-local` or `--storage team` only when explicitly selected. `session-only`

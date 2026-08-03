@@ -192,11 +192,53 @@ export const CLIENT_SCRIPT = `
     document.body.removeChild(ta);
   }
 
+  var NAV_SCROLL_KEY = "repay-viewer-nav-scroll";
+
+  function saveNavScroll() {
+    var list = document.querySelector(".ds-nav-list");
+    if (!list) return;
+    try {
+      sessionStorage.setItem(NAV_SCROLL_KEY, String(list.scrollTop));
+    } catch (e) { /* ignore */ }
+  }
+
+  function restoreNavScroll() {
+    var list = document.querySelector(".ds-nav-list");
+    if (!list) return;
+    try {
+      var raw = sessionStorage.getItem(NAV_SCROLL_KEY);
+      if (raw != null) {
+        var y = Number(raw);
+        if (Number.isFinite(y)) list.scrollTop = y;
+      }
+    } catch (e) { /* ignore */ }
+    var current = list.querySelector(".ds-nav-current");
+    if (!current) return;
+    var listRect = list.getBoundingClientRect();
+    var itemRect = current.getBoundingClientRect();
+    if (itemRect.top < listRect.top || itemRect.bottom > listRect.bottom) {
+      current.scrollIntoView({ block: "nearest", inline: "nearest" });
+      saveNavScroll();
+    }
+  }
+
+  function bindNavScroll() {
+    var list = document.querySelector(".ds-nav-list");
+    if (!list) return;
+    restoreNavScroll();
+    list.addEventListener("scroll", saveNavScroll, { passive: true });
+    list.querySelectorAll("a.ds-nav, a.ds-nav-planned").forEach(function (a) {
+      a.addEventListener("click", saveNavScroll);
+    });
+    window.addEventListener("pagehide", saveNavScroll);
+  }
+
   ready(function () {
     bindPrefs();
     bindSettingsPanel();
     bindSidebarToggle();
     bindCopyButtons();
+    bindNavScroll();
     renderMermaid();
 
     var btn = document.querySelector(".ds-mark-done");
@@ -205,6 +247,7 @@ export const CLIENT_SCRIPT = `
         var lesson = btn.getAttribute("data-lesson");
         var completed = btn.getAttribute("data-completed") === "true";
         btn.disabled = true;
+        saveNavScroll();
         fetch("/api/completion", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -228,6 +271,7 @@ export const CLIENT_SCRIPT = `
           .then(function (r) { return r.ok ? r.json() : null; })
           .then(function (data) {
             if (data && data.mtimeMs && lastMtime && data.mtimeMs !== lastMtime) {
+              saveNavScroll();
               window.location.reload();
             }
             if (data && data.mtimeMs) lastMtime = data.mtimeMs;

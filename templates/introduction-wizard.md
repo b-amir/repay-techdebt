@@ -1,74 +1,83 @@
 # First-run wizard
 
-Follow `templates/agent-experience.md`. Paste **exactly** as shown — blank line between every table,
-one lead line before each choice. **No empty table headers.** Message 1 = paths + progress + setup
-choice only.
+Follow `templates/agent-experience.md`. Paste **exactly** as shown. Orient first-timers: what this
+is, where files go, Fast vs Control. **Message 1 = intro + paths + progress + setup choice.**
+
+Fast mode = fewer stops later (auto-save, auto-open viewer). Control = pick settings + confirms.
 
 ---
 
 ## Message 1
 
-Paste this block as-is (swap the two paths). Keep the blank lines.
+Paste as-is (swap the two paths). Keep blank lines.
 
 ```markdown
+### What is this?
+
+I turn your repo into **short lessons** you read in a **browser workbook**. Your app source stays
+untouched. Lessons live in a folder beside the repo.
+
 | Mark | Detail |
 | ---- | ------ |
-| 📖 | Short lessons from your repo → browser workbook |
 | 📁 Project | `<target-root>` |
 | 📖 Lessons | `<suggested-workbook>` _(beside Git)_ |
-| 🔒 | Repo untouched |
+| 🔒 | Repo source never modified |
 
 **Progress**
 
-| Step | 1/6 |
+| Step | 1/5 |
 | ---- | --- |
 | 🔵 | **Get ready** |
 | ⬜ | What matters |
 | ⬜ | Study list |
 | ⬜ | Write lessons |
-| ⬜ | Open workbook |
 | ⬜ | Wrap up |
 
-How much setup do you want?
+### How much setup do you want?
+
+**Fast** uses defaults and auto-saves (fewer questions). **Control** lets you pick every setting.
 
 | Mark | Mode | Reply |
 | ---- | ---- | ----- |
-| ⚡ | Express — accept defaults, one confirm | `express` |
-| 🎛️ | Control — pick notes, depth, saves yourself | `control` |
+| ⚡ | Fast — defaults + auto-save | `fast` |
+| 🎛️ | Control — choose each setting | `control` |
 
-👉 **Reply:** `express` or `control`
+👉 **Reply:** `fast` or `control`
 ```
 
-Do **not** paste Express summary or Control tables until they pick.
+Do **not** paste Fast summary or Control tables until they pick.
 
 ---
 
-## Message 2a — Express
+## Message 2a — Fast
 
 ```markdown
 **Progress**
 
-| Step | 0/6 |
+| Step | 1/5 |
 | ---- | --- |
 | 🔵 | **Get ready** |
 | ⬜ | What matters |
 | ⬜ | Study list |
 | ⬜ | Write lessons |
-| ⬜ | Open workbook |
 | ⬜ | Wrap up |
 
-These defaults — reply `yes` to start, or switch to `control`.
+### Start with these defaults?
+
+Private notes on this machine. Lessons in the sister folder beside your repo. **Saves are
+automatic** — we won’t ask yes/no for each lesson. We’ll write **3 lessons** first (token-friendly);
+more later is easy and guided.
 
 | Mark | Setting | Value |
 | ---- | ------- | ----- |
-| ✅ | Notes | Private |
+| ✅ | Notes | Private (this machine) |
 | ✅ | Lessons | Beside repo |
 | ✅ | Depth | Balanced |
-| ✅ | Saves | Ask each |
-| ✅ | Mode | Ask each run |
+| ✅ | Saves | Automatic |
+| ✅ | Mode | Workbook |
 
-| Optional | e.g. `auth, chat` in `yes` reply |
-| -------- | -------------------------------- |
+| Optional | Focus areas, e.g. `auth, chat` with your `yes` |
+| -------- | ----------------------------------------------- |
 
 👉 **Reply:** `yes`
 ```
@@ -82,7 +91,7 @@ After `yes` → `init` with flags in Agent notes → mark **Get ready** ✅.
 ```markdown
 **Progress**
 
-| Step | 0/6 |
+| Step | 1/6 |
 | ---- | --- |
 | 🔵 | **Get ready** |
 | ⬜ | What matters |
@@ -91,7 +100,9 @@ After `yes` → `init` with flags in Agent notes → mark **Get ready** ✅.
 | ⬜ | Open workbook |
 | ⬜ | Wrap up |
 
-Pick each setting (or `yes` for the defaults column).
+### Pick your settings
+
+Or reply `yes` to use the Default column as-is.
 
 | Topic | Options | Default |
 | ----- | ------- | ------- |
@@ -99,7 +110,7 @@ Pick each setting (or `yes` for the defaults column).
 | Lessons | `sister` · `private` · `custom` | `sister` |
 | Depth | `concise` · `balanced` · `deep` | `balanced` |
 | Saves | `ask` · `automatic` | `ask` |
-| Mode | `ask` · `pr` · `workbook` | `ask` |
+| Mode | `ask` · `pr` · `workbook` | `workbook` |
 
 | Optional | auth, chat, permissions |
 | -------- | ----------------------- |
@@ -109,45 +120,65 @@ Pick each setting (or `yes` for the defaults column).
 
 ---
 
-## Skill tools (only if `check-runtime` fails)
+## Skill tools (only if runtime install needed)
 
 ```markdown
-Skill packages are missing — install inside the skill folder only?
+### Skill packages missing
+
+Install **only inside the skill folder** — not into your app.
 
 | Mark | Detail |
 | ---- | ------ |
-| 🛠️ **Skill packages** | Install inside skill folder only |
-| 🔒 **Your project** | Not touched |
+| 🛠️ Skill packages | Install in skill folder only |
+| 🔒 Your project | Not touched |
 
-👉 **Reply:** `yes` to install · `skip` to continue · combine with setup: `yes, install`
+👉 **Reply:** `yes` to install · `skip` · or `yes, install` with setup
 ```
 
 ---
 
-## After setup ✅ (paste once, after init)
+## After setup ✅ (paste once, after init) — Fast
 
 ```markdown
-| Next | You do |
+**Progress**
+
+| Step | 2/5 |
+| ---- | --- |
+| ✅ | Get ready |
+| 🔵 | **What matters** |
+| ⬜ | Study list |
+| ⬜ | Write lessons |
+| ⬜ | Wrap up |
+
+### Next
+
+We’ll confirm what to teach, build a study list, then write **3 lessons** and open the workbook
+viewer for you.
+
+| Mark | You do |
 | ---- | ------ |
-| 📋 Study list | Approve topics |
-| ✍️ Lessons | 1–3 per session |
-| 🌐 Workbook | Read in browser |
+| 🎯 Purpose | One sentence |
+| 📋 Study list | Keep or edit |
+| ✍️ Lessons | We write + auto-save |
+| 🌐 Workbook | Opens in browser when ready |
 ```
 
 ---
 
 ## Agent notes
 
-Express `init` after user `yes`:
+Fast `init` after user `yes` — note **`--save-policy automatic`** and **`--mode workbook`**:
 
 ```text
 node <skill-root>/scripts/project-memory.js init <target-root> \
   --storage private --output-location sister \
-  --mode ask --depth balanced --save-policy ask --yes
+  --mode workbook --depth balanced --save-policy automatic --yes
 ```
 
-Use `--mode workbook` / `pr` / `focused` if user already stated intent.
+Control uses mapped flags; default save-policy `ask` unless they chose automatic.
 
-If user says `yes` without picking a mode → Express summary first, then init.
+If user says `yes` without picking a mode → Fast summary first, then init.
+
+Aliases: treat `express` as `fast` if someone types the old name.
 
 No skill symlink paths unless asked.

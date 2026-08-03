@@ -54,13 +54,14 @@ Modifiers: `--keep-lessons`, `--keep-config`, `--revert-target-markers`, `--dry-
 
 ## Agent experience (required every user turn)
 
-Copy system: `templates/agent-experience.md`. **Tables over prose.** No narration. Routine: progress
-table + ≤10 words. Ask: progress · **blank line** · **one lead line** · ask table · `👉 Reply`.
-≤40 words outside tables. **Always** `| --- |` separators and one blank line between tables.
+Copy system: `templates/agent-experience.md`. **Tables + `###` headings on important asks.** Short, not
+cryptic. **One blank line between tables.** Fast mode: auto-save, no save/open rituals. Routine: ≤25
+words status. Ask: `###` + why-line + table + `👉 Reply` (≤60 words outside tables). Never paste
+script JSON into chat.
 
 At the **top** of every user-visible message, paste progress from `templates/session-status.md`:
-header `| Step | {done}/{total} |` (fraction in the header — never an empty header cell, never a
-`—` row). Exactly one 🔵. End asks with **👉 Reply**.
+header `| Step | {current}/{total} |` where **current is the 1-based index of the 🔵 step** (start at
+`1/N`, never `0`, never ✅-count). Exactly one 🔵. End asks with **👉 Reply**.
 
 | Phase name (user-facing) | Internal only             |
 | ------------------------ | ------------------------- |
@@ -68,14 +69,15 @@ header `| Step | {done}/{total} |` (fraction in the header — never an empty he
 | What matters             | B0 purpose                |
 | Study list               | B3 shortlist              |
 | Write lessons            | teach handshake           |
-| Open workbook            | `view-lessons.js --open`  |
+| Open workbook            | Control / ask-save only   |
 | Wrap up                  | end of batch              |
 
 Never expose B0–B6, RETRIEVEQs, SHORTLIST, or checkpoint codes in user chat.
 
-First-run: paste `templates/introduction-wizard.md` Message 1 **verbatim** (paths + progress + setup
-choice with lead line). **Express:** defaults table → `yes` → `init`. **Control:** full settings.
-Mid-session asks: reuse exact blocks in `agent-experience.md`. No skill symlink paths unless asked.
+First-run: paste `templates/introduction-wizard.md` Message 1 **verbatim** (what this is · paths ·
+progress · Fast vs Control). **Fast:** defaults + `--save-policy automatic` → `yes` → `init`.
+**Control:** full settings. Mid-session: exact blocks in `agent-experience.md`. Alias: `express` →
+`fast`. No skill symlink paths unless asked.
 
 ## Script ↔ agent contract
 
@@ -107,9 +109,10 @@ Manual repair: `node <skill-root>/scripts/ensure-runtime.js`.
 **Agent:** confirm roots; if `first-run`, run the two-step wizard from
 `templates/introduction-wizard.md`:
 
-1. **Message 1:** intro + progress table + **Express vs Control** only (no full config tables).
-2. **Express** → show recommended summary table → `yes` → `init` with private + sister + balanced + ask.
-3. **Control** → show full option tables → map replies → `init` with chosen flags.
+1. **Message 1:** what this is + paths + progress + **Fast vs Control** only.
+2. **Fast** → defaults summary (auto-save) → `yes` → `init` with private + sister + workbook +
+   balanced + **automatic**.
+3. **Control** → full option tables → map replies → `init` with chosen flags.
 
 Do not show storage taxonomy until the user picks Control. Repair/migrate/unlock memory only with approval.
 
@@ -182,10 +185,12 @@ check. Persist only with `agentApproval` including `purposeStatus: accepted|unre
 node <skill-root>/scripts/project-memory.js save-curriculum <target-root> --input <approved.json> --yes
 ```
 
-Write 1–3 lessons per run; resume from `INDEX.md`. After the **third** saved lesson in a batch, or
-when the batch is complete with fewer than three topics, **must** open the script viewer with
-`view-lessons.js <target-root> --open --lesson <rel-path>` and tell the user how to reopen with
-`--view`. Partial coverage forbids whole-app absence
+Write 1–3 lessons per run; resume from `INDEX.md`. Explain to first-timers: **3 lessons this
+session** keeps token use sane; the rest of the curriculum stays planned and is easy to continue.
+After the **third** saved lesson in a batch, or when the batch is complete with fewer than three
+topics, **must** open the script viewer with `view-lessons.js <target-root> --open --lesson
+<rel-path>`. In **Fast** mode do that without asking. Tell the user the workbook folder path and
+how to reopen with `--view`. Never paste raw CLI JSON. Partial coverage forbids whole-app absence
 claims unless `acceptedPartialScope` is set.
 
 ## Teach handshake (compose → check → semantic → save)
