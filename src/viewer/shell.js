@@ -69,9 +69,8 @@ function sidebarToggleButton(className, expanded) {
 function viewSettingsPanel() {
   return `<div class="ds-settings-root">
   <button type="button" class="ds-settings-gear" aria-expanded="false" aria-controls="ds-settings-panel" aria-label="View settings">
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-      <path d="M9 11.2a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4Z" stroke="currentColor" stroke-width="1.4"/>
-      <path d="M14.1 10.4a1.2 1.2 0 0 0 .24 1.32l.04.04a1.46 1.46 0 1 1-2.06 2.06l-.04-.04a1.2 1.2 0 0 0-1.32-.24 1.2 1.2 0 0 0-.73 1.1v.12a1.46 1.46 0 0 1-2.92 0v-.06a1.2 1.2 0 0 0-.79-1.1 1.2 1.2 0 0 0-1.32.24l-.04.04a1.46 1.46 0 1 1-2.06-2.06l.04-.04a1.2 1.2 0 0 0 .24-1.32 1.2 1.2 0 0 0-1.1-.73h-.12a1.46 1.46 0 0 1 0-2.92h.06a1.2 1.2 0 0 0 1.1-.79 1.2 1.2 0 0 0-.24-1.32l-.04-.04a1.46 1.46 0 1 1 2.06-2.06l.04.04a1.2 1.2 0 0 0 1.32.24h.06a1.2 1.2 0 0 0 1.1-.79 1.46 1.46 0 0 1 2.92 0v.06a1.2 1.2 0 0 0 .79 1.1 1.2 1.2 0 0 0 1.32-.24l.04-.04a1.46 1.46 0 1 1 2.06 2.06l-.04.04a1.2 1.2 0 0 0-.24 1.32v.06a1.2 1.2 0 0 0 .73 1.1 1.2 1.2 0 0 0 1.1.73h.12a1.46 1.46 0 0 1 0 2.92h-.06a1.2 1.2 0 0 0-1.1.79Z" stroke="currentColor" stroke-width="1.2"/>
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path fill-rule="evenodd" d="M7.84 1.804A1 1 0 0 1 8.82 1h2.36a1 1 0 0 1 .98.804l.331 1.652a6.993 6.993 0 0 1 1.929 1.115l1.598-.54a1 1 0 0 1 1.186.447l1.18 2.044a1 1 0 0 1-.205 1.251l-1.267.96a7.072 7.072 0 0 1 0 2.224l1.267.96a1 1 0 0 1 .206 1.25l-1.18 2.045a1 1 0 0 1-1.187.447l-1.598-.54a6.993 6.993 0 0 1-1.929 1.115l-.33 1.652a1 1 0 0 1-.98.804H8.82a1 1 0 0 1-.98-.804l-.331-1.652a6.993 6.993 0 0 1-1.929-1.115l-1.598.54a1 1 0 0 1-1.186-.447l-1.18-2.044a1 1 0 0 1 .205-1.251l1.267-.96a7.072 7.072 0 0 1 0-2.224l-1.267-.96a1 1 0 0 1-.206-1.25l1.18-2.045a1 1 0 0 1 1.187-.447l1.598.54A6.993 6.993 0 0 1 7.51 3.456l.33-1.652ZM10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clip-rule="evenodd"/>
     </svg>
   </button>
   <div class="ds-settings-panel" id="ds-settings-panel" role="dialog" aria-label="View settings">
@@ -118,17 +117,16 @@ function renderSidebar(sidebar, workbookTitle) {
           if (item.state === "planned") {
             const classes = ["ds-nav", "ds-nav-planned"];
             if (item.current) classes.push("ds-nav-current");
-            const hint = item.current
-              ? `<span class="ds-nav-hint">Not written yet</span>`
-              : "";
-            return `<a class="${classes.join(" ")}" href="${plannedHref(item.id)}" title="${escapeHtml(item.outcome ?? "Not written yet")}">${escapeHtml(item.title)}${hint}</a>`;
+            return `<a class="${classes.join(" ")}" href="${plannedHref(item.id)}" title="${escapeHtml(item.outcome ?? "Not written yet")}"><span class="ds-nav-mark" aria-hidden="true">·</span><span class="ds-nav-label">${escapeHtml(item.title)}</span></a>`;
           }
           const classes = ["ds-nav"];
           if (item.current) classes.push("ds-nav-current");
           if (item.state === "done") classes.push("ds-nav-done");
-          const check =
-            item.state === "done" ? '<span class="ds-check" aria-hidden="true">✓</span> ' : "";
-          return `<a class="${classes.join(" ")}" href="${lessonHref(item.lessonKey)}">${check}${escapeHtml(item.title)}</a>`;
+          const mark =
+            item.state === "done"
+              ? '<span class="ds-nav-mark ds-nav-mark-done" aria-hidden="true">✓</span>'
+              : '<span class="ds-nav-mark" aria-hidden="true"></span>';
+          return `<a class="${classes.join(" ")}" href="${lessonHref(item.lessonKey)}">${mark}<span class="ds-nav-label">${escapeHtml(item.title)}</span></a>`;
         })
         .join("\n");
       return `<div class="ds-chapter"><h2 class="ds-chapter-title">${escapeHtml(chapter.title)}</h2><div class="ds-chapter-items">${items}</div></div>`;

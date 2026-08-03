@@ -107,7 +107,7 @@ html[data-scale="l"] {
   --font-ui: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-body: "Source Serif 4", "Georgia", "Times New Roman", serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  --sidebar: 280px;
+  --sidebar: 320px;
   --sidebar-width: var(--sidebar);
   --measure: 42rem;
   --radius: 10px;
@@ -356,17 +356,51 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
 
 .ds-nav,
 .ds-nav-planned {
-  display: block;
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
+  column-gap: 8px;
+  align-items: start;
   padding: 8px 10px;
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   text-decoration: none;
   color: var(--text-secondary);
   font-size: 0.8125rem;
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 1.35;
   transition:
     background var(--dur) var(--ease),
-    color var(--dur) var(--ease);
+    color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+
+.ds-nav-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1.15em;
+  flex-shrink: 0;
+  color: transparent;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  user-select: none;
+}
+
+.ds-nav-mark-done {
+  color: var(--accent);
+}
+
+.ds-nav-planned .ds-nav-mark {
+  color: var(--text-tertiary);
+  font-size: 1rem;
+  line-height: 0.9;
+}
+
+.ds-nav-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .ds-nav:hover {
@@ -377,7 +411,7 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
 .ds-nav-current {
   background: var(--surface);
   color: var(--text);
-  font-weight: 600;
+  border-color: var(--border-subtle);
   box-shadow: var(--nav-current-shadow);
 }
 
@@ -389,15 +423,12 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
   color: var(--text-secondary);
 }
 
-.ds-nav .ds-check {
-  color: var(--accent);
-  font-weight: 600;
-  margin-right: 2px;
+.ds-nav-done.ds-nav-current {
+  color: var(--text);
 }
 
 .ds-nav-planned {
   color: var(--text-tertiary);
-  font-weight: 400;
 }
 
 .ds-nav-planned:hover {
@@ -406,19 +437,6 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
 
 .ds-nav-planned.ds-nav-current {
   color: var(--text);
-  font-weight: 600;
-}
-
-.ds-nav-hint {
-  display: block;
-  margin-top: 3px;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: var(--text-tertiary);
-}
-
-.ds-nav-current .ds-nav-hint {
-  color: var(--text-secondary);
 }
 
 .ds-empty {
@@ -573,9 +591,12 @@ html[data-theme="dark"] .ds-settings-panel {
 .ds-main {
   padding: calc(48px * var(--content-scale)) calc(56px * var(--content-scale)) 80px;
   min-width: 0;
+  display: flex;
+  justify-content: center;
 }
 
 .ds-main-inner {
+  width: 100%;
   max-width: var(--measure);
 }
 
@@ -1445,6 +1466,16 @@ html[data-theme="dark"] .ds-settings-panel {
   .ds-settings-root {
     top: 10px;
     right: 10px;
+  }
+}
+
+@media (min-width: 1400px) {
+  :root {
+    --sidebar: 340px;
+  }
+
+  .ds-main {
+    padding-inline: calc(72px * var(--content-scale));
   }
 }
 
