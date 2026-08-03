@@ -3,32 +3,43 @@
 Chat UX = **tables + emojis**. Minimal words outside tables. Address the reader as **you**. Never use
 checkpoint codes (B0–B6, SHORTLIST, RETRIEVEQs) in user-visible text.
 
-## Do not be verbose (hard rule)
-
-**Tables carry the message.** Scripts, reads, and ledger are silent. The user sees tables and
-`👉 Reply` when they must answer — not narration.
+## Hard rules
 
 | Do not | Do |
 | ------ | -- |
-| “I’ll now…”, “Let me…”, filler | Run work; show tables |
-| Prose before or after a table | Next table or `👉 Reply` |
-| Headlines when a table row can label it | Put label in table |
-| Repeat table content in words | Delete the words |
-| Bullets for progress | Progress **table** from `session-status.md` |
-| Multiple asks | One ask table + footer |
+| Stack tables with no blank line | **One blank line between every table** |
+| Empty header cells (`\| \|`) | **Every header cell has a short label** |
+| Jump into a choice with no context | **One lead line** (≤12 words) before the ask table |
+| “I’ll now…”, filler, script narration | Run work; show tables |
+| Repeat table content in prose | Delete the words |
+| Bullets for progress | Progress table from `session-status.md` |
+| Multiple asks | One ask table + `👉 Reply` |
 
-**Routine turn:** progress table · optional **≤10 words** after · no other prose.  
-**Ask turn:** progress table · ask table · `👉 Reply` · **≤40 words** total outside tables.
+**Routine turn:** progress table · blank line · optional **≤10 words**.  
+**Ask turn:** progress · blank line · **lead line** · ask table · blank line · `👉 Reply`.  
+**Words outside tables:** ≤10 routine · ≤40 ask (lead + footer count).
 
-## Turn layout
-
-1. **Progress table** — `session-status.md`
-2. **More tables** — paths, choices, data, asks (prefer tables over sentences)
-3. **`👉 Reply`** — last line when user must answer
+## Exact turn shape
 
 ```markdown
-👉 **Reply:** `yes` · `skip`
+**Progress**
+
+| Step | {done}/{total} |
+| ---- | -------------- |
+| ✅ | … |
+| 🔵 | **{current}** |
+| ⬜ | … |
+
+{optional lead line naming the choice}
+
+| Mark | … |
+| ---- | - |
+| … | … |
+
+👉 **Reply:** `…`
 ```
+
+Always include the separator row so every client renders the same.
 
 ## Emoji lexicon
 
@@ -42,83 +53,136 @@ checkpoint codes (B0–B6, SHORTLIST, RETRIEVEQs) in user-visible text.
 | ⚠️ | Blocker |
 | 🎯 📋 ✍️ 🌐 | Purpose / list / save / workbook |
 
-## Table rules
+## Table design (canonical)
 
-| Rule | Limit |
+| Rule | Value |
 | ---- | ----- |
-| Columns | 2–3 max |
-| Rows per table | 7 max |
-| Row 1 of progress | `{done}/{total}` · col 2 `—` (never repeat 🔵 step) |
-| Bold | 🔵 row only in progress |
-| Headers | Short — `Step`, `Reply`, or emoji label |
-| Empty col 1 header | `·` or blank — never a wordy title |
+| Blank line between tables | **Required** |
+| Empty headers | **Forbidden** — use `Mark`, `Detail`, `Step`, `Mode`, `Reply`, … |
+| Columns | 2–3 |
+| Rows per table | ≤7 |
+| Separator row | Always present |
+| Progress header | `Step` \| `{done}/{total}` (fraction in header, not a data row) |
+| Progress col 1 data | Emoji only (✅ 🔵 ⬜) |
+| Bold | 🔵 row only |
+| Lead line | One sentence before a choice/ask table |
+| `👉 Reply` | Last line when user must answer |
 
-### Progress table
+### Progress (exact)
 
 ```markdown
-| | Step |
-| **3/6** | — |
+**Progress**
+
+| Step | 3/6 |
+| ---- | --- |
 | ✅ | Get ready |
 | 🔵 | **Write lessons** — 2/3 |
+| ⬜ | Open workbook |
 ```
 
-### Paths (2 col)
+### Paths (exact)
 
-| 📁 Project | `path` |
+```markdown
+| Mark | Detail |
+| ---- | ------ |
+| 📖 | Short lessons from your repo → browser workbook |
+| 📁 Project | `path/to/project` |
+| 📖 Lessons | `path/to/workbook` _(beside Git)_ |
+| 🔒 | Repo untouched |
+```
 
-### Choice (3 col)
+### Setup choice — Express / Control (exact)
 
-| | Mode | Reply |
-| ⚡ | Express — one confirm | `express` |
+```markdown
+How much setup do you want?
 
-### Ask (2 col — label in col 1)
+| Mark | Mode | Reply |
+| ---- | ---- | ----- |
+| ⚡ | Express — accept defaults, one confirm | `express` |
+| 🎛️ | Control — pick notes, depth, saves yourself | `control` |
 
-| 🎯 Purpose | one sentence? |
+👉 **Reply:** `express` or `control`
+```
 
-### Summary (Express confirm)
+### Express confirm (exact)
 
-| | Setting | Value |
+```markdown
+These defaults — reply `yes` to start, or switch to `control`.
+
+| Mark | Setting | Value |
+| ---- | ------- | ----- |
 | ✅ | Notes | Private |
+| ✅ | Lessons | Beside repo |
+| ✅ | Depth | Balanced |
+| ✅ | Saves | Ask each |
+| ✅ | Mode | Ask each run |
 
-✅ in summary tables = included in bundle, not step done.
+👉 **Reply:** `yes`
+```
 
-## Mid-session ask tables
+✅ in summary tables = included in the default bundle, **not** step done.
+
+## Mid-session asks (exact)
 
 **Purpose**
 
+```markdown
+What should this workbook teach, in one sentence?
+
+| Ask | Reply |
+| --- | ----- |
 | 🎯 Purpose | one sentence? |
+
 👉 **Reply:** your sentence · `skip`
+```
 
 **Study list**
 
-| 📋 Topics | keep? |
+```markdown
+Keep these topics for the study list?
+
+| # | Topic |
+| - | ----- |
 | 1 | … |
 | 2 | … |
+
 👉 **Reply:** `yes` · or edits
+```
 
 **Save lesson**
 
+```markdown
+Save this lesson to the workbook?
+
+| Mark | Detail |
+| ---- | ------ |
 | ✍️ Save | `lessons/…` |
 | 📏 | Balanced · checks OK |
+
 👉 **Reply:** `yes` · `no`
+```
 
 **Open workbook**
 
+```markdown
+Open the workbook in your browser?
+
+| Mark | Detail |
+| ---- | ------ |
 | 🌐 Workbook | open in browser |
+
 👉 **Reply:** `view`
+```
 
-## Length
-
-| | |
-| Tables per message | 2–4 OK when each is small |
-| Words outside tables | ≤10 routine · ≤40 ask |
-| Hook sentences | 0 on routine; 0–1 on ask |
+First-run Message 1 lives in `templates/introduction-wizard.md` — paste that block verbatim.
 
 ## Agent checklist
 
-- [ ] Progress table first (markdown, not code block)
-- [ ] One 🔵 in progress table
-- [ ] Prefer tables over prose
+- [ ] Progress table first (`| Step | N/M |` header — no empty headers)
+- [ ] Separator on every table
+- [ ] One blank line between tables
+- [ ] One lead line before every choice/ask
+- [ ] One 🔵 in progress
 - [ ] `👉 Reply` when user must answer
 - [ ] No jargon · no script narration
 - [ ] ≤10 / ≤40 words outside tables

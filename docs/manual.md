@@ -115,8 +115,9 @@ After skills.sh sync, `node_modules` may be missing. CLIs auto-run `ensure-runti
 
 ### Session stepper
 
-Agents follow `templates/agent-experience.md`: **progress table** at top, tables over prose, ≤10 words
-outside tables on routine turns, `👉 Reply` on asks. See `SKILL.md`.
+Agents follow `templates/agent-experience.md`: **progress table** at top, **one blank line between
+tables**, one lead line before asks, ≤10 words outside tables on routine turns, `👉 Reply` on asks.
+See `SKILL.md`.
 
 ## What maintenance never touches
 

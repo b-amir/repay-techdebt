@@ -1,21 +1,28 @@
-# Session progress table (mandatory)
+# Session progress (mandatory)
 
-Paste at the **top** of every user-visible turn. **Markdown table** — never a code block, never bullets.
+Paste at the **top** of every user-visible turn (after any paths block on first-run).
+
+**Fraction lives in the header** — second column header is `{done}/{total}` (count of ✅ rows only,
+not the 🔵 step). **No empty header cells.** Col 1 header is always `Step`; data rows are emoji | name.
+
+Always include the separator row. Leave **one blank line** before any table that follows.
 
 ## Format
 
 ```markdown
-| | Step |
-| **{done}/{total}** | — |
+**Progress**
+
+| Step | {done}/{total} |
+| ---- | -------------- |
 | ✅ | {done step} |
 | 🔵 | **{current step}** |
 | ⬜ | {future step} |
 ```
 
-- **Row 1:** `{done}/{total}` only — count of **✅ rows**, not the 🔵 step. Col 2 is `—` (never repeat the current step name).
-- **Rows 2+:** emoji in col 1 · step in col 2. **Bold only the 🔵 row.**
+- Header col 2 = fraction only — never a step name, never `—`.
+- Data rows: emoji in col 1 · step in col 2. **Bold only the 🔵 row.**
 - Notes after em dash, ≤6 words. Exactly one 🔵. Before = ✅. After = ⬜.
-- **No headline above the table.** The table is the progress UI.
+- Optional `**Progress**` label above the table is fine; choice tables still get one lead line.
 
 ## Emoji
 
@@ -27,14 +34,18 @@ Paste at the **top** of every user-visible turn. **Markdown table** — never a 
 
 ## Workbook template
 
-| | Step |
-| **0/6** | — |
+```markdown
+**Progress**
+
+| Step | 0/6 |
+| ---- | --- |
 | 🔵 | **Get ready** |
 | ⬜ | What matters |
 | ⬜ | Study list |
 | ⬜ | Write lessons |
 | ⬜ | Open workbook |
 | ⬜ | Wrap up |
+```
 
 ### ✅ when
 
@@ -49,46 +60,62 @@ Paste at the **top** of every user-visible turn. **Markdown table** — never a 
 
 ## Focused / PR template
 
-| | Step |
-| **0/5** | — |
+```markdown
+**Progress**
+
+| Step | 0/5 |
+| ---- | --- |
 | 🔵 | **Get ready** |
 | ⬜ | Investigate & teach |
 | ⬜ | Save lesson |
 | ⬜ | Open workbook |
 | ⬜ | Wrap up |
+```
 
 ## Example — workbook lesson 2/3
 
-| | Step |
-| **3/6** | — |
+```markdown
+**Progress**
+
+| Step | 3/6 |
+| ---- | --- |
 | ✅ | Get ready |
 | ✅ | What matters — chat |
 | ✅ | Study list — 12 topics |
 | 🔵 | **Write lessons** — 2/3 |
 | ⬜ | Open workbook |
 | ⬜ | Wrap up |
+```
 
 ## Example — opening workbook (4 done, on step 5)
 
-| | Step |
-| **4/6** | — |
+```markdown
+**Progress**
+
+| Step | 4/6 |
+| ---- | --- |
 | ✅ | Get ready |
 | ✅ | What matters |
 | ✅ | Study list |
 | ✅ | Write lessons |
 | 🔵 | **Open workbook** |
 | ⬜ | Wrap up |
+```
 
 ## Example — focused wrap up
 
-| | Step |
-| **4/5** | — |
+```markdown
+**Progress**
+
+| Step | 4/5 |
+| ---- | --- |
 | ✅ | Get ready |
 | ✅ | Investigate & teach — Auth Layout |
 | ✅ | Save lesson |
 | ✅ | Open workbook |
 | 🔵 | **Wrap up** |
+```
 
-Routine turn: table only, or table + **≤10 words** after. No prose before the table.
+Routine turn: progress table only, or + **≤10 words** after.
 
-See `templates/agent-experience.md` for ask tables and reply footers.
+See `templates/agent-experience.md` for ask tables, lead lines, and reply footers.

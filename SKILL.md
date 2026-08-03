@@ -55,11 +55,12 @@ Modifiers: `--keep-lessons`, `--keep-config`, `--revert-target-markers`, `--dry-
 ## Agent experience (required every user turn)
 
 Copy system: `templates/agent-experience.md`. **Tables over prose.** No narration. Routine: progress
-table + ≤10 words. Ask: progress table + ask table + `👉 Reply`. ≤40 words outside tables.
+table + ≤10 words. Ask: progress · **blank line** · **one lead line** · ask table · `👉 Reply`.
+≤40 words outside tables. **Always** `| --- |` separators and one blank line between tables.
 
-At the **top** of every user-visible message, paste the **progress table** from
-`templates/session-status.md` (markdown table — never a code block). Row 1 = `{done}/{total}` · `—`
-(count ✅ only; never repeat the 🔵 step). Exactly one 🔵. End asks with **👉 Reply**.
+At the **top** of every user-visible message, paste progress from `templates/session-status.md`:
+header `| Step | {done}/{total} |` (fraction in the header — never an empty header cell, never a
+`—` row). Exactly one 🔵. End asks with **👉 Reply**.
 
 | Phase name (user-facing) | Internal only             |
 | ------------------------ | ------------------------- |
@@ -72,10 +73,9 @@ At the **top** of every user-visible message, paste the **progress table** from
 
 Never expose B0–B6, RETRIEVEQs, SHORTLIST, or checkpoint codes in user chat.
 
-First-run: `templates/introduction-wizard.md` + `agent-experience.md`. **Message 1:** paths + rail +
-Express/Control only. **Express:** summary table → `yes` → recommended `init`. **Control:** full
-tables. Mid-session asks (purpose, study list, save, workbook): reuse ask templates in
-`agent-experience.md`. No skill symlink paths unless the user asks.
+First-run: paste `templates/introduction-wizard.md` Message 1 **verbatim** (paths + progress + setup
+choice with lead line). **Express:** defaults table → `yes` → `init`. **Control:** full settings.
+Mid-session asks: reuse exact blocks in `agent-experience.md`. No skill symlink paths unless asked.
 
 ## Script ↔ agent contract
 

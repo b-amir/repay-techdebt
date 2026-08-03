@@ -54,13 +54,14 @@ Validate ask fidelity with `scripts/check-trajectory.js` (workbook: B0→B1→B2
 
 ## User-facing progress table (mandatory)
 
-Every turn: **progress table** from `templates/session-status.md` first. Row 1 = `{done}/{total}` ·
-`—` (never repeat the 🔵 step); 🔵/✅/⬜ rows below. **Never** bullets or prose above the table. Ask turns add more
-tables + `👉 Reply`. First-run: only **Get ready** is 🔵 until `init --yes`.
+Every turn: progress from `templates/session-status.md` first — header `| Step | {done}/{total} |`
+(count ✅ only; **no empty headers**). **One blank line between tables.** Ask turns: one lead line
+before the ask table + `👉 Reply`. First-run: paste `templates/introduction-wizard.md` Message 1
+verbatim (only **Get ready** is 🔵 until `init --yes`).
 
 ## Plain-language asks (user chat)
 
-Use the ask blocks in `templates/agent-experience.md` (headline + table + 👉 Reply footer).
+Use the **exact** ask blocks in `templates/agent-experience.md` (lead line + table + 👉 Reply).
 
 | Internal     | Template block        |
 | ------------ | --------------------- |
