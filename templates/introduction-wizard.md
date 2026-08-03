@@ -20,7 +20,7 @@ Paste this block as-is (swap the two paths). Keep the blank lines.
 
 **Progress**
 
-| Step | 0/6 |
+| Step | 1/6 |
 | ---- | --- |
 | 🔵 | **Get ready** |
 | ⬜ | What matters |
