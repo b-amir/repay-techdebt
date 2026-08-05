@@ -1,5 +1,8 @@
 packages:
   - "."
 
+overrides:
+  rolldown: 1.2.2
+
 allowBuilds:
   "@ast-grep/lang-python": true
