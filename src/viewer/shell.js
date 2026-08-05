@@ -409,21 +409,12 @@ function citationHref(targetRoot, raw) {
 function lessonNavCell(nav, dir) {
   const label = dir === "prev" ? "Previous" : "Next";
   if (nav) {
-    const arrow = dir === "prev" ? "← " : " →";
-    const titleHtml =
-      dir === "prev"
-        ? `${arrow}${escapeHtml(nav.title)}`
-        : `${escapeHtml(nav.title)}${arrow}`;
     return `<a class="ds-lesson-nav ds-lesson-nav-${dir}" href="${lessonHref(nav.key)}" rel="${dir}">
       <span class="ds-lesson-nav-kicker">${label}</span>
-      <span class="ds-lesson-nav-title">${titleHtml}</span>
+      <span class="ds-lesson-nav-title">${escapeHtml(nav.title)}</span>
     </a>`;
   }
-  const placeholder = dir === "prev" ? "Start of workbook" : "End of workbook";
-  return `<span class="ds-lesson-nav ds-lesson-nav-${dir} ds-lesson-nav-muted" aria-disabled="true">
-    <span class="ds-lesson-nav-kicker">${label}</span>
-    <span class="ds-lesson-nav-title">${placeholder}</span>
-  </span>`;
+  return `<span class="ds-lesson-nav ds-lesson-nav-${dir} ds-lesson-nav-muted" aria-hidden="true"></span>`;
 }
 
 function renderCopyBlock(label, command) {
@@ -450,18 +441,14 @@ export function renderLesson({
   const buttonClass = completed
     ? "ds-mark-done ds-mark-done-complete"
     : "ds-mark-done ds-mark-done-primary";
-  const buttonLabel = completed ? "✓ Completed" : "Mark as done";
-  const buttonHint = completed ? "Tap to mark not done" : "Save your progress";
-  const button = `<button type="button" class="${buttonClass}" data-lesson="${escapeHtml(lessonKey)}" data-completed="${completed ? "true" : "false"}" aria-pressed="${completed ? "true" : "false"}">
-    <span class="ds-mark-done-label">${buttonLabel}</span>
-    <span class="ds-mark-done-hint">${buttonHint}</span>
-  </button>`;
+  const buttonLabel = completed ? "Mark not done" : "Mark as done";
+  const button = `<button type="button" class="${buttonClass}" data-lesson="${escapeHtml(lessonKey)}" data-completed="${completed ? "true" : "false"}" aria-pressed="${completed ? "true" : "false"}">${buttonLabel}</button>`;
   const footer = `<footer class="ds-lesson-footer">
-    <div class="ds-lesson-footer-bar">
-      <div class="ds-lesson-nav-slot">${lessonNavCell(prev, "prev")}</div>
-      <div class="ds-lesson-footer-primary">${button}</div>
-      <div class="ds-lesson-nav-slot ds-lesson-nav-slot-end">${lessonNavCell(next, "next")}</div>
-    </div>
+    <nav class="ds-lesson-footer-nav" aria-label="Lesson navigation">
+      ${lessonNavCell(prev, "prev")}
+      ${button}
+      ${lessonNavCell(next, "next")}
+    </nav>
   </footer>`;
 
   let currentChapter = "";
@@ -591,12 +578,9 @@ export function renderPlanned({ workbookTitle, sidebar, topic, targetRoot }) {
       }
     </header>
     ${evidenceHtml}
-    <section class="ds-planned-cta" aria-labelledby="ds-planned-cta-title">
-      <h2 class="ds-planned-cta-title" id="ds-planned-cta-title">Write this lesson</h2>
-      <p class="ds-planned-cta-lead">Paste the command below in your agent chat. It will draft the lesson from project evidence.</p>
-      <div class="ds-create-box ds-create-box-prominent">
-        ${renderCopyBlock("In chat", chatCmd)}
-      </div>
+    <section class="ds-planned-cta">
+      <p class="ds-planned-cta-lead">Ask your agent to write this lesson from project evidence.</p>
+      ${renderCopyBlock("In chat", chatCmd)}
     </section>
   </article>`;
   return renderShell({

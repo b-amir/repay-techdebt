@@ -266,9 +266,18 @@ export const CLIENT_SCRIPT = `
       }
 
       var found = null;
-      for (var i = 0; i < headings.length; i++) {
-        var rect = headings[i].getBoundingClientRect();
-        if (rect.top <= 120) found = headings[i];
+      var scrollOffset = 96;
+      var bottomOffset = 160;
+      var nearBottom =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - bottomOffset;
+      if (nearBottom && headings.length) {
+        found = headings[headings.length - 1];
+      } else {
+        for (var i = 0; i < headings.length; i++) {
+          var rect = headings[i].getBoundingClientRect();
+          if (rect.top <= scrollOffset) found = headings[i];
+        }
       }
       var currentId = found ? found.id : "";
       if (currentId !== activeId) {
@@ -314,10 +323,7 @@ export const CLIENT_SCRIPT = `
   function updateCompletionUi(btn, completed, counts) {
     btn.setAttribute("data-completed", completed ? "true" : "false");
     btn.setAttribute("aria-pressed", completed ? "true" : "false");
-    var label = btn.querySelector(".ds-mark-done-label");
-    var hint = btn.querySelector(".ds-mark-done-hint");
-    if (label) label.textContent = completed ? "✓ Completed" : "Mark as done";
-    if (hint) hint.textContent = completed ? "Tap to mark not done" : "Save your progress";
+    btn.textContent = completed ? "Mark not done" : "Mark as done";
     btn.className = completed
       ? "ds-mark-done ds-mark-done-complete"
       : "ds-mark-done ds-mark-done-primary";

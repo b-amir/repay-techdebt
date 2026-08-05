@@ -878,10 +878,10 @@ html[data-theme="dark"] .ds-settings-panel {
   color: var(--text-secondary);
 }
 
-/* ---- Right TOC rail (mirrors left sidebar width) ---- */
+/* ---- Right TOC rail (width only — no chrome) ---- */
 .ds-rail-toc {
-  background: var(--sidebar-bg);
-  border-left: 1px solid var(--border);
+  background: transparent;
+  border: 0;
   display: flex;
   flex-direction: column;
   position: sticky;
@@ -894,7 +894,7 @@ html[data-theme="dark"] .ds-settings-panel {
 }
 
 .ds-rail-toc-inner {
-  padding: 24px 16px 20px;
+  padding: calc(48px * var(--content-scale)) 16px 120px 20px;
   overflow: auto;
   flex: 1;
   scrollbar-width: thin;
@@ -955,6 +955,8 @@ html[data-theme="dark"] .ds-settings-panel {
   color: var(--text);
   margin-top: 2rem;
   margin-bottom: 0.75rem;
+  scroll-margin-top: 5rem;
+  scroll-margin-bottom: 40vh;
 }
 
 .ds-plaque-body h2 {
@@ -1189,78 +1191,52 @@ html[data-theme="dark"] .ds-settings-panel {
 }
 
 .ds-lesson-footer {
-  margin-top: 56px;
-  padding-top: 0;
-  border-top: 0;
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-subtle);
 }
 
-.ds-lesson-footer-bar {
+.ds-lesson-footer-nav {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  gap: 16px;
-  align-items: stretch;
-  padding: 20px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--nav-current-shadow);
-}
-
-.ds-lesson-nav-slot {
-  display: flex;
-  align-items: stretch;
-  min-width: 0;
-}
-
-.ds-lesson-nav-slot-end {
-  justify-content: flex-end;
-}
-
-.ds-lesson-footer-primary {
-  display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0 8px;
+  gap: 20px;
 }
 
 .ds-lesson-nav {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  min-height: 72px;
-  padding: 14px 16px;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--code-bg) 45%, var(--surface));
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   text-decoration: none;
   color: inherit;
-  transition:
-    border-color var(--dur) var(--ease),
-    background var(--dur) var(--ease),
-    transform var(--dur) var(--ease);
+  min-height: 0;
+  transition: color var(--dur) var(--ease);
 }
 
 .ds-lesson-nav:hover {
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
-  background: color-mix(in srgb, var(--accent-soft) 40%, var(--surface));
-  transform: translateY(-1px);
+  color: var(--accent);
+  background: transparent;
+  transform: none;
 }
 
 .ds-lesson-nav:focus-visible {
   outline: 2px solid var(--accent-muted);
   outline-offset: 2px;
+  border-radius: 2px;
 }
 
 .ds-lesson-nav-muted {
-  opacity: 0.55;
-  cursor: default;
+  visibility: hidden;
   pointer-events: none;
 }
 
 .ds-lesson-nav-next {
   text-align: right;
+  align-items: flex-end;
 }
 
 .ds-lesson-nav-next .ds-lesson-nav-kicker,
@@ -1269,66 +1245,69 @@ html[data-theme="dark"] .ds-settings-panel {
 }
 
 .ds-mark-done {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-width: 220px;
-  min-height: 72px;
-  padding: 14px 28px;
+  justify-self: center;
+  padding: 9px 18px;
   border: 0;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
   cursor: pointer;
   transition:
     background var(--dur) var(--ease),
-    transform var(--dur) var(--ease),
-    box-shadow var(--dur) var(--ease);
+    color var(--dur) var(--ease);
 }
 
 .ds-mark-done-primary {
   background: var(--accent);
   color: #fff;
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 .ds-mark-done-primary:hover {
   background: var(--accent-hover);
-  transform: translateY(-1px);
 }
 
 .ds-mark-done-complete {
-  background: color-mix(in srgb, var(--accent-soft) 70%, var(--surface));
-  color: var(--accent-hover);
-  border: 2px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: transparent;
+  color: var(--text-secondary);
+  box-shadow: inset 0 0 0 1px var(--border);
 }
 
 .ds-mark-done-complete:hover {
-  background: color-mix(in srgb, var(--accent-soft) 90%, var(--surface));
-}
-
-.ds-mark-done-label {
-  font-size: 1rem;
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-}
-
-.ds-mark-done-hint {
-  font-size: 0.75rem;
-  font-weight: 500;
-  opacity: 0.85;
+  color: var(--text);
+  background: var(--code-bg);
 }
 
 .ds-mark-done:focus-visible {
   outline: 2px solid var(--accent-muted);
-  outline-offset: 3px;
+  outline-offset: 2px;
 }
 
 .ds-mark-done:disabled {
   opacity: 0.55;
   cursor: progress;
+}
+
+.ds-lesson-nav-kicker {
+  font-family: var(--font-ui);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.ds-lesson-nav-title {
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.ds-lesson-nav:hover .ds-lesson-nav-title {
+  color: var(--accent);
 }
 
 .ds-btn-primary,
@@ -1451,30 +1430,27 @@ html[data-theme="dark"] .ds-settings-panel {
   margin-bottom: 16px;
 }
 
-.ds-plaque-planned .ds-planned-badge {
+.ds-plaque-planned .ds-planned-badge,
+.ds-planned-stage-chip {
   display: inline-block;
-  margin-bottom: 0;
   padding: 4px 10px;
+  border: 0;
   border-radius: 999px;
-  background: var(--accent-soft);
   font-family: var(--font-ui);
   font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.ds-plaque-planned .ds-planned-badge {
+  margin-bottom: 0;
+  background: color-mix(in srgb, var(--accent-soft) 80%, transparent);
   color: var(--accent-hover);
 }
 
 .ds-planned-stage-chip {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  font-family: var(--font-ui);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  background: color-mix(in srgb, var(--code-bg) 85%, transparent);
   color: var(--text-secondary);
 }
 
@@ -1491,66 +1467,32 @@ html[data-theme="dark"] .ds-settings-panel {
 }
 
 .ds-planned-cta {
-  margin-top: 32px;
-  padding: 24px;
-  border: 2px solid color-mix(in srgb, var(--accent) 35%, var(--border));
-  border-radius: var(--radius);
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--accent-soft) 55%, var(--surface)) 0%,
-    var(--surface) 55%
-  );
-  box-shadow: 0 8px 28px color-mix(in srgb, var(--accent) 10%, transparent);
-}
-
-.ds-planned-cta-title {
-  margin: 0 0 8px;
-  font-family: var(--font-ui);
-  font-size: 1.125rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--text);
+  margin-top: 36px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
 }
 
 .ds-planned-cta-lead {
-  margin: 0 0 20px;
+  margin: 0 0 12px;
   font-family: var(--font-ui);
   font-size: 0.9375rem;
   line-height: 1.55;
   color: var(--text-secondary);
-  max-width: 38rem;
 }
 
-.ds-create-box-prominent {
-  padding: 18px 20px;
-  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border));
-  border-radius: var(--radius-sm);
-  background: var(--surface);
+.ds-planned-cta .ds-create-block {
+  margin-top: 0;
 }
 
-.ds-create-box-prominent .ds-create-cmd {
-  padding: 14px 16px;
+.ds-planned-cta .ds-create-cmd {
+  border: 0;
   background: var(--code-bg);
 }
 
-.ds-create-box-prominent .ds-create-cmd code {
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.ds-create-box-prominent .ds-btn-copy {
-  padding: 12px 18px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-}
-
-.ds-create-box-prominent .ds-btn-copy:hover {
-  background: var(--accent-hover);
-  color: #fff;
-  border-color: var(--accent-hover);
+.ds-planned-cta .ds-btn-copy {
+  flex-shrink: 0;
 }
 
 .ds-create-box {
@@ -1613,17 +1555,16 @@ html[data-theme="dark"] .ds-settings-panel {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  border-left: 1px solid var(--border-subtle);
+  gap: 4px;
 }
 
 .ds-toc-link {
   text-decoration: none;
   color: var(--text-tertiary);
   font-size: 0.8125rem;
-  line-height: 1.3;
+  line-height: 1.35;
   display: block;
-  padding-left: 12px;
+  padding: 3px 0;
   transition: color var(--dur) var(--ease);
 }
 
@@ -1632,14 +1573,12 @@ html[data-theme="dark"] .ds-settings-panel {
 }
 
 .ds-toc-link-active {
-  color: var(--accent);
+  color: var(--text);
   font-weight: 500;
-  border-left: 2px solid var(--accent);
-  margin-left: -1px;
 }
 
 .ds-toc-h3 .ds-toc-link {
-  padding-left: 20px;
+  padding-left: 12px;
   font-size: 0.75rem;
 }
 
@@ -1667,23 +1606,6 @@ html[data-theme="dark"] .ds-settings-panel {
 
 .ds-toc-details .ds-toc-list {
   margin-top: 12px;
-}
-
-.ds-lesson-nav-kicker {
-  font-family: var(--font-ui);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--text-tertiary);
-}
-
-.ds-lesson-nav-title {
-  font-family: var(--font-ui);
-  font-size: 0.9375rem;
-  font-weight: 500;
-  line-height: 1.35;
-  color: var(--text);
 }
 
 .ds-reading-progress {
@@ -1859,30 +1781,22 @@ html[data-theme="dark"] .ds-settings-panel {
     padding: 64px 16px 80px;
   }
 
-  .ds-lesson-footer-bar {
+  .ds-lesson-footer-nav {
     grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 16px;
+    gap: 16px;
+    justify-items: stretch;
   }
 
-  .ds-lesson-nav-slot-end {
-    justify-content: stretch;
+  .ds-mark-done {
+    order: -1;
+    width: 100%;
   }
 
   .ds-lesson-nav-next,
   .ds-lesson-nav-next .ds-lesson-nav-kicker,
   .ds-lesson-nav-next .ds-lesson-nav-title {
     text-align: left;
-  }
-
-  .ds-lesson-footer-primary {
-    order: -1;
-    padding: 0;
-  }
-
-  .ds-mark-done {
-    width: 100%;
-    min-width: 0;
+    align-items: flex-start;
   }
 
   .ds-plaque {

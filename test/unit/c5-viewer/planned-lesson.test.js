@@ -42,7 +42,7 @@ test("renderPlanned evidence links resolve against target repo root", () => {
   assert.doesNotMatch(html, /Application Support\/repay-techdebt/);
 });
 
-test("renderPlanned CTA is a prominent write section", () => {
+test("renderPlanned CTA is a simple command row", () => {
   const html = renderPlanned({
     workbookTitle: "frontend workbook",
     sidebar: { chapters: [], counts: { done: 0, written: 0, planned: 1 } },
@@ -51,8 +51,8 @@ test("renderPlanned CTA is a prominent write section", () => {
   });
 
   assert.match(html, /ds-planned-cta/);
-  assert.match(html, /Write this lesson/);
-  assert.match(html, /ds-create-box-prominent/);
+  assert.match(html, /Ask your agent to write this lesson/);
+  assert.doesNotMatch(html, /ds-create-box-prominent/);
   assert.match(html, /\/repay-techdebt --create topic-xyz/);
 });
 
