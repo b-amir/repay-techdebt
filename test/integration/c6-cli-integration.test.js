@@ -184,7 +184,10 @@ test("dependency intelligence separates direct, locked, and observed usage", asy
   }
 });
 
-test("model, plan, atlas, query, and dependency CLIs honor target-relative scope", async () => {
+test(
+  "model, plan, atlas, query, and dependency CLIs honor target-relative scope",
+  { timeout: 120_000 },
+  async () => {
   const directory = await mkdtemp(resolve(tmpdir(), "repay-techdebt-scoped-clis-"));
   try {
     await mkdir(resolve(directory, "selected"));

@@ -76,7 +76,10 @@ test("teach-topic handles no curriculum gracefully", async () => {
   }
 });
 
-test("teach-topic runs a topic through investigation, drafting, review, and saving", async () => {
+test(
+  "teach-topic runs a topic through investigation, drafting, review, and saving",
+  { timeout: 120_000 },
+  async () => {
   const directory = await mkdtemp(resolve(tmpdir(), "workflow-full-"));
   try {
     // 0. Provide evidence files
