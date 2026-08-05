@@ -29,6 +29,7 @@ Content 4
   });
 
   assert.match(html, /<aside class="ds-rail ds-rail-toc"/);
+  assert.match(html, /ds-rail-toc-head/);
   assert.match(html, /href="#section-1"/);
   assert.match(html, /href="#section-2"/);
   assert.match(html, /href="#section-2a"/);

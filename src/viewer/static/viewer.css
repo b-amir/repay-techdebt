@@ -110,6 +110,7 @@ html[data-scale="l"] {
   --sidebar: 320px;
   --sidebar-width: var(--sidebar);
   --measure: 42rem;
+  --lesson-measure: 38rem;
   --radius: 10px;
   --radius-sm: 6px;
   --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
@@ -363,9 +364,9 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
   display: grid;
   grid-template-columns: 1rem minmax(0, 1fr);
   column-gap: 8px;
-  align-items: start;
-  padding: 8px 10px;
-  border: 1px solid transparent;
+  align-items: center;
+  padding: 7px 10px;
+  border: 0;
   border-radius: var(--radius-sm);
   text-decoration: none;
   color: var(--text-secondary);
@@ -374,32 +375,50 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
   line-height: 1.35;
   transition:
     background var(--dur) var(--ease),
-    color var(--dur) var(--ease),
-    border-color var(--dur) var(--ease);
+    color var(--dur) var(--ease);
 }
 
 .ds-nav-mark {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   width: 1rem;
-  height: 1.15em;
+  height: 1rem;
   flex-shrink: 0;
-  color: transparent;
-  font-size: 0.75rem;
-  font-weight: 600;
   line-height: 1;
   user-select: none;
 }
 
-.ds-nav-mark-done {
-  color: var(--accent);
+.ds-nav-mark-dot {
+  color: var(--text-tertiary);
+  font-size: 1.125rem;
+  line-height: 1;
 }
 
-.ds-nav-planned .ds-nav-mark {
-  color: var(--text-tertiary);
-  font-size: 1rem;
-  line-height: 0.9;
+.ds-nav-mark-done {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-tertiary);
+  color: var(--text-secondary);
+  box-sizing: border-box;
+}
+
+.ds-nav-mark-done::after {
+  content: "";
+  position: absolute;
+  left: 3.5px;
+  top: 1.5px;
+  width: 3.5px;
+  height: 6px;
+  border: solid currentColor;
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+
+.ds-nav-planned .ds-nav-mark-dot {
+  font-size: 1.125rem;
 }
 
 .ds-nav-label {
@@ -413,10 +432,8 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
 }
 
 .ds-nav-current {
-  background: var(--surface);
   color: var(--text);
-  border-color: var(--border-subtle);
-  box-shadow: var(--nav-current-shadow);
+  font-weight: 500;
 }
 
 .ds-nav-done {
@@ -604,6 +621,10 @@ html[data-theme="dark"] .ds-settings-panel {
   max-width: var(--measure);
 }
 
+.ds-main-inner:has(.ds-plaque) {
+  max-width: var(--lesson-measure);
+}
+
 .ds-main-inner:has(.ds-home-dashboard) {
   max-width: min(72rem, 100%);
 }
@@ -614,7 +635,7 @@ html[data-theme="dark"] .ds-settings-panel {
 
 .ds-plaque {
   width: 100%;
-  max-width: min(52rem, 100%);
+  max-width: min(var(--lesson-measure), 100%);
   margin-inline: auto;
 }
 .ds-home-dashboard {
@@ -901,9 +922,28 @@ html[data-theme="dark"] .ds-settings-panel {
   scrollbar-color: var(--border) transparent;
 }
 
+.ds-rail-toc-head {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
+  column-gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.ds-rail-toc-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--code-bg) 80%, transparent);
+  color: var(--text-tertiary);
+}
+
 .ds-rail-toc-title {
-  margin: 0 6px 14px;
-  padding-left: 2px;
+  margin: 0;
+  padding: 0;
   color: var(--text-secondary);
   font-family: var(--font-ui);
   font-size: 0.6875rem;
@@ -1197,23 +1237,23 @@ html[data-theme="dark"] .ds-settings-panel {
 }
 
 .ds-lesson-footer-nav {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  gap: 20px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
 }
 
 .ds-lesson-nav {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
   padding: 0;
   border: 0;
-  border-radius: 0;
   background: transparent;
   text-decoration: none;
   color: inherit;
-  min-height: 0;
   transition: color var(--dur) var(--ease);
 }
 
@@ -1245,43 +1285,56 @@ html[data-theme="dark"] .ds-settings-panel {
 }
 
 .ds-mark-done {
-  justify-self: center;
-  padding: 9px 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 0;
   border: 0;
-  border-radius: var(--radius-sm);
+  background: transparent;
   font-family: var(--font-ui);
   font-size: 0.875rem;
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 1.35;
+  color: var(--text);
   cursor: pointer;
-  transition:
-    background var(--dur) var(--ease),
-    color var(--dur) var(--ease);
+  transition: color var(--dur) var(--ease);
 }
 
-.ds-mark-done-primary {
-  background: var(--accent);
-  color: #fff;
+.ds-mark-done:hover {
+  color: var(--text-secondary);
 }
 
-.ds-mark-done-primary:hover {
-  background: var(--accent-hover);
+.ds-mark-done-check {
+  position: relative;
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-tertiary);
+  box-sizing: border-box;
+}
+
+.ds-mark-done-complete .ds-mark-done-check::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  width: 3.5px;
+  height: 6px;
+  border: solid var(--text);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
 }
 
 .ds-mark-done-complete {
-  background: transparent;
   color: var(--text-secondary);
-  box-shadow: inset 0 0 0 1px var(--border);
-}
-
-.ds-mark-done-complete:hover {
-  color: var(--text);
-  background: var(--code-bg);
 }
 
 .ds-mark-done:focus-visible {
   outline: 2px solid var(--accent-muted);
   outline-offset: 2px;
+  border-radius: 2px;
 }
 
 .ds-mark-done:disabled {
@@ -1475,24 +1528,65 @@ html[data-theme="dark"] .ds-settings-panel {
 }
 
 .ds-planned-cta-lead {
-  margin: 0 0 12px;
+  margin: 0 0 10px;
   font-family: var(--font-ui);
-  font-size: 0.9375rem;
-  line-height: 1.55;
-  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--text);
 }
 
-.ds-planned-cta .ds-create-block {
-  margin-top: 0;
+.ds-planned-cta .ds-cmd-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.ds-planned-cta .ds-create-cmd {
+.ds-cmd-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ds-cmd-text {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 0;
   border: 0;
-  background: var(--code-bg);
+  border-bottom: 1px solid var(--border-subtle);
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text);
+  word-break: break-all;
 }
 
-.ds-planned-cta .ds-btn-copy {
+.ds-btn-copy-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition:
+    color var(--dur) var(--ease),
+    background var(--dur) var(--ease);
+}
+
+.ds-btn-copy-icon:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--code-bg) 70%, transparent);
+}
+
+.ds-btn-copy-icon.ds-btn-copy-done {
+  color: var(--text);
 }
 
 .ds-create-box {
@@ -1551,7 +1645,7 @@ html[data-theme="dark"] .ds-settings-panel {
 
 .ds-toc-list {
   list-style: none;
-  padding: 0;
+  padding: 0 0 0 calc(1rem + 8px);
   margin: 0;
   display: flex;
   flex-direction: column;
@@ -1782,14 +1876,14 @@ html[data-theme="dark"] .ds-settings-panel {
   }
 
   .ds-lesson-footer-nav {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
     gap: 16px;
-    justify-items: stretch;
   }
 
   .ds-mark-done {
     order: -1;
-    width: 100%;
+    align-self: center;
   }
 
   .ds-lesson-nav-next,

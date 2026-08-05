@@ -107,6 +107,16 @@ function viewSettingsMarkup() {
   </div>`;
 }
 
+const NAV_CHECK_MARK = `<span class="ds-nav-mark ds-nav-mark-done" aria-hidden="true"></span>`;
+const NAV_DOT_MARK = `<span class="ds-nav-mark ds-nav-mark-dot" aria-hidden="true">·</span>`;
+const COPY_ICON = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 10.5h-1a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.3"/></svg>`;
+const TOC_ICON = `<span class="ds-rail-toc-icon" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 3h8M2 6h8M2 9h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>`;
+
+function navMarkFor(item) {
+  if (item.state === "done") return NAV_CHECK_MARK;
+  return NAV_DOT_MARK;
+}
+
 function renderSidebar(sidebar, workbookTitle) {
   const chapters = sidebar.chapters
     .map((chapter) => {
@@ -115,15 +125,12 @@ function renderSidebar(sidebar, workbookTitle) {
           if (item.state === "planned") {
             const classes = ["ds-nav", "ds-nav-planned"];
             if (item.current) classes.push("ds-nav-current");
-            return `<a class="${classes.join(" ")}" href="${plannedHref(item.id)}" title="${escapeHtml(item.outcome ?? "Not written yet")}"><span class="ds-nav-mark" aria-hidden="true">·</span><span class="ds-nav-label">${escapeHtml(item.title)}</span></a>`;
+            return `<a class="${classes.join(" ")}" href="${plannedHref(item.id)}" title="${escapeHtml(item.outcome ?? "Not written yet")}">${NAV_DOT_MARK}<span class="ds-nav-label">${escapeHtml(item.title)}</span></a>`;
           }
           const classes = ["ds-nav"];
           if (item.current) classes.push("ds-nav-current");
           if (item.state === "done") classes.push("ds-nav-done");
-          const mark =
-            item.state === "done"
-              ? '<span class="ds-nav-mark ds-nav-mark-done" aria-hidden="true">✓</span>'
-              : '<span class="ds-nav-mark" aria-hidden="true"></span>';
+          const mark = navMarkFor(item);
           return `<a class="${classes.join(" ")}" href="${lessonHref(item.lessonKey)}">${mark}<span class="ds-nav-label">${escapeHtml(item.title)}</span></a>`;
         })
         .join("\n");
@@ -379,7 +386,7 @@ function renderTocRail(headings) {
     .join("\n");
   return `<aside class="ds-rail ds-rail-toc" id="ds-toc-rail" aria-label="On this page">
   <div class="ds-rail-toc-inner">
-    <h2 class="ds-rail-toc-title">On this page</h2>
+    <div class="ds-rail-toc-head">${TOC_ICON}<h2 class="ds-rail-toc-title">On this page</h2></div>
     <ul class="ds-toc-list">${listItems}</ul>
   </div>
 </aside>`;
@@ -417,6 +424,13 @@ function lessonNavCell(nav, dir) {
   return `<span class="ds-lesson-nav ds-lesson-nav-${dir} ds-lesson-nav-muted" aria-hidden="true"></span>`;
 }
 
+function renderCommandRow(command, label = "command") {
+  return `<div class="ds-cmd-row">
+    <code class="ds-cmd-text">${escapeHtml(command)}</code>
+    <button type="button" class="ds-btn-copy ds-btn-copy-icon" aria-label="Copy ${escapeHtml(label)}">${COPY_ICON}</button>
+  </div>`;
+}
+
 function renderCopyBlock(label, command) {
   return `<div class="ds-create-block">
     <p class="ds-create-label">${escapeHtml(label)}</p>
@@ -438,11 +452,9 @@ export function renderLesson({
   prev,
   next,
 }) {
-  const buttonClass = completed
-    ? "ds-mark-done ds-mark-done-complete"
-    : "ds-mark-done ds-mark-done-primary";
+  const buttonClass = completed ? "ds-mark-done ds-mark-done-complete" : "ds-mark-done";
   const buttonLabel = completed ? "Mark not done" : "Mark as done";
-  const button = `<button type="button" class="${buttonClass}" data-lesson="${escapeHtml(lessonKey)}" data-completed="${completed ? "true" : "false"}" aria-pressed="${completed ? "true" : "false"}">${buttonLabel}</button>`;
+  const button = `<button type="button" class="${buttonClass}" data-lesson="${escapeHtml(lessonKey)}" data-completed="${completed ? "true" : "false"}" aria-pressed="${completed ? "true" : "false"}"><span class="ds-mark-done-check" aria-hidden="true"></span><span class="ds-mark-done-label">${buttonLabel}</span></button>`;
   const footer = `<footer class="ds-lesson-footer">
     <nav class="ds-lesson-footer-nav" aria-label="Lesson navigation">
       ${lessonNavCell(prev, "prev")}
@@ -580,7 +592,7 @@ export function renderPlanned({ workbookTitle, sidebar, topic, targetRoot }) {
     ${evidenceHtml}
     <section class="ds-planned-cta">
       <p class="ds-planned-cta-lead">Ask your agent to write this lesson from project evidence.</p>
-      ${renderCopyBlock("In chat", chatCmd)}
+      ${renderCommandRow(chatCmd, "create command")}
     </section>
   </article>`;
   return renderShell({

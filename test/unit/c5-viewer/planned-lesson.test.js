@@ -52,7 +52,8 @@ test("renderPlanned CTA is a simple command row", () => {
 
   assert.match(html, /ds-planned-cta/);
   assert.match(html, /Ask your agent to write this lesson/);
-  assert.doesNotMatch(html, /ds-create-box-prominent/);
+  assert.match(html, /ds-cmd-row/);
+  assert.match(html, /ds-btn-copy-icon/);
   assert.match(html, /\/repay-techdebt --create topic-xyz/);
 });
 

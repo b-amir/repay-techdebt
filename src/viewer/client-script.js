@@ -154,17 +154,17 @@ export const CLIENT_SCRIPT = `
   function bindCopyButtons() {
     document.querySelectorAll(".ds-btn-copy").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        var row = btn.closest(".ds-create-row");
+        var row = btn.closest(".ds-create-row") || btn.closest(".ds-cmd-row");
         var block = btn.closest(".ds-codeblock");
-        var code = (row && row.querySelector("code")) || (block && block.querySelector("code"));
+        var code =
+          (row && (row.querySelector("code") || row.querySelector(".ds-cmd-text"))) ||
+          (block && block.querySelector("code"));
         if (!code) return;
         var text = code.textContent || "";
         function done() {
-          var prev = btn.textContent;
-          btn.textContent = "Copied";
+          var prev = btn.getAttribute("aria-label") || "Copy";
           btn.classList.add("ds-btn-copy-done");
           setTimeout(function () {
-            btn.textContent = prev;
             btn.classList.remove("ds-btn-copy-done");
           }, 1600);
         }
@@ -323,10 +323,9 @@ export const CLIENT_SCRIPT = `
   function updateCompletionUi(btn, completed, counts) {
     btn.setAttribute("data-completed", completed ? "true" : "false");
     btn.setAttribute("aria-pressed", completed ? "true" : "false");
-    btn.textContent = completed ? "Mark not done" : "Mark as done";
-    btn.className = completed
-      ? "ds-mark-done ds-mark-done-complete"
-      : "ds-mark-done ds-mark-done-primary";
+    var label = btn.querySelector(".ds-mark-done-label");
+    if (label) label.textContent = completed ? "Mark not done" : "Mark as done";
+    btn.className = completed ? "ds-mark-done ds-mark-done-complete" : "ds-mark-done";
     btn.disabled = false;
     var strip = document.querySelector(".ds-orientation-strip");
     if (strip) {
@@ -337,8 +336,8 @@ export const CLIENT_SCRIPT = `
       nav.classList.toggle("ds-nav-done", completed);
       var mark = nav.querySelector(".ds-nav-mark");
       if (mark) {
-        mark.textContent = completed ? "✓" : "";
-        mark.classList.toggle("ds-nav-mark-done", completed);
+        mark.className = completed ? "ds-nav-mark ds-nav-mark-done" : "ds-nav-mark ds-nav-mark-dot";
+        mark.textContent = completed ? "" : "·";
       }
     }
     if (counts) {
