@@ -1,6 +1,7 @@
 {
   "name": "repay-techdebt-scripts",
   "version": "1.0.0",
+  "license": "MIT",
   "private": true,
   "bin": {
     "repay": "./bin/repay"
