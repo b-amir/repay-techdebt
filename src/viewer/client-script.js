@@ -152,6 +152,11 @@ export const CLIENT_SCRIPT = `
   }
 
   function bindCopyButtons() {
+    var copyCheckIcon =
+      '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
+      '<path d="M3.5 8.5l3 3 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+      "</svg>";
+
     document.querySelectorAll(".ds-btn-copy").forEach(function (btn) {
       btn.addEventListener("click", function () {
         var row = btn.closest(".ds-create-row") || btn.closest(".ds-cmd-row");
@@ -161,12 +166,24 @@ export const CLIENT_SCRIPT = `
           (block && block.querySelector("code"));
         if (!code) return;
         var text = code.textContent || "";
+        var isIcon = btn.classList.contains("ds-btn-copy-icon");
         function done() {
-          var prev = btn.getAttribute("aria-label") || "Copy";
+          if (isIcon) {
+            if (!btn.dataset.copyIcon) btn.dataset.copyIcon = btn.innerHTML;
+            btn.innerHTML = copyCheckIcon;
+          } else {
+            btn.dataset.copyText = btn.textContent;
+            btn.textContent = "Copied";
+          }
           btn.classList.add("ds-btn-copy-done");
           setTimeout(function () {
+            if (isIcon && btn.dataset.copyIcon) {
+              btn.innerHTML = btn.dataset.copyIcon;
+            } else if (btn.dataset.copyText) {
+              btn.textContent = btn.dataset.copyText;
+            }
             btn.classList.remove("ds-btn-copy-done");
-          }, 1600);
+          }, 2000);
         }
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(text).then(done).catch(function () {

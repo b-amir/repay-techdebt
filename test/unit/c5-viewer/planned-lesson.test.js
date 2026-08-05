@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "vite-plus/test";
 import { renderPlanned, stripClaimsHtml } from "../../../src/viewer/shell.js";
 
-test("renderPlanned shows learning stage as chip beside status badge", () => {
+test("renderPlanned shows learning stage in meta line", () => {
   const html = renderPlanned({
     workbookTitle: "frontend workbook",
     sidebar: { chapters: [], counts: { done: 0, written: 0, planned: 1 } },
@@ -17,10 +17,9 @@ test("renderPlanned shows learning stage as chip beside status badge", () => {
     targetRoot: "/Users/dev/frontend",
   });
 
-  assert.match(html, /ds-planned-badges/);
-  assert.match(html, /Not written yet/);
-  assert.match(html, /ds-planned-stage-chip[^>]*>Applied</);
-  assert.doesNotMatch(html, /ds-planned-stage[^-]/);
+  assert.match(html, /ds-planned-meta/);
+  assert.match(html, /Not written yet · Applied/);
+  assert.doesNotMatch(html, /ds-planned-badge/);
 });
 
 test("renderPlanned evidence links resolve against target repo root", () => {
@@ -52,7 +51,7 @@ test("renderPlanned CTA is a simple command row", () => {
 
   assert.match(html, /ds-planned-cta/);
   assert.match(html, /Ask your agent to write this lesson/);
-  assert.match(html, /ds-cmd-row/);
+  assert.match(html, /ds-planned-cmd/);
   assert.match(html, /ds-btn-copy-icon/);
   assert.match(html, /\/repay-techdebt --create topic-xyz/);
 });

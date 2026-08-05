@@ -398,11 +398,6 @@ function formatLearningStage(stage) {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-function learningStageChip(stage) {
-  if (!stage) return "";
-  return `<span class="ds-planned-stage-chip">${escapeHtml(formatLearningStage(stage))}</span>`;
-}
-
 function citationHref(targetRoot, raw) {
   const match = String(raw).match(/^(.+?):(\d+)$/);
   const filePath = match ? match[1] : raw;
@@ -424,10 +419,12 @@ function lessonNavCell(nav, dir) {
   return `<span class="ds-lesson-nav ds-lesson-nav-${dir} ds-lesson-nav-muted" aria-hidden="true"></span>`;
 }
 
-function renderCommandRow(command, label = "command") {
-  return `<div class="ds-cmd-row">
-    <code class="ds-cmd-text">${escapeHtml(command)}</code>
-    <button type="button" class="ds-btn-copy ds-btn-copy-icon" aria-label="Copy ${escapeHtml(label)}">${COPY_ICON}</button>
+function renderPlannedCommandRow(command, label = "command") {
+  return `<div class="ds-planned-cmd">
+    <div class="ds-cmd-row">
+      <code class="ds-cmd-text">${escapeHtml(command)}</code>
+      <button type="button" class="ds-btn-copy ds-btn-copy-icon" aria-label="Copy ${escapeHtml(label)}">${COPY_ICON}</button>
+    </div>
   </div>`;
 }
 
@@ -456,9 +453,9 @@ export function renderLesson({
   const buttonLabel = completed ? "Mark not done" : "Mark as done";
   const button = `<button type="button" class="${buttonClass}" data-lesson="${escapeHtml(lessonKey)}" data-completed="${completed ? "true" : "false"}" aria-pressed="${completed ? "true" : "false"}"><span class="ds-mark-done-check" aria-hidden="true"></span><span class="ds-mark-done-label">${buttonLabel}</span></button>`;
   const footer = `<footer class="ds-lesson-footer">
+    ${button}
     <nav class="ds-lesson-footer-nav" aria-label="Lesson navigation">
       ${lessonNavCell(prev, "prev")}
-      ${button}
       ${lessonNavCell(next, "next")}
     </nav>
   </footer>`;
@@ -576,12 +573,11 @@ export function renderPlanned({ workbookTitle, sidebar, topic, targetRoot }) {
     </ul>
   </div>`
       : "";
+  const stageLabel = topic.learningStage ? formatLearningStage(topic.learningStage) : "";
+  const metaHtml = `<p class="ds-planned-meta">Not written yet${stageLabel ? ` · ${escapeHtml(stageLabel)}` : ""}</p>`;
   const main = `<article class="ds-plaque ds-plaque-planned">
     <header class="ds-planned-header">
-      <div class="ds-planned-badges">
-        <span class="ds-planned-badge">Not written yet</span>
-        ${learningStageChip(topic.learningStage)}
-      </div>
+      ${metaHtml}
       <h1 class="ds-lesson-title">${escapeHtml(topic.title)}</h1>
       ${
         topic.learnerOutcome
@@ -589,11 +585,11 @@ export function renderPlanned({ workbookTitle, sidebar, topic, targetRoot }) {
           : ""
       }
     </header>
-    ${evidenceHtml}
     <section class="ds-planned-cta">
       <p class="ds-planned-cta-lead">Ask your agent to write this lesson from project evidence.</p>
-      ${renderCommandRow(chatCmd, "create command")}
+      ${renderPlannedCommandRow(chatCmd, "create command")}
     </section>
+    ${evidenceHtml}
   </article>`;
   return renderShell({
     documentTitle: `${topic.title} · ${workbookTitle}`,
