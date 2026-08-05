@@ -27,11 +27,15 @@ md.use(markdownItMultimdTable, {
 });
 
 function escapeFenceText(text) {
-  return String(text ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;");
+  return String(text ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;");
 }
 
 function resolveLanguage(info) {
-  const raw = String(info ?? "").trim().split(/\s+/)[0];
+  const raw = String(info ?? "")
+    .trim()
+    .split(/\s+/)[0];
   if (!raw) return "";
   const lower = raw.toLowerCase();
   return LANG_ALIASES[lower] ?? lower;
@@ -45,6 +49,28 @@ function highlightCode(code, lang) {
   return { html: auto.value, lang: auto.language ?? "" };
 }
 
+const slugify = (str) =>
+  String(str)
+    .trim()
+    .toLowerCase()
+    .replace(/[\s\W-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+md.renderer.rules.heading_open = function (tokens, idx, options, env, self) {
+  const token = tokens[idx];
+  if (token.tag === "h2" || token.tag === "h3") {
+    const inlineToken = tokens[idx + 1];
+    let title = "";
+    if (inlineToken && inlineToken.type === "inline") {
+      title = inlineToken.content;
+    }
+    const id = slugify(title) || `heading-${idx}`;
+    token.attrSet("id", id);
+    token.attrJoin("class", "ds-section-heading");
+  }
+  return self.renderToken(tokens, idx, options);
+};
+
 md.renderer.rules.fence = function renderFence(tokens, idx) {
   const token = tokens[idx];
   const info = token.info.trim();
@@ -57,8 +83,15 @@ md.renderer.rules.fence = function renderFence(tokens, idx) {
   const lang = resolveLanguage(info);
   const { html, lang: resolvedLang } = highlightCode(code, lang);
   const langClass = resolvedLang ? ` language-${resolvedLang}` : "";
+  const displayLang = resolvedLang || "code";
 
-  return `<div class="ds-codeblock"><pre class="hljs"><code class="hljs${langClass}">${html}</code></pre></div>\n`;
+  return `<div class="ds-codeblock">
+  <div class="ds-codeblock-header">
+    <span class="ds-codeblock-lang">${escapeFenceText(displayLang)}</span>
+    <button type="button" class="ds-btn-copy" aria-label="Copy code">Copy</button>
+  </div>
+  <pre class="hljs"><code class="hljs${langClass}">${html}</code></pre>
+</div>\n`;
 };
 
 // Harden rendered anchors: external links open in a new browsing context with noopener.
@@ -78,8 +111,31 @@ md.renderer.rules.link_open = function hardenLink(tokens, idx, options, env, sel
   return defaultLinkRenderer(tokens, idx, options, env, self);
 };
 
-export function renderMarkdown(source) {
-  return md.render(String(source ?? ""));
+/**
+ * @param {string} source
+ * @param {{ targetRoot?: string }} [options]
+ */
+export function renderMarkdown(source, { targetRoot } = {}) {
+  const html = md.render(String(source ?? ""));
+  return linkifyCitations(html, targetRoot);
+}
+
+function escapeAttr(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;");
+}
+
+function linkifyCitations(html, targetRoot) {
+  if (!targetRoot) return html;
+  const root = String(targetRoot).replace(/\/$/, "");
+  return html.replace(/<code>([^<]+?):(\d+)<\/code>/g, (match, filePath, line) => {
+    if (!/^[\w./@-]+$/.test(filePath)) return match;
+    const abs = filePath.startsWith("/") ? filePath : `${root}/${filePath}`;
+    const href = `vscode://file/${abs}:${line}`;
+    return `<a class="ds-citation" href="${escapeAttr(href)}" title="Open in editor">${match}</a>`;
+  });
 }
 
 export function extractTitle(source) {

@@ -23,6 +23,7 @@ source ranking, mode paths, and B0–B6 checkpoint asks. Scripts return proposal
 - Private user storage for config/decisions/tool artifacts; sister workbook
   `repay-<project>-techdebt` next to the Git root by default. `.repay-techdebt/` inside the target
   only after explicit project-local/team memory choice.
+- **Preserve the project:** Never delete or rewrite source code outside `.repay-techdebt/` or `.graphify/`. Do not pollute the repository root. Never generate viewer HTML; the script owns the workbook UX. Lesson Markdown is the only agent-produced viewer input.
 - Ask before installing user-scoped tools or editing agent/MCP config. Never install analyzers into
   the target dependency environment.
 - Never expose secrets, credentials, env values, or customer data.
@@ -63,20 +64,18 @@ At the **top** of every user-visible message, paste progress from `templates/ses
 header `| Step | {current}/{total} |` where **current is the 1-based index of the 🔵 step** (start at
 `1/N`, never `0`, never ✅-count). Exactly one 🔵. End asks with **👉 Reply**.
 
-| Phase name (user-facing) | Internal only             |
-| ------------------------ | ------------------------- |
-| Get ready                | setup, first-run, runtime |
-| What matters             | B0 purpose                |
-| Study list               | B3 shortlist              |
-| Write lessons            | teach handshake           |
-| Open workbook            | Control / ask-save only   |
-| Wrap up                  | end of batch              |
+| Phase name (user-facing)            | Internal only             |
+| ----------------------------------- | ------------------------- |
+| Reading your code                   | setup, first-run, runtime |
+| Picking the 3 most valuable lessons | B0 purpose, B3 shortlist  |
+| Writing lesson 1/3                  | teach handshake           |
+| You're set                          | end of batch              |
 
 Never expose B0–B6, RETRIEVEQs, SHORTLIST, or checkpoint codes in user chat.
 
-First-run: paste `templates/introduction-wizard.md` Message 1 **verbatim** (what this is · paths ·
-progress · Fast vs Control). **Fast:** defaults + `--save-policy automatic` → `yes` → `init`.
-**Control:** full settings. Mid-session: exact blocks in `agent-experience.md`. Alias: `express` →
+First-run: paste `templates/introduction-wizard.md` Message 1 **verbatim** (what this is ·
+progress · ready to start). **Fast:** `yes` or `fast` → `init` immediately with defaults (private + sister + workbook + balanced + automatic).
+**Control:** `control` → full settings. Mid-session: exact blocks in `agent-experience.md`. Alias: `express` →
 `fast`. No skill symlink paths unless asked.
 
 ## Script ↔ agent contract
@@ -92,6 +91,13 @@ capability-failure prompts.
 Source reliability (high→low): live source → successful tool ops → versioned docs → user confirm →
 script derived → script inferred/heuristics → model prior (hypothesis only).
 
+## Division of labor
+
+The skill enforces a clean contract: **scripts verify, the agent judges, the user gets a predictable flow and a consistent viewer.** See `references/script-agent-division.md`.
+
+- **Scripts own:** Inventory, Mechanical QA, Chat flow, Viewer rendering, and Save.
+- **Agent owns:** Selection, Lesson quality, and semantic evaluations.
+
 ## Shared head (every mode)
 
 **Script gate**
@@ -106,13 +112,13 @@ Bundled skill CLIs (`project-memory.js`, `view-lessons.js`, `teach-topic.js`) ca
 missing (e.g. after skills.sh sync). Consent is recorded in `<skill-root>/.repay-skill-runtime/`.
 Manual repair: `node <skill-root>/scripts/ensure-runtime.js`.
 
-**Agent:** confirm roots; if `first-run`, run the two-step wizard from
+**Agent:** confirm roots; if `first-run`, run the wizard from
 `templates/introduction-wizard.md`:
 
-1. **Message 1:** what this is + paths + progress + **Fast vs Control** only.
-2. **Fast** → defaults summary (auto-save) → `yes` → `init` with private + sister + workbook +
+1. **Message 1:** what this is + progress + **Start?**.
+2. **Fast** → `yes` → `init` immediately with private + sister + workbook +
    balanced + **automatic**.
-3. **Control** → full option tables → map replies → `init` with chosen flags.
+3. **Control** → `control` → full option tables → map replies → `init` with chosen flags.
 
 Do not show storage taxonomy until the user picks Control. Repair/migrate/unlock memory only with approval.
 
@@ -177,7 +183,7 @@ After purpose + retrieve hubs, run the curriculum **proposal**, then agent short
 node <skill-root>/scripts/plan-curriculum.js <target-root> --format json
 ```
 
-Approve/demote/add subjects (B3; corroborate `signalClass: naming-heuristic`). Complete B4a order
+Approve/demote/add topics (B3; corroborate `signalClass: naming-heuristic`). Complete B4a order
 check. Persist only with `agentApproval` including `purposeStatus: accepted|unresolved`,
 `approvedAt`, `corroboratedTopicIds`, and `acceptedPartialScope` when coverage is partial:
 
@@ -188,10 +194,10 @@ node <skill-root>/scripts/project-memory.js save-curriculum <target-root> --inpu
 Write 1–3 lessons per run; resume from `INDEX.md`. Explain to first-timers: **3 lessons this
 session** keeps token use sane; the rest of the curriculum stays planned and is easy to continue.
 After the **third** saved lesson in a batch, or when the batch is complete with fewer than three
-topics, **must** open the script viewer with `view-lessons.js <target-root> --open --lesson
-<rel-path>`. In **Fast** mode do that without asking. Tell the user the workbook folder path and
-how to reopen with `--view`. Never paste raw CLI JSON. Partial coverage forbids whole-app absence
-claims unless `acceptedPartialScope` is set.
+topics, **must** open the viewer with `repay view <target-root> --open --lesson <rel-path>`. In
+**Fast** mode do that without asking. Tell the user the workbook folder path and how to reopen with
+`repay view`. Never paste raw CLI JSON. Partial coverage forbids whole-app absence claims unless
+`acceptedPartialScope` is set.
 
 ## Teach handshake (compose → check → semantic → save)
 
@@ -199,7 +205,7 @@ claims unless `acceptedPartialScope` is set.
    complete B5 (verify ≤3 anchors).
 2. Read `templates/lesson-format.md`, `references/lesson-composition.md`,
    `references/lesson-writing.md`, and B4b/B6 in `references/bottleneck-checkpoints.md`.
-3. **Agent draft** one subject, 3–8 clear sections, path:line citations, honest evidence language.
+3. **Agent draft** one topic, 3–8 clear sections, path:line citations, honest evidence language.
 4. **Script check:**
 
 ```text
@@ -222,11 +228,11 @@ node <skill-root>/scripts/evaluate-lesson.js <target-root> <draft.md> --depth <c
    save. On `lesson-saved`, when `viewer.openRecommended` is true, **must** run:
 
 ```text
-node <skill-root>/scripts/view-lessons.js <target-root> --open --lesson <lessons/...>
+repay view <target-root> --open --lesson <lessons/...>
 ```
 
-Otherwise offer the viewer link. The emit includes `viewer.script`, `viewer.deepLinkRel`, and
-`viewer.openRecommended`. Always show Markdown paths too.
+Otherwise offer the viewer link. The emit includes `viewer.command`, `viewer.hint`,
+`viewer.deepLinkRel`, and `viewer.openRecommended`. Always show Markdown paths too.
 
 7. **Agent ledger:** every tool, operation, outcome, fallback, limitation; unresolved gaps; next
    concepts; checkpoint skips (internal codes only — not in user-facing copy).

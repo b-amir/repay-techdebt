@@ -2,8 +2,7 @@
 import assert from "node:assert/strict";
 import { symlink, mkdtemp, rm, writeFile, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { test } from "vite-plus/test";
 import { isDirectCliInvocation } from "../../../src/foundations/cli-entry.js";
 import { auditSkillRuntime } from "../../../src/foundations/runtime-audit.js";

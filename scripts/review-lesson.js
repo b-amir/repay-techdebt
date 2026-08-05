@@ -1,11 +1,12 @@
+import { resolve } from "node:path";
 import { readFileSync } from "node:fs";
-import { inspectLesson, evaluateSpecification } from "../src/lessons/lesson-quality.js";
+import { recordJudgment, validateJudgmentPayload } from "../src/lessons/lesson-judgment.js";
 
 function help() {
   process.stdout.write(`Usage:
-  node review-lesson.js <lesson.md> <spec.json>
+  node review-lesson.js <lesson.md> <judgment.json>
 
-Reviews a lesson draft against quality standards and its specification.
+Records an AI judgment for a lesson draft. The judgment JSON must have 'score' and 'reasoning'.
 `);
 }
 
@@ -17,37 +18,29 @@ export async function execute(argv) {
 
   const positional = argv.filter((arg) => !arg.startsWith("--"));
   if (positional.length !== 2) {
-    process.stderr.write("Expected a lesson markdown file and a spec JSON file.\n");
+    process.stderr.write("Expected a lesson markdown file and a judgment JSON file.\\n");
     return 1;
   }
 
-  const [lessonPath, specPath] = positional;
+  const [lessonPath, jsonPath] = positional;
 
-  let markdown;
-  let spec;
+  let payload;
   try {
-    markdown = readFileSync(lessonPath, "utf8");
-    spec = JSON.parse(readFileSync(specPath, "utf8"));
+    payload = JSON.parse(readFileSync(resolve(jsonPath), "utf8"));
+    validateJudgmentPayload(payload);
   } catch (error) {
-    process.stderr.write(`Could not load files: ${error.message}\n`);
+    process.stderr.write(`Could not load judgment JSON: ${error.message}\\n`);
     return 1;
   }
 
-  const qualityResult = inspectLesson(markdown);
-  const specResult = evaluateSpecification(markdown, spec);
-
-  const errors = [...qualityResult.errors, ...specResult.errors];
-
-  if (errors.length > 0) {
-    process.stdout.write("Lesson review failed:\n");
-    for (const err of errors) {
-      process.stdout.write(`- ${err}\n`);
-    }
+  try {
+    await recordJudgment(resolve(lessonPath), payload);
+    process.stdout.write("AI judgment recorded successfully.\\n");
+    return 0;
+  } catch (error) {
+    process.stderr.write(`Failed to record judgment: ${error.message}\\n`);
     return 1;
   }
-
-  process.stdout.write("Lesson passes editorial review.\n");
-  return 0;
 }
 
 if (process.argv[1].endsWith("review-lesson.js")) {

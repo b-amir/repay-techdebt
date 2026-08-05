@@ -833,6 +833,7 @@ const definitions = [
 function selectShape(model, context, kind, signals) {
   if (kind !== "auto") return { id: kind, reason: "The caller selected this lesson shape." };
   const focus = context.terms;
+  /** @type {[string, string[]][]} */
   const keyed = [
     ["security-boundary", ["auth", "security", "permission", "privacy", "session", "token"]],
     ["performance-scale", ["performance", "latency", "scale", "cost", "slow", "memory"]],
@@ -848,14 +849,23 @@ function selectShape(model, context, kind, signals) {
   ];
   for (const [id, terms] of keyed)
     if (terms.some((term) => focus.has(term)))
-      return { id, reason: `Focus terms select the ${SHAPES[id].label.toLowerCase()} shape.` };
+      return {
+        id,
+        reason: `Focus terms select the ${SHAPES[id].label.toLowerCase()} shape.`,
+      };
   const strong = new Set(
     signals.filter((item) => item.strength === "strong").map((item) => item.id),
   );
   if (strong.has("ui") && context.anchors.length > 0)
-    return { id: "ui-interaction", reason: "Strong UI signals intersect the selected focus." };
+    return {
+      id: "ui-interaction",
+      reason: "Strong UI signals intersect the selected focus.",
+    };
   if (strong.has("data") && context.anchors.length > 0)
-    return { id: "data-state", reason: "Strong data/state signals intersect the selected focus." };
+    return {
+      id: "data-state",
+      reason: "Strong data/state signals intersect the selected focus.",
+    };
   if (
     context.anchors.length > 0 &&
     signals.find((item) => item.id === "relationships")?.score >= 55
@@ -908,7 +918,11 @@ export function planLesson(model, options = {}) {
   const maxOptional = { concise: 1, balanced: 2, deep: 4 }[depth];
   const signalById = new Map(signals.map((signal) => [signal.id, signal]));
   const candidates = Object.entries(OPTIONAL_SECTIONS)
-    .map(([id, section]) => ({ id, section, signal: signalById.get(section.signal) }))
+    .map(([id, section]) => ({
+      id,
+      section,
+      signal: signalById.get(section.signal),
+    }))
     .filter(
       ({ section, signal }) =>
         !SHAPE_COVERED_SIGNALS[shapeSelection.id].has(section.signal) &&
@@ -972,7 +986,11 @@ export function planLesson(model, options = {}) {
     generatedAt: new Date().toISOString(),
     target: { root: model.target.root, scope: model.target.scope },
     request: { focus, kind, depth },
-    lessonShape: { id: shapeSelection.id, label: shape.label, reason: shapeSelection.reason },
+    lessonShape: {
+      id: shapeSelection.id,
+      label: shape.label,
+      reason: shapeSelection.reason,
+    },
     titleHint: `${shape.label}: ${focusLabel}`,
     simplePlan: [...required, ...activated],
     activatedOptionalSections: activated,

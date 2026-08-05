@@ -16,7 +16,7 @@ test("renderMarkdown highlights fenced code with explicit language", () => {
   const html = renderMarkdown("```typescript\nconst x: number = 1;\n```\n");
   assert.match(html, /ds-codeblock/);
   assert.match(html, /hljs/);
-  assert.doesNotMatch(html, /ds-codeblock-lang/);
+  assert.match(html, /ds-codeblock-lang/);
   assert.match(html, /number/);
 });
 
@@ -25,7 +25,7 @@ test("renderMarkdown highlights untagged fences without a language label", () =>
     "```\nexport function hasPermission(permissions) {\n  return permissions.some((p) => p.module === module);\n}\n```\n",
   );
   assert.match(html, /hljs/);
-  assert.doesNotMatch(html, /ds-codeblock-header/);
+  assert.match(html, /ds-codeblock-header/);
   assert.doesNotMatch(html, />Code</);
   assert.doesNotMatch(html, /ds-code-plain/);
 });
@@ -38,4 +38,12 @@ test("renderMarkdown emits mermaid blocks for client rendering", () => {
   assert.match(html, /<pre class="mermaid">/);
   assert.match(html, /flowchart TD/);
   assert.doesNotMatch(html, /ds-codeblock/);
+});
+
+test("renderMarkdown linkifies path:line citations when targetRoot is provided", () => {
+  const html = renderMarkdown("See `src/auth.js:42` for the guard.", {
+    targetRoot: "/work/app",
+  });
+  assert.match(html, /class="ds-citation"/);
+  assert.match(html, /vscode:\/\/file\/\/work\/app\/src\/auth.js:42/);
 });

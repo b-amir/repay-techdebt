@@ -26,7 +26,11 @@ export function deduplicateAndSplitTopics(candidates) {
     if (candidate.focus.includes(",") && candidate.kind === "area") {
       const parts = candidate.focus.split(",").map((p) => p.trim());
       for (const part of parts) {
-        const splitCandidate = { ...candidate, id: `${candidate.id}-${part}`, focus: part };
+        const splitCandidate = {
+          ...candidate,
+          id: `${candidate.id}-${part}`,
+          focus: part,
+        };
         splitCandidate.importanceReasons.push(`Split from compound topic (${candidate.focus})`);
         finalTopics.push(splitCandidate);
       }

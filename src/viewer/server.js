@@ -8,10 +8,11 @@ import { basename, resolve, isAbsolute } from "node:path";
 import { isSameOrInside, skillRoot } from "../foundations/targeting.js";
 import { readCurriculum, writeCurriculum } from "../memory/curriculum-store.js";
 import { renderCurriculumMarkdown } from "../curriculum/curriculum-planning.js";
-import { readProgress, setCompletion, normalizeLessonKey } from "./progress-store.js";
+import { readProgress, setCompletion, setLastRead, normalizeLessonKey } from "./progress-store.js";
 import { buildSidebar, buildLessonsSidebar } from "./sidebar.js";
 import { renderHome, renderLesson, renderEmpty, renderPlanned, lessonHref } from "./shell.js";
 import { renderMarkdown, extractTitle } from "./markdown-render.js";
+import { searchLessons } from "./search-lessons.js";
 
 const CSS_PATH = resolve(skillRoot, "src", "viewer", "static", "viewer.css");
 let cssCache = null;
@@ -49,7 +50,11 @@ async function listLessonFiles(lessonsDir) {
     return [];
   }
   const files = entries.filter(
-    (e) => e.isFile() && e.name.endsWith(".md") && !/^index\.md$/i.test(e.name),
+    (e) =>
+      e.isFile() &&
+      e.name.endsWith(".md") &&
+      !/^index\.md$/i.test(e.name) &&
+      !e.name.startsWith("."),
   );
   return Promise.all(
     files.map(async (e) => {
@@ -167,6 +172,12 @@ export function createViewerServer({ workbook, now = defaultNow }) {
       if (req.method === "GET" && pathname === "/assets/viewer.css") {
         return send(res, 200, "text/css; charset=utf-8", await loadCss());
       }
+      if (req.method === "GET" && pathname === "/api/search") {
+        const q = url.searchParams.get("q") ?? "";
+        const results = await searchLessons(workbook, q, 20);
+        return sendJson(res, 200, { query: q, results });
+      }
+
       if (req.method === "GET" && pathname === "/api/lesson-mtime") {
         const file = await resolveLessonFile(workbook, url.searchParams.get("path") ?? "");
         if (!file) return sendJson(res, 404, { error: "not found" });
@@ -208,6 +219,28 @@ export function createViewerServer({ workbook, now = defaultNow }) {
         });
       }
 
+      if (req.method === "POST" && pathname === "/api/progress-view") {
+        const body = await readBody(req);
+        let payload;
+        try {
+          payload = JSON.parse(body);
+        } catch {
+          return sendJson(res, 400, { error: "invalid json" });
+        }
+        if (!payload || typeof payload.path !== "string") {
+          return sendJson(res, 400, { error: "path required" });
+        }
+        try {
+          await setLastRead(workbook.progressPath, payload.path, workbook.workbookRoot, {
+            nowIso: now(),
+            lastScroll: payload.lastScroll,
+          });
+        } catch (error) {
+          return sendJson(res, 400, { error: error.message });
+        }
+        return sendJson(res, 200, { ok: true });
+      }
+
       if (req.method === "GET" && pathname === "/") {
         if (!workbook.ready) {
           return send(
@@ -220,13 +253,13 @@ export function createViewerServer({ workbook, now = defaultNow }) {
             }),
           );
         }
-        const { curriculum, sidebar } = await buildModel(workbook, null);
+        const { curriculum, sidebar, progress } = await buildModel(workbook, null);
         const title = await workbookTitle(curriculum, workbook.workbookRoot);
         return send(
           res,
           200,
           "text/html; charset=utf-8",
-          renderHome({ workbookTitle: title, sidebar }),
+          renderHome({ workbookTitle: title, sidebar, progress }),
         );
       }
 
@@ -248,6 +281,7 @@ export function createViewerServer({ workbook, now = defaultNow }) {
           workbookTitle: title,
           sidebar,
           topic,
+          targetRoot: workbook.targetRoot,
         });
         return send(res, 200, "text/html; charset=utf-8", html);
       }
@@ -260,20 +294,31 @@ export function createViewerServer({ workbook, now = defaultNow }) {
         const source = await readFile(file, "utf8");
         const { curriculum, sidebar } = await buildModel(workbook, normalizedKey);
         const title = extractTitle(source) ?? basename(file, ".md");
-        const completed = Boolean(
-          (await readProgress(workbook.progressPath)).completed[normalizedKey],
-        );
+        const progress = await readProgress(workbook.progressPath);
+        const completed = Boolean(progress.completed[normalizedKey]);
         const written = flattenWritten(sidebar);
         const html = renderLesson({
           workbookTitle: await workbookTitle(curriculum, workbook.workbookRoot),
           sidebar,
           title,
-          bodyHtml: renderMarkdown(source.replace(/^#\s+.+\r?\n?/, "")),
+          bodyHtml: renderMarkdown(source.replace(/^#\s+.+\r?\n?/, ""), {
+            targetRoot: workbook.targetRoot,
+          }),
           lessonKey: normalizedKey,
           completed,
+          progress,
           prev: neighbor(written, normalizedKey, "prev"),
           next: neighbor(written, normalizedKey, "next"),
         });
+
+        try {
+          await setLastRead(workbook.progressPath, normalizedKey, workbook.workbookRoot, {
+            nowIso: now(),
+          });
+        } catch (err) {
+          process.stderr.write(`viewer: setLastRead failed (${err.message})\n`);
+        }
+
         return send(res, 200, "text/html; charset=utf-8", html);
       }
 

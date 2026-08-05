@@ -123,7 +123,7 @@ function parseJsonManifest(name, content) {
 }
 
 function parseTomlManifest(name, content) {
-  const parsed = parseToml(content);
+  const parsed = /** @type {any} */ (parseToml(content));
   const records = [];
   if (name === "pyproject.toml") {
     for (const value of parsed.project?.dependencies ?? []) {
@@ -224,7 +224,10 @@ function objects(value) {
 function parseXmlManifest(name, content) {
   const validation = XMLValidator.validate(content);
   if (validation !== true) throw new Error(validation.err?.msg ?? "invalid XML");
-  const parsed = new XMLParser({ ignoreAttributes: false, parseTagValue: false }).parse(content);
+  const parsed = new XMLParser({
+    ignoreAttributes: false,
+    parseTagValue: false,
+  }).parse(content);
   const records = [];
   if (name === "pom.xml") {
     for (const value of objects(parsed)) {
@@ -362,7 +365,11 @@ export function parseManifest(path, content) {
     }
   } catch (error) {
     result = { records: [], workspaces: [] };
-    diagnostics.push({ severity: "error", code: "manifest-parse-failed", message: error.message });
+    diagnostics.push({
+      severity: "error",
+      code: "manifest-parse-failed",
+      message: error.message,
+    });
   }
   const deduplicated = [
     ...new Map(

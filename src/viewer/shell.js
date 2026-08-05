@@ -39,9 +39,7 @@ function progressStats(counts) {
 
 function brandLockup(workbookTitle) {
   const { project, suffix } = parseWorkbookBrand(workbookTitle);
-  const suffixHtml = suffix
-    ? `<span class="ds-brand-suffix">${escapeHtml(suffix)}</span>`
-    : "";
+  const suffixHtml = suffix ? `<span class="ds-brand-suffix">${escapeHtml(suffix)}</span>` : "";
   return `<a class="ds-brand" href="/">
     <span class="ds-brand-icon" aria-hidden="true">
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -172,9 +170,12 @@ function prefsBootstrapScript() {
 </script>`;
 }
 
-function renderShell({ documentTitle, sidebarHtml, mainHtml }) {
+function renderShell({ documentTitle, sidebarHtml, mainHtml, progress = null }) {
+  const scrollAttr = progress?.lastScroll
+    ? ` data-last-scroll="${escapeHtml(String(progress.lastScroll))}"`
+    : "";
   return `<!doctype html>
-<html lang="en" data-theme="paper" data-scale="m" data-accent="teal" data-sidebar="open">
+<html lang="en" data-theme="paper" data-scale="m" data-accent="teal" data-sidebar="open"${scrollAttr}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -196,13 +197,12 @@ ${viewSettingsPanel()}
 </html>`;
 }
 
-export function renderHome({ workbookTitle, sidebar }) {
+export function renderHome({ workbookTitle, sidebar, progress }) {
   const { written, planned } = collectSidebarItems(sidebar);
-  const continueItem = findContinueLesson(sidebar);
+  const continueItem = findContinueLesson(sidebar, progress);
   const { project } = parseWorkbookBrand(workbookTitle);
   const { counts, total } = sidebar;
-  const readPct =
-    counts.written > 0 ? Math.round((counts.done / counts.written) * 100) : 0;
+  const readPct = counts.written > 0 ? Math.round((counts.done / counts.written) * 100) : 0;
 
   const continueCard = continueItem
     ? `<a class="ds-home-continue" href="${lessonHref(continueItem.lessonKey)}">
@@ -303,6 +303,7 @@ export function renderHome({ workbookTitle, sidebar }) {
     documentTitle: workbookTitle,
     sidebarHtml: renderSidebar(sidebar, workbookTitle),
     mainHtml: main,
+    progress,
   });
 }
 
@@ -318,7 +319,14 @@ function collectSidebarItems(sidebar) {
   return { written, planned };
 }
 
-function findContinueLesson(sidebar) {
+function findContinueLesson(sidebar, progress) {
+  if (progress && progress.lastRead) {
+    for (const chapter of sidebar.chapters) {
+      for (const item of chapter.items) {
+        if (item.lessonKey === progress.lastRead) return item;
+      }
+    }
+  }
   for (const chapter of sidebar.chapters) {
     for (const item of chapter.items) {
       if (item.state === "written") return item;
@@ -361,6 +369,7 @@ export function renderLesson({
   bodyHtml,
   lessonKey,
   completed,
+  progress,
   prev,
   next,
 }) {
@@ -383,15 +392,74 @@ export function renderLesson({
     <nav class="ds-lesson-nav-row" aria-label="Lesson navigation">${prevHtml}${nextHtml}</nav>
     <div class="ds-lesson-footer-actions">${button}</div>
   </footer>`;
+
+  let currentChapter = "";
+  let currentIndex = 0;
+  let totalWrittenInChapter = 0;
+  for (const chapter of sidebar.chapters) {
+    let writtenCount = 0;
+    let found = false;
+    for (const item of chapter.items) {
+      if (item.lessonKey) {
+        writtenCount++;
+        if (item.lessonKey === lessonKey) {
+          currentIndex = writtenCount;
+          found = true;
+        }
+      }
+    }
+    if (found) {
+      currentChapter = chapter.title;
+      totalWrittenInChapter = writtenCount;
+      break;
+    }
+  }
+
+  const statusStr = completed ? "Done" : "Open";
+  const orientationStrip = `<div class="ds-orientation-strip">${escapeHtml(currentChapter)} · Lesson ${currentIndex} of ${totalWrittenInChapter} written · ${statusStr}</div>`;
+
+  const headings = [];
+  const headingRegex = /<h([23])\s+id="([^"]+)"[^>]*>(.*?)<\/h\1>/g;
+  let match;
+  while ((match = headingRegex.exec(bodyHtml)) !== null) {
+    headings.push({
+      level: parseInt(match[1], 10),
+      id: match[2],
+      text: match[3].replace(/<[^>]+>/g, ""),
+    });
+  }
+
+  let jumpList = "";
+  if (headings.filter((h) => h.level === 2).length >= 4) {
+    const listItems = headings
+      .map((h) => {
+        const cls = h.level === 3 ? "ds-toc-h3" : "ds-toc-h2";
+        return `<li class="${cls}"><a href="#${escapeHtml(h.id)}" class="ds-toc-link" data-id="${escapeHtml(h.id)}">${h.text}</a></li>`;
+      })
+      .join("\n");
+    jumpList = `<aside class="ds-toc">
+      <details class="ds-toc-details" open>
+        <summary>Jump to section</summary>
+        <ul class="ds-toc-list">${listItems}</ul>
+      </details>
+    </aside>`;
+  }
+
+  const progressBar = `<div class="ds-reading-progress" aria-hidden="true"><div class="ds-reading-progress-bar"></div></div>`;
+
   const main = `<article class="ds-plaque">
+    ${progressBar}
     <h1 class="ds-plaque-title">${escapeHtml(title)}</h1>
-    <div class="ds-plaque-body">${wrapClaims(bodyHtml)}</div>
+    ${orientationStrip}
+    ${jumpList ? `<div class="ds-plaque-layout"><div class="ds-plaque-body ds-plaque-with-toc">${wrapClaims(bodyHtml)}</div>${jumpList}</div>` : `<div class="ds-plaque-body">${wrapClaims(bodyHtml)}</div>`}
     ${footer}
   </article>`;
+
   return renderShell({
     documentTitle: `${title} · ${workbookTitle}`,
     sidebarHtml: renderSidebar(sidebar, workbookTitle),
     mainHtml: main,
+    progress,
   });
 }
 
@@ -413,17 +481,43 @@ export function renderEmpty({ workbookTitle, reason }) {
 /**
  * Placeholder for a curriculum topic with no lesson yet. Chat activation only.
  */
-export function renderPlanned({ workbookTitle, sidebar, topic }) {
+export function renderPlanned({ workbookTitle, sidebar, topic, targetRoot }) {
   const createArg = topic.id;
   const chatCmd = `/repay-techdebt --create ${createArg}`;
+  const evidencePaths = (topic.evidencePaths ?? []).slice(0, 8);
+  const evidenceHtml =
+    evidencePaths.length > 0
+      ? `<div class="ds-planned-evidence">
+    <p class="ds-planned-evidence-label">Evidence anchors</p>
+    <ul class="ds-planned-evidence-list">
+      ${evidencePaths
+        .map((raw) => {
+          const match = String(raw).match(/^(.+?):(\d+)$/);
+          const filePath = match ? match[1] : raw;
+          const line = match ? match[2] : "1";
+          const abs = filePath.startsWith("/")
+            ? filePath
+            : `${String(targetRoot ?? "").replace(/\/$/, "")}/${filePath}`;
+          const href = `vscode://file/${abs}:${line}`;
+          return `<li><a class="ds-citation" href="${escapeHtml(href)}">${escapeHtml(raw)}</a></li>`;
+        })
+        .join("")}
+    </ul>
+  </div>`
+      : "";
+  const stageHtml = topic.learningStage
+    ? `<p class="ds-planned-stage">${escapeHtml(topic.learningStage)}</p>`
+    : "";
   const main = `<article class="ds-plaque ds-plaque-planned">
     <p class="ds-planned-badge">Not written yet</p>
     <h1 class="ds-plaque-title">${escapeHtml(topic.title)}</h1>
+    ${stageHtml}
     ${
       topic.learnerOutcome
         ? `<p class="ds-planned-outcome">${escapeHtml(topic.learnerOutcome)}</p>`
         : ""
     }
+    ${evidenceHtml}
     <p class="ds-planned-lead">Ask your agent to write this lesson from project evidence.</p>
     <div class="ds-create-box">
       ${renderCopyBlock("In chat", chatCmd)}

@@ -11,7 +11,9 @@ export async function computeEvidenceDigests(targetRoot, evidencePaths) {
   for (const evidencePath of evidencePaths) {
     try {
       // First try to use Git if available (fast and reliable for repo tracking)
-      const { stdout } = await exec("git", ["hash-object", evidencePath], { cwd: targetRoot });
+      const { stdout } = await exec("git", ["hash-object", evidencePath], {
+        cwd: targetRoot,
+      });
       digests[evidencePath] = stdout.trim();
     } catch {
       // Fallback to content hashing if not in a Git repo or Git fails

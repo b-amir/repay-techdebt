@@ -11,8 +11,13 @@ function lineOf(sourceFile, node) {
 }
 
 function javascriptRelationships(path, source) {
-  const project = new Project({ skipAddingFilesFromTsConfig: true, useInMemoryFileSystem: true });
-  const sourceFile = project.createSourceFile(path, source, { overwrite: true });
+  const project = new Project({
+    skipAddingFilesFromTsConfig: true,
+    useInMemoryFileSystem: true,
+  });
+  const sourceFile = project.createSourceFile(path, source, {
+    overwrite: true,
+  });
   const results = [];
   const diagnostics = [];
   for (const declaration of sourceFile.getImportDeclarations())
@@ -53,7 +58,7 @@ function javascriptRelationships(path, source) {
       continue;
     }
     results.push({
-      specifier: argument.getLiteralText(),
+      specifier: /** @type {any} */ (argument).getLiteralText(),
       line: lineOf(sourceFile, call),
       analyzer: "ts-morph",
       confidence: 0.98,
@@ -145,7 +150,10 @@ export function extractRelationships(path, source) {
     return {
       relations: [
         ...new Map(
-          relations.map((item) => [`${item.specifier}:${item.line}:${item.form}`, item]),
+          relations.map((item) => /** @type {[string, any]} */ ([
+            `${item.specifier}:${item.line}:${item.form}`,
+            item,
+          ])),
         ).values(),
       ],
       diagnostics: extracted.diagnostics,
@@ -160,7 +168,11 @@ export function extractRelationships(path, source) {
       relations: regexRelationships(extension, source),
       semanticLevel: "syntax-heuristic",
       diagnostics: [
-        { severity: "error", code: "relationship-parser-failed", message: error.message },
+        {
+          severity: "error",
+          code: "relationship-parser-failed",
+          message: error.message,
+        },
       ],
     };
   }

@@ -1,5 +1,3 @@
-import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { auditSkillRuntime } from "../src/foundations/runtime-audit.js";

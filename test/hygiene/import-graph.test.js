@@ -102,7 +102,11 @@ test("every relative import in scripts/ and src/ resolves to an existing file", 
         allowReturnOutsideFunction: true,
       });
     } catch (err) {
-      broken.push({ importer: relative(root, file), spec: "<parse error>", resolved: err.message });
+      broken.push({
+        importer: relative(root, file),
+        spec: "<parse error>",
+        resolved: err.message,
+      });
       continue;
     }
     for (const spec of specifiersOf(ast)) {

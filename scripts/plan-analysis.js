@@ -16,7 +16,12 @@ function parse(argv) {
     process.exit(0);
   }
   const positional = [];
-  const options = { mode: "workbook", format: "json", focus: null, depth: "balanced" };
+  const options = {
+    mode: "workbook",
+    format: "json",
+    focus: null,
+    depth: "balanced",
+  };
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
     if (!argument.startsWith("--")) positional.push(argument);

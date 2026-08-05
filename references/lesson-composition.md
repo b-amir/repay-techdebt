@@ -1,4 +1,4 @@
-# Lesson composition system
+# Lesson Composition System
 
 Use this reference after `plan-lesson.js` selects a lesson shape. It is the complete composition
 catalog; `templates/lesson-format.md` contains the short execution contract.
@@ -29,6 +29,35 @@ remain flexible. An optional module disappears unless it passes the activation g
 | Operations and deployment | Startup, configuration, release, or recovery is central       | runtime shape; configuration; startup to service; failure/recovery; verification |
 | Testing and verification  | Confidence and behavior proof are central                     | behavior contract; test map; test mechanics; gaps; next test                     |
 | UI and interaction        | A user's interaction and represented states are central       | user goal; interaction flow; state ownership; edge states; verification          |
+
+### Anatomy Mapping
+
+Use this table to map the required lesson anatomy elements (Tricky-part and Contrast) to the specific shape modules:
+
+| Shape                     | Tricky-part usually lives in       | Contrast usually lives in               |
+| ------------------------- | ---------------------------------- | --------------------------------------- |
+| Architecture orientation  | relationships                      | (alternative design that was rejected)  |
+| End-to-end flow           | mechanism                          | failure path                            |
+| Code mechanics            | mechanism                          | (buggy variant)                         |
+| Change impact             | blast radius                       | before/after                            |
+| Debugging and failure     | execution path                     | recovery                                |
+| Security boundary         | control flow                       | abuse case                              |
+| Performance and scale     | cost model                         | (the slow version)                      |
+| Data and state            | invariants                         | failure path / data inconsistency       |
+| Dependency and ecosystem  | version/contract                   | fallback behavior / framework vs native |
+| Operations and deployment | configuration / startup to service | failure/recovery / rollout failure      |
+| Testing and verification  | test mechanics                     | gaps / untested behavior                |
+| UI and interaction        | state ownership                    | edge states / forbidden state           |
+
+### Blandness patterns to avoid
+
+Do not write boring, generic lessons. Avoid these patterns:
+
+- Generic openings ("In this lesson, we will explore…").
+- Sectionless walls of code.
+- Abstract best-practice paragraphs without project specifics.
+- Using AI filler adjectives like "robust", "scalable", or "seamless".
+- Restating the title as the BLUF.
 
 ## Required core module inventory
 

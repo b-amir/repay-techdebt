@@ -107,7 +107,14 @@ async function changedFiles(projectRoot, revisions, relativeSkillRoot) {
 
 function normalizeParsedDiff(rawDiff, fallbackFile) {
   const parsed = parseDiff(rawDiff)[0];
-  if (!parsed) return { file: fallbackFile, additions: 0, deletions: 0, hunks: [], diff: rawDiff };
+  if (!parsed)
+    return {
+      file: fallbackFile,
+      additions: 0,
+      deletions: 0,
+      hunks: [],
+      diff: rawDiff,
+    };
   return {
     file: parsed.to === "/dev/null" ? parsed.from : parsed.to || parsed.from || fallbackFile,
     additions: parsed.additions ?? 0,

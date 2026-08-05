@@ -19,6 +19,7 @@ function topic(i, overrides = {}) {
     chapter: "billing",
     evidencePaths: [],
     signalClass: "graph-confirmed",
+    relationCount: 2,
     ...overrides,
   };
 }
@@ -29,7 +30,10 @@ function curriculum(topics, overrides = {}) {
     target: { root: TARGET_ROOT },
     coverage: { modeledFiles: 10 },
     scale: { availableCandidates: topics.length },
-    agentApproval: { approvedAt: "2026-01-01T00:00:00Z", purposeStatus: "accepted" },
+    agentApproval: {
+      approvedAt: "2026-01-01T00:00:00Z",
+      purposeStatus: "accepted",
+    },
     topics,
     ...overrides,
   };
@@ -124,7 +128,7 @@ test("naming-heuristic topics need corroboration before save", () => {
   const value = curriculum([speculative, topic(2), topic(3)]);
   assert.throws(
     () => validateCurriculum(value, TARGET_ROOT),
-    /Naming-heuristic topics need corroboration/,
+    /Topics need structured corroboration/,
   );
 
   // Corroborated via approval list → passes
@@ -163,7 +167,9 @@ test("large-repository curriculum must span at least five chapters", () => {
 
   // Same scale, five chapters → passes
   const diverse = Array.from({ length: 60 }, (_, i) =>
-    topic(i + 1, { chapter: ["billing", "shipping", "auth", "infra", "data"][i % 5] }),
+    topic(i + 1, {
+      chapter: ["billing", "shipping", "auth", "infra", "data"][i % 5],
+    }),
   );
   assert.ok(
     validateCurriculum(

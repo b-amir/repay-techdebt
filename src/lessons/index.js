@@ -9,9 +9,6 @@ export {
 } from "./lesson-citation-check.js";
 
 export { parseClaimsBlock, assessClaimFaithfulness } from "./claim-faithfulness.js";
-
-export { evaluatePedagogy } from "./pedagogy.js";
-
 export { evaluateLessonForSave, runTeachFloors } from "./save-lesson.js";
 
 export { lessonPlanSchema, planLesson, composeMermaidBlock } from "./lesson-composition.js";

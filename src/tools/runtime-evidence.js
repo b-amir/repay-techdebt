@@ -49,7 +49,7 @@ export async function collectRuntimeEvidence(plan, hasConsent, options = {}) {
       };
     }
 
-    result.provenance = {
+    /** @type {any} */ (result).provenance = {
       command: plan.command,
       workload: plan.workload || "unknown",
       durationMs: duration,

@@ -12,11 +12,11 @@ Always include the separator row. Leave **one blank line** before any table that
 ```markdown
 **Progress**
 
-| Step | {current}/{total} |
-| ---- | ----------------- |
-| ✅ | {done step} |
-| 🔵 | **{current step}** |
-| ⬜ | {future step} |
+| Step | {current}/{total}  |
+| ---- | ------------------ |
+| ✅   | {done step}        |
+| 🔵   | **{current step}** |
+| ⬜   | {future step}      |
 ```
 
 - Header col 2 = `{current}/{total}` only — never a step name, never `—`.
@@ -26,82 +26,76 @@ Always include the separator row. Leave **one blank line** before any table that
 
 ## Emoji
 
-| Emoji | Meaning |
-| ----- | ------- |
-| 🔵 | Now (one per message) |
-| ✅ | Done |
-| ⬜ | Later |
+| Emoji | Meaning               |
+| ----- | --------------------- |
+| 🔵    | Now (one per message) |
+| ✅    | Done                  |
+| ⬜    | Later                 |
 
-## Fast mode template (5 steps — no separate Open workbook ask)
+## Fast mode template (4 steps)
 
 ```markdown
 **Progress**
 
-| Step | 1/5 |
-| ---- | --- |
-| 🔵 | **Get ready** |
-| ⬜ | What matters |
-| ⬜ | Study list |
-| ⬜ | Write lessons |
-| ⬜ | Wrap up |
+| Step | 1/4                                 |
+| ---- | ----------------------------------- |
+| 🔵   | **Reading your code**               |
+| ⬜   | Picking the 3 most valuable lessons |
+| ⬜   | Writing lesson 1/3                  |
+| ⬜   | You're set                          |
 ```
 
 ### ✅ when (Fast)
 
-| Step | ✅ when |
-| ---- | ------- |
-| Get ready | Memory OK |
-| What matters | Purpose recorded or skipped |
-| Study list | Curriculum approved |
-| Write lessons | 🔵 while drafting; sub-count e.g. 2/3; **auto-save**; open viewer when batch ready |
-| Wrap up | Viewer opened + paths shown |
+| Step                                | ✅ when                                                                            |
+| ----------------------------------- | ---------------------------------------------------------------------------------- |
+| Reading your code                   | Memory OK                                                                          |
+| Picking the 3 most valuable lessons | Curriculum approved                                                                |
+| Writing lesson 1/3                  | 🔵 while drafting; sub-count e.g. 2/3; **auto-save**; open viewer when batch ready |
+| You're set                          | Viewer opened + paths shown                                                        |
 
-| 🔵 step | Header |
-| ------- | ------ |
-| Get ready | 1/5 |
-| What matters | 2/5 |
-| Study list | 3/5 |
-| Write lessons | 4/5 |
-| Wrap up | 5/5 |
+| 🔵 step                             | Header |
+| ----------------------------------- | ------ |
+| Reading your code                   | 1/4    |
+| Picking the 3 most valuable lessons | 2/4    |
+| Writing lesson 1/3                  | 3/4    |
+| You're set                          | 4/4    |
 
-## Control / ask-save template (6 steps)
+## Control / ask-save template (5 steps)
 
 ```markdown
 **Progress**
 
-| Step | 1/6 |
-| ---- | --- |
-| 🔵 | **Get ready** |
-| ⬜ | What matters |
-| ⬜ | Study list |
-| ⬜ | Write lessons |
-| ⬜ | Open workbook |
-| ⬜ | Wrap up |
+| Step | 1/5                                 |
+| ---- | ----------------------------------- |
+| 🔵   | **Reading your code**               |
+| ⬜   | Picking the 3 most valuable lessons |
+| ⬜   | Writing lesson 1/3                  |
+| ⬜   | Open workbook                       |
+| ⬜   | You're set                          |
 ```
 
 ### ✅ when (Control)
 
-| Step | ✅ when |
-| ---- | ------- |
-| Get ready | Memory OK |
-| What matters | Purpose recorded or skipped |
-| Study list | Curriculum approved |
-| Write lessons | 🔵 while drafting; sub-count e.g. 2/3 |
-| Open workbook | 🔵 → `view-lessons.js --open` (or user said `view`) |
-| Wrap up | Viewer opened or `--view` given |
+| Step                                | ✅ when                                        |
+| ----------------------------------- | ---------------------------------------------- |
+| Reading your code                   | Memory OK                                      |
+| Picking the 3 most valuable lessons | Curriculum approved                            |
+| Writing lesson 1/3                  | 🔵 while drafting; sub-count e.g. 2/3          |
+| Open workbook                       | 🔵 → `repay view --open` (or user said `view`) |
+| You're set                          | Viewer opened or `--view` given                |
 
-## Focused / PR (Fast-like, 5 steps)
+## Focused / PR (Fast-like, 4 steps)
 
 ```markdown
 **Progress**
 
-| Step | 1/5 |
-| ---- | --- |
-| 🔵 | **Get ready** |
-| ⬜ | Investigate & teach |
-| ⬜ | Save lesson |
-| ⬜ | Open workbook |
-| ⬜ | Wrap up |
+| Step | 1/4                   |
+| ---- | --------------------- |
+| 🔵   | **Reading your code** |
+| ⬜   | Investigate & teach   |
+| ⬜   | Save lesson           |
+| ⬜   | You're set            |
 ```
 
 If save-policy is automatic, merge Save + Open into teach/wrap like Fast workbook.
@@ -111,13 +105,12 @@ If save-policy is automatic, merge Save + Open into teach/wrap like Fast workboo
 ```markdown
 **Progress**
 
-| Step | 4/5 |
-| ---- | --- |
-| ✅ | Get ready |
-| ✅ | What matters — chat |
-| ✅ | Study list — 12 topics |
-| 🔵 | **Write lessons** — 2/3 |
-| ⬜ | Wrap up |
+| Step | 3/4                                 |
+| ---- | ----------------------------------- |
+| ✅   | Reading your code                   |
+| ✅   | Picking the 3 most valuable lessons |
+| 🔵   | **Writing lesson 2/3**              |
+| ⬜   | You're set                          |
 ```
 
 ## Example — Fast wrap up
@@ -125,13 +118,12 @@ If save-policy is automatic, merge Save + Open into teach/wrap like Fast workboo
 ```markdown
 **Progress**
 
-| Step | 5/5 |
-| ---- | --- |
-| ✅ | Get ready |
-| ✅ | What matters |
-| ✅ | Study list |
-| ✅ | Write lessons — 3/3 |
-| 🔵 | **Wrap up** |
+| Step | 4/4                                 |
+| ---- | ----------------------------------- |
+| ✅   | Reading your code                   |
+| ✅   | Picking the 3 most valuable lessons |
+| ✅   | Writing lesson 3/3                  |
+| 🔵   | **You're set**                      |
 ```
 
 Routine: progress + ≤25 useful words. Asks: `###` heading + why-line — see `agent-experience.md`.

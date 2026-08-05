@@ -1,4 +1,4 @@
-# Script ↔ agent dialogue
+# Script ↔ Agent Dialogue
 
 Read this when the skill activates. Scripts and the agent take turns from 0→100. Neither finishes
 discovery or teaching alone.
@@ -49,8 +49,8 @@ consent, secrets, or capability-failure prompts.
 - `REWRITE once: address […]`
 - `STOP extra loops; ship with gaps: […]`
 
-Checkpoint cards: `bottleneck-checkpoints.md` (B0–B6). Complete them in trajectory order.
-Validate ask fidelity with `scripts/check-trajectory.js` (workbook: B0→B1→B2→B5→B3→B4a→B4b→B6).
+Check the state transitions in `flow-machine.js` (setup → purpose → shortlist → gather → draft → mechanical-check → review → revise → save → next-lesson → wrap).
+User-facing progress steps map directly to the flow state.
 
 ## User-facing progress table (mandatory)
 
@@ -64,15 +64,15 @@ between tables.** Ask turns: `###` heading + why-line + ask table + `👉 Reply`
 
 Use the **exact** ask blocks in `templates/agent-experience.md` (`###` + why + table + 👉 Reply).
 
-| Internal     | Template block        |
-| ------------ | --------------------- |
-| B0 purpose   | What matters          |
-| B2 retrieve  | (inline questions, ≤5) |
-| B3 shortlist | Study list            |
-| Save policy  | Save lesson           |
-| First-run    | introduction-wizard   |
-| B4b / B6     | Fold into lesson review |
-| Open viewer  | Open workbook         |
+| Internal                  | Template block          |
+| ------------------------- | ----------------------- |
+| purpose                   | What matters            |
+| shortlist                 | Study list              |
+| gather                    | (inline questions, ≤5)  |
+| Save policy               | Save lesson             |
+| First-run                 | introduction-wizard     |
+| mechanical-check / review | Fold into lesson review |
+| Open viewer               | Open workbook           |
 
 | User-facing step | Replaces old label               |
 | ---------------- | -------------------------------- |
@@ -84,7 +84,7 @@ Use the **exact** ask blocks in `templates/agent-experience.md` (`###` + why + t
 | Wrap up          | Done                             |
 
 After **three** saved lessons in a workbook batch (or when the batch finishes with fewer than three),
-run `view-lessons.js --open`. In **Fast** mode do not ask — open, then **Wrap up**. In Control with
+run `repay view --open`. In **Fast** mode do not ask — open, then **Wrap up**. In Control with
 save-policy `ask`, you may confirm open. Explain: we start with 3 lessons so tokens stay sane; the
 rest of the curriculum stays planned and is easy to continue with guidance.
 
@@ -93,14 +93,14 @@ Omnibus topics (“understand the whole app”) must be split/demoted; save reje
 ## Shared head (all modes)
 
 ```text
-Script gate:  project-memory.js status → check-runtime.js
-Agent:        confirm skill vs target roots; Fast/Control wizard if first-run; pick mode
-Script:       profile-project.js … --format json   (inventory)
-Agent:        ACCEPT|UNRESOLVED purpose; phrase retrieve questions
-Script:       plan-analysis.js … --format summary-json   (propose)
-Agent:        mark investigations needed|not-needed; NEED|SKIP tools
-Script gate:  check-capabilities.js … --format table
-Agent/user:   setup | fallback | skip per tool-integrations.md
+Script gate:  project-memory.js status → check-runtime.js (Mechanical QA)
+Agent:        confirm skill vs target roots; Fast/Control wizard if first-run; pick mode (Chat flow)
+Script:       profile-project.js … --format json (Inventory)
+Agent:        ACCEPT|UNRESOLVED purpose; phrase retrieve questions (Purpose / Quality judgment)
+Script:       plan-analysis.js … --format summary-json (Inventory / Propose)
+Agent:        mark investigations needed|not-needed; NEED|SKIP tools (Selection)
+Script gate:  check-capabilities.js … --format table (Mechanical QA)
+Agent/user:   setup | fallback | skip per tool-integrations.md (Selection)
 ```
 
 CLI details: `tool-integrations.md`. Memory: `project-memory.md`.
@@ -110,13 +110,13 @@ CLI details: `tool-integrations.md`. Memory: `project-memory.md`.
 ```text
 Agent ask → Graphify/Serena (or query-program-model after approval) → Agent verify 2–3 anchors
 [optional] Script gap-fill (scoped deps/security/pattern leads) → Agent discard noise
-Script: plan-lesson.js … --format json
-Agent: draft lesson from verified anchors
-Script: check-lesson-quality.js <draft.md>
-Agent: semantic checklist; ≤1 rewrite
-Script: project-memory.js save-curriculum … (mini-curriculum when no full workbook yet)
-Script: project-memory.js save-lesson … --topic-id … (per save policy)
-Script: view-lessons.js <target-root> [--open] [--lesson …] (after lesson-saved)
+Script: plan-lesson.js … --format json (Inventory / Propose)
+Agent: draft lesson from verified anchors (Selection / Lesson Quality)
+Script: check-lesson-quality.js <draft.md> (Mechanical QA)
+Agent: semantic checklist; ≤1 rewrite (Quality judgment)
+Script: project-memory.js save-curriculum … (Save)
+Script: project-memory.js save-lesson … --topic-id … (Save)
+Script: repay view <target-root> [--open] [--lesson …] (Viewer rendering; implementation: view-lessons.js)
 Agent: tool ledger + gaps + next concepts
 ```
 
@@ -145,10 +145,10 @@ under chapter **Recent teaching**.
 Script inventory ↔ Agent purpose
 Retrieve: graph hubs / critical workflows (agent questions)
 Agent: note what naming heuristics miss (DI, events, odd package names)
-Script: plan-curriculum.js … --format json   (propose; signalClass on topics)
-Agent: SHORTLIST approve/demote/add — stamp agentApproval, corroborate naming-heuristic IDs
-Script: project-memory.js save-curriculum … --input <approved.json> --yes
-Loop 1–3 lessons/run: plan-lesson ↔ draft ↔ check-lesson-quality ↔ semantic ↔ save-lesson
+Script: plan-curriculum.js … --format json (Inventory / Propose)
+Agent: SHORTLIST approve/demote/add — stamp agentApproval (Selection)
+Script: project-memory.js save-curriculum … --input <approved.json> --yes (Save)
+Loop 1–3 lessons/run: plan-lesson (Propose) ↔ draft (Quality) ↔ check-lesson-quality (Mechanical QA) ↔ semantic (Quality judgment) ↔ save-lesson (Save)
 Agent: index + ledger; stop (resume next session)
 ```
 
@@ -158,7 +158,7 @@ Partial coverage requires `agentApproval.acceptedPartialScope`.
 
 ## Semantic checklist (agent; after mechanical QA + evidence floor)
 
-- One subject / outcome — not an omnibus of scanner hits.
+- One topic / outcome — not an omnibus of scanner hits.
 - At least one consumer↔dependency relationship **or** a named gap.
 - Material claims use honest evidence states in prose or ledger.
 - Run claim decomposition from `bottleneck-checkpoints.md` (B6).

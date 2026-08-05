@@ -17,7 +17,11 @@ async function run(args, env = {}) {
     reject: false,
     timeout: 120_000,
   });
-  return { code: result.exitCode, stdout: result.stdout ?? "", stderr: result.stderr ?? "" };
+  return {
+    code: result.exitCode,
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+  };
 }
 
 async function absent(path) {

@@ -60,6 +60,7 @@ export function buildTeachingCurriculum({
       rank: index + 1,
       tier: index === 0 ? "start-here" : "core",
       chapter: TEACHING_CHAPTER,
+      learningStage: "3. applied",
       title: String(subject.title),
       focus,
       learnerOutcome:

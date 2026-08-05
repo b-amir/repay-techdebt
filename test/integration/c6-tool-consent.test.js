@@ -16,7 +16,11 @@ async function runCli(scriptName, args) {
     reject: false,
     timeout: 120_000,
   });
-  return { code: result.exitCode, stdout: result.stdout ?? "", stderr: result.stderr ?? "" };
+  return {
+    code: result.exitCode,
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+  };
 }
 
 test("check-capabilities exits 0 and emits a machine-readable capability report", async () => {

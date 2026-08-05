@@ -18,9 +18,10 @@ test("renderWorkbookReadme includes offline view instructions and relative targe
   });
   assert.match(markdown, new RegExp(WORKBOOK_README_MARKER));
   assert.match(markdown, /# frontend workbook/);
-  assert.match(markdown, /view-lessons\.js/);
-  assert.match(markdown, /\.\.\/frontend/);
-  assert.match(markdown, /No chat agent is required/);
+  assert.match(markdown, /repay view/);
+  assert.doesNotMatch(markdown, /SKILL_ROOT/);
+  assert.doesNotMatch(markdown, /npm install -g/);
+  assert.match(markdown, /No AI agent needed/);
   assert.match(markdown, /INDEX\.md/);
 });
 
@@ -30,7 +31,7 @@ test("ensureWorkbookReadme creates then refreshes marked files, skips custom", a
     const meta = { targetRoot: resolve(dir, "..", "app"), projectName: "app" };
     assert.equal(await ensureWorkbookReadme(dir, meta), "created");
     const first = await readFile(resolve(dir, "README.md"), "utf8");
-    assert.match(first, /view-lessons\.js/);
+    assert.match(first, /repay view/);
 
     assert.equal(await ensureWorkbookReadme(dir, meta), "updated");
 

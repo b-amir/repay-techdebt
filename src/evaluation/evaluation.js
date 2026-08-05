@@ -57,7 +57,11 @@ export function evaluateDialogueProposal(curriculum, expectations = {}) {
       errors.push("Expected naming-heuristic topics to carry demotion reasons.");
   }
 
-  return { ok: errors.length === 0, errors, namingHeuristicCount: naming.length };
+  return {
+    ok: errors.length === 0,
+    errors,
+    namingHeuristicCount: naming.length,
+  };
 }
 
 /**
@@ -75,7 +79,11 @@ export async function evaluateDialogueProposalAsync(curriculum, expectations = {
     const check = validateAgentApproval(curriculum);
     if (!check.ok) errors.push(check.error);
   }
-  return { ok: errors.length === 0, errors, namingHeuristicCount: base.namingHeuristicCount };
+  return {
+    ok: errors.length === 0,
+    errors,
+    namingHeuristicCount: base.namingHeuristicCount,
+  };
 }
 
 /** Match must-find subjects by focus regex when stable topic IDs are planner hashes. */

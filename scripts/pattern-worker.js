@@ -18,7 +18,7 @@ const LOOP_TYPES = new Set([
   "ForStatement",
   "WhileStatement",
 ]);
-const TypeScriptParser = Parser.extend(tsPlugin({ jsx: true }));
+const TypeScriptParser = Parser.extend(/** @type {any} */ (tsPlugin)({ jsx: true }));
 
 function genericWalker(node, state, callback) {
   for (const [key, value] of Object.entries(node)) {
@@ -42,7 +42,13 @@ function snippetFor(source, lineNumber) {
 }
 
 function add(findings, source, file, line, pattern, analyzer) {
-  findings.push({ file, line, pattern, snippet: snippetFor(source, line), analyzer });
+  findings.push({
+    file,
+    line,
+    pattern,
+    snippet: snippetFor(source, line),
+    analyzer,
+  });
 }
 
 function detectAcorn(source, file, extension) {
@@ -74,10 +80,11 @@ function detectAcorn(source, file, extension) {
             `React Hook: ${node.callee.name}`,
             "acorn",
           );
+        const callee = /** @type {any} */ (node.callee);
         if (
-          node.callee?.type === "MemberExpression" &&
-          node.callee.object?.name === "Promise" &&
-          node.callee.property?.name === "all"
+          callee?.type === "MemberExpression" &&
+          callee.object?.name === "Promise" &&
+          callee.property?.name === "all"
         )
           add(findings, source, file, node.loc.start.line, "Promise.all aggregation", "acorn");
       },
@@ -97,12 +104,18 @@ function detectAcorn(source, file, extension) {
 }
 
 function detectTypeScript(source, file) {
-  const project = new Project({ skipAddingFilesFromTsConfig: true, useInMemoryFileSystem: true });
-  const sourceFile = project.createSourceFile(file, source, { overwrite: true });
+  const project = new Project({
+    skipAddingFilesFromTsConfig: true,
+    useInMemoryFileSystem: true,
+  });
+  const sourceFile = project.createSourceFile(file, source, {
+    overwrite: true,
+  });
   const findings = [];
   for (const node of sourceFile.getDescendants()) {
     const line = sourceFile.getLineAndColumnAtPos(node.getStart()).line;
-    if (node.getKind() === SyntaxKind.AsExpression && node.getTypeNode()?.getText() === "any")
+    const anyNode = /** @type {any} */ (node);
+    if (node.getKind() === SyntaxKind.AsExpression && anyNode.getTypeNode()?.getText() === "any")
       add(findings, source, file, line, "Type escape: as any", "ts-morph");
     if (node.getKind() === SyntaxKind.NonNullExpression)
       add(findings, source, file, line, "Non-null assertion", "ts-morph");
@@ -113,8 +126,8 @@ function detectTypeScript(source, file) {
         SyntaxKind.TypeAliasDeclaration,
         SyntaxKind.InterfaceDeclaration,
       ]).has(node.getKind()) &&
-      typeof node.getTypeParameters === "function" &&
-      node.getTypeParameters().length > 0
+      typeof anyNode.getTypeParameters === "function" &&
+      anyNode.getTypeParameters().length > 0
     )
       add(findings, source, file, line, "Generic type parameters", "ts-morph");
   }
@@ -149,7 +162,10 @@ function detectPython(source, file) {
 export default async function analyzeFile({ absolutePath, file }) {
   const details = await stat(absolutePath);
   if (details.size > MAX_FILE_BYTES)
-    return { findings: [], warning: `Pattern scan: skipped oversized file ${file}.` };
+    return {
+      findings: [],
+      warning: `Pattern scan: skipped oversized file ${file}.`,
+    };
   const source = await readFile(absolutePath, "utf8");
   const extension = extname(file).toLowerCase();
   if (extension === ".py") return { findings: detectPython(source, file) };

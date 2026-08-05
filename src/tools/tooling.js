@@ -78,7 +78,10 @@ export function bundledBinary(name) {
 
 export function pathWithSkillBinaries(environment = process.env) {
   const binDirectory = resolve(skillRoot, "node_modules", ".bin");
-  return { ...environment, PATH: `${binDirectory}${delimiter}${environment.PATH ?? ""}` };
+  return {
+    ...environment,
+    PATH: `${binDirectory}${delimiter}${environment.PATH ?? ""}`,
+  };
 }
 
 export async function runCommand(command, args, options = {}) {

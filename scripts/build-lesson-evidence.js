@@ -24,7 +24,7 @@ export async function execute(argv) {
   }
 
   const [targetInput, topicId] = positional;
-  const targetRoot = resolveTargetRoot(targetInput);
+  const { targetRoot } = await resolveTargetRoot(targetInput);
 
   // Read model and topics from project memory
   const memoryPath = resolve(targetRoot, ".repay", "memory.json");

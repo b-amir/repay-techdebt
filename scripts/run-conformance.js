@@ -4,7 +4,7 @@ import { execa } from "execa";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { stubWorkbookTrajectory, validateTrajectory } from "../src/dialogue/trajectory.js";
+import { FLOW_STATES, validateFlow } from "../src/dialogue/flow-machine.js";
 
 const { values, positionals } = parseArgs({
   options: {
@@ -16,15 +16,15 @@ const { values, positionals } = parseArgs({
 async function run() {
   const target = positionals[0] || process.cwd();
   const skillRoot = resolve(import.meta.dirname, "..");
-  console.log(`Running conformance suite for agent profile: ${values.agent}`);
-  console.log(`Target: ${target}`);
+  process.stdout.write(`Running conformance suite for agent profile: ${values.agent}\n`);
+  process.stdout.write(`Target: ${target}\n`);
 
-  console.log("\n[Step 1] Checking status...");
+  process.stdout.write("\n[Step 1] Checking status...\n");
   await execa("node", ["scripts/project-memory.js", "status", target, "--format", "json"], {
     cwd: skillRoot,
   });
 
-  console.log("\n[Step 2] Initializing memory...");
+  process.stdout.write("\n[Step 2] Initializing memory...\n");
   try {
     await execa("node", ["scripts/project-memory.js", "init", target, "--yes"], {
       cwd: skillRoot,
@@ -33,14 +33,24 @@ async function run() {
     if (!String(err.stderr ?? err.message).includes("already-exists")) throw err;
   }
 
-  console.log("\n[Step 3] Verifying status after init...");
+  process.stdout.write("\n[Step 3] Verifying status after init...\n");
   await execa("node", ["scripts/project-memory.js", "status", target, "--format", "json"], {
     cwd: skillRoot,
   });
 
-  console.log("\n[Step 4] Trajectory ask-fidelity (workbook stub)...");
-  const trajectory = stubWorkbookTrajectory();
-  const check = validateTrajectory(trajectory, { mode: "workbook" });
+  process.stdout.write("\\n[Step 4] Trajectory ask-fidelity (workbook stub)...\n");
+  const trajectory = [
+    FLOW_STATES.SETUP,
+    FLOW_STATES.PURPOSE,
+    FLOW_STATES.SHORTLIST,
+    FLOW_STATES.GATHER,
+    FLOW_STATES.DRAFT,
+    FLOW_STATES.MECHANICAL_CHECK,
+    FLOW_STATES.REVIEW,
+    FLOW_STATES.SAVE,
+    FLOW_STATES.WRAP,
+  ];
+  const check = validateFlow(trajectory);
   if (!check.ok) {
     throw new Error(`Trajectory stub failed: ${check.errors.join("; ")}`);
   }
@@ -57,10 +67,10 @@ async function run() {
     await rm(trajDir, { recursive: true, force: true });
   }
 
-  console.log("\n✅ Conformance run completed successfully. Core mechanics are intact.");
+  process.stdout.write("\n✅ Conformance run completed successfully. Core mechanics are intact.\n");
 }
 
 run().catch((err) => {
-  console.error("❌ Conformance run failed:", err.message);
+  process.stderr.write(`❌ Conformance run failed: ${err.message}\n`);
   process.exitCode = 1;
 });

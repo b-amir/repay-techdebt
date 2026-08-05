@@ -6,6 +6,7 @@ import { deduplicateAndSplitTopics } from "./topic-decomposition.js";
 import { buildStudyOrder } from "./curriculum-graph.js";
 import { applyLearnerProfile } from "./learner-profile.js";
 import { findOmnibusTopics } from "./curriculum-policy.js";
+import { repoSize } from "./repo-scale.js";
 
 const NON_PRODUCT =
   /(^|\/)(?:test|tests|__tests__|spec|specs|fixtures|mocks|scripts|tools|docs?|examples?|generated|dist|build|coverage|vendor|node_modules|storybook-static|\.storybook|\.react-router|e2e)(\/|$)/i;
@@ -41,6 +42,27 @@ function chapterFor(path, kind) {
   if (UI_SIGNAL.test(path)) return "User-facing features and interactions";
   if (kind === "component" || kind === "boundary") return "Architecture and ownership";
   return "Core modules and mechanics";
+}
+
+function learningStageFor(chapter) {
+  if (
+    [
+      "Architecture and ownership",
+      "Dependencies and ecosystem",
+      "Purpose and critical workflows",
+    ].includes(chapter)
+  )
+    return "1. orientation";
+  if (
+    [
+      "Verification and change safety",
+      "Reliability and operations",
+      "User-facing features and interactions",
+      "Trust, identity, and permissions",
+    ].includes(chapter)
+  )
+    return "3. applied";
+  return "2. foundational";
 }
 
 function titleFor(kind, path) {
@@ -81,12 +103,6 @@ function outcomeFor(kind, path) {
   return `You will understand why ${label} matters, who uses it, and how to change it safely.`;
 }
 
-function desiredTopicRange(modeledFiles) {
-  if (modeledFiles < 100) return { size: "small" };
-  if (modeledFiles < 1000) return { size: "medium" };
-  return { size: "large" };
-}
-
 function entryImportance(path) {
   const depth = path.split("/").length;
   if (NON_PRODUCT.test(path)) return 38;
@@ -95,6 +111,9 @@ function entryImportance(path) {
   return 92;
 }
 
+/**
+ * @param {{ kind: string, focus: string, paths: string[], reasons: string[], importance?: number, relationCount?: number }} candidate
+ */
 function makeCandidate({ kind, focus, paths, reasons, relationCount = 0 }) {
   const evidencePaths = [...new Set(paths.filter(Boolean))].slice(0, 5);
 
@@ -106,9 +125,12 @@ function makeCandidate({ kind, focus, paths, reasons, relationCount = 0 }) {
     ...rankResult.features.negative.map((n) => `(-) ${n.reason}`),
   ];
 
+  const chapter = chapterFor(focus, kind);
+
   return {
     id: stableTopicId(kind, focus),
-    chapter: chapterFor(focus, kind),
+    chapter,
+    learningStage: learningStageFor(chapter),
     title: titleFor(kind, focus),
     focus,
     learnerOutcome: outcomeFor(kind, focus),
@@ -116,7 +138,11 @@ function makeCandidate({ kind, focus, paths, reasons, relationCount = 0 }) {
     importanceReasons: [...new Set(finalReasons)].slice(0, 4),
     evidencePaths,
     relationCount,
-    signalClass: topicSignalClass({ kind, relationCount, reasons: finalReasons }),
+    signalClass: topicSignalClass({
+      kind,
+      relationCount,
+      reasons: finalReasons,
+    }),
     status: "planned",
     lessonPath: null,
     prerequisites: [],
@@ -324,7 +350,7 @@ export function planCurriculum(model) {
     if (!prior || candidate.importance > prior.importance) unique.set(key, candidate);
   }
 
-  const range = desiredTopicRange(model.coverage.modeledFiles);
+  const range = repoSize(model.coverage.modeledFiles);
   const ranked = [...unique.values()].sort(
     (a, b) =>
       b.importance - a.importance ||
@@ -356,7 +382,7 @@ export function planCurriculum(model) {
       "naming-heuristic-chapter-bias",
       ...(omnibus.length > 0 ? ["omnibus-topic-titles"] : []),
     ],
-    extraMustNotClaim: ["complete-subject-inventory"],
+    extraMustNotClaim: ["complete-topic-inventory"],
     extraNextAsks: [
       {
         who: "agent",
@@ -366,7 +392,7 @@ export function planCurriculum(model) {
       {
         who: "tool",
         do: "graphify-query-hubs",
-        why: "recover-subjects-regex-may-miss",
+        why: "recover-topics-regex-may-miss",
       },
       ...(omnibus.length > 0
         ? [
@@ -388,7 +414,11 @@ export function planCurriculum(model) {
     generatedAt: model.generatedAt,
     target: model.target,
     repositorySize: range.size,
-    scale: { ...range, availableCandidates: ranked.length, selectedTopics: selected.length },
+    scale: {
+      ...range,
+      availableCandidates: ranked.length,
+      selectedTopics: selected.length,
+    },
     coverage: model.coverage,
     topics: selected,
     unresolved: model.profile.uncertainties,
@@ -401,7 +431,7 @@ export function renderCurriculumMarkdown(curriculum) {
   const lines = [
     `# ${words(basename(curriculum.target.root))} learning index`,
     "",
-    `This workbook contains **${curriculum.topics.length} focused ${curriculum.topics.length === 1 ? "subject" : "subjects"}**. ${written} ${written === 1 ? "lesson is" : "lessons are"} written. Start with the highest-ranked subjects, or choose any topic whose outcome matches the change you need to make.`,
+    `This workbook contains **${curriculum.topics.length} focused ${curriculum.topics.length === 1 ? "topic" : "topics"}**. ${written} ${written === 1 ? "lesson is" : "lessons are"} written. Start with the highest-ranked topics, or choose any topic whose outcome matches the change you need to make.`,
     "",
     "Each lesson teaches one mental model. The index is intentionally broader than the lesson set so you can choose what to learn next without regenerating the repository analysis.",
     "",
@@ -412,7 +442,7 @@ export function renderCurriculumMarkdown(curriculum) {
     for (const topic of curriculum.topics.filter((item) => item.chapter === chapter)) {
       const isCompleted = curriculum.learnerCompletion?.[topic.id] === true;
       const checkbox = topic.lessonPath ? (isCompleted ? "- [x] " : "- [ ] ") : "- ";
-      const subject = topic.lessonPath ? `[${topic.title}](${topic.lessonPath})` : topic.title;
+      const topicLink = topic.lessonPath ? `[${topic.title}](${topic.lessonPath})` : topic.title;
 
       let status = "";
       if (topic.status === "stale") {
@@ -421,7 +451,7 @@ export function renderCurriculumMarkdown(curriculum) {
         status = " *(Planned)*";
       }
 
-      lines.push(`${checkbox}**${subject}**${status} — ${topic.learnerOutcome}`);
+      lines.push(`${checkbox}**${topicLink}**${status} — ${topic.learnerOutcome}`);
     }
     lines.push("");
   }

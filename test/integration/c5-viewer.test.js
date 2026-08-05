@@ -8,6 +8,8 @@ import { execa } from "execa";
 import { test } from "vite-plus/test";
 import { buildTeachingCurriculum } from "../../src/curriculum/index.js";
 import { createViewerServer } from "../../src/viewer/index.js";
+import { recordJudgment } from "../../src/lessons/lesson-judgment.js";
+import { PASSING_JUDGMENT } from "../helpers/passing-judgment.js";
 
 const root = resolve(import.meta.dirname, "..", "..");
 const memoryScript = resolve(root, "scripts", "project-memory.js");
@@ -51,12 +53,20 @@ async function runMemory(args, env = {}) {
     reject: false,
     timeout: 120_000,
   });
-  return { code: result.exitCode, stdout: result.stdout ?? "", stderr: result.stderr ?? "" };
+  return {
+    code: result.exitCode,
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+  };
 }
 
-async function listen(server, port = 18765) {
+async function listen(server) {
   return new Promise((resolveListen, reject) => {
-    server.listen(port, "127.0.0.1", () => resolveListen(port));
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      const port = typeof address === "object" && address ? address.port : 0;
+      resolveListen(port);
+    });
     server.once("error", reject);
   });
 }
@@ -77,6 +87,7 @@ test("save-lesson without curriculum exits workbook-linkage-required", async () 
     ]);
     assert.equal(init.code, 0, init.stderr);
     await writeFile(draft, validConciseLesson());
+    await recordJudgment(draft, PASSING_JUDGMENT);
     const saved = await runMemory([
       "save-lesson",
       target,
@@ -101,6 +112,7 @@ test("mini-curriculum save-lesson exposes viewer hint and server lists the lesso
   try {
     await writeLessonEvidence(target);
     await writeFile(draft, validConciseLesson());
+    await recordJudgment(draft, PASSING_JUDGMENT);
 
     const init = await runMemory(
       ["init", target, "--output-location", "sister", "--depth", "concise", "--yes"],
@@ -147,7 +159,7 @@ test("mini-curriculum save-lesson exposes viewer hint and server lists the lesso
     assert.equal(savedLesson.code, 0, savedLesson.stderr);
     const payload = JSON.parse(savedLesson.stdout);
     assert.equal(payload.type, "lesson-saved");
-    assert.equal(payload.viewer.script, "scripts/view-lessons.js");
+    assert.equal(payload.viewer.command, "repay view");
     assert.equal(payload.viewer.deepLinkRel, payload.file);
     assert.equal(payload.viewer.openRecommended, true);
 
@@ -209,6 +221,7 @@ test("planned topic page is clickable and shows --create instruction", async () 
   try {
     await writeLessonEvidence(target);
     await writeFile(draft, validConciseLesson());
+    await recordJudgment(draft, PASSING_JUDGMENT);
 
     const init = await runMemory(
       ["init", target, "--output-location", "sister", "--depth", "concise", "--yes"],

@@ -4,18 +4,18 @@ import { join } from "node:path";
 
 async function validateRelease() {
   const root = process.cwd();
-  console.log("Validating release from:", root);
+  process.stdout.write(`Validating release from: ${root}\n`);
   let failed = false;
 
   // 1. Verify package.json
   try {
     const pkg = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
     if (!pkg.name || !pkg.version) {
-      console.error("❌ package.json must contain a name and version");
+      process.stderr.write("❌ package.json must contain a name and version\n");
       failed = true;
     }
   } catch (err) {
-    console.error("❌ Failed to read package.json:", err.message);
+    process.stderr.write(`❌ Failed to read package.json: ${err.message}\n`);
     failed = true;
   }
 
@@ -23,14 +23,14 @@ async function validateRelease() {
   try {
     const skill = await readFile(join(root, "SKILL.md"), "utf8");
     if (!skill.startsWith("---")) {
-      console.error("❌ SKILL.md must begin with YAML frontmatter");
+      process.stderr.write("❌ SKILL.md must begin with YAML frontmatter\n");
       failed = true;
     } else if (!skill.includes("name:") || !skill.includes("description:")) {
-      console.error("❌ SKILL.md frontmatter must declare name and description");
+      process.stderr.write("❌ SKILL.md frontmatter must declare name and description\n");
       failed = true;
     }
   } catch (err) {
-    console.error("❌ Failed to read SKILL.md:", err.message);
+    process.stderr.write(`❌ Failed to read SKILL.md: ${err.message}\n`);
     failed = true;
   }
 
@@ -40,7 +40,7 @@ async function validateRelease() {
     // For this demonstration, we'll just check if SKILL.md is reasonable.
     const s = await stat(join(root, "SKILL.md"));
     if (s.size > 1024 * 500) {
-      console.error("❌ SKILL.md is unreasonably large (> 500KB)");
+      process.stderr.write("❌ SKILL.md is unreasonably large (> 500KB)\n");
       failed = true;
     }
   } catch {
@@ -48,14 +48,14 @@ async function validateRelease() {
   }
 
   if (failed) {
-    console.error("\nRelease validation FAILED.");
+    process.stderr.write("\nRelease validation FAILED.\n");
     process.exitCode = 1;
   } else {
-    console.log("\n✅ Release validation passed!");
+    process.stdout.write("\n✅ Release validation passed!\n");
   }
 }
 
 validateRelease().catch((err) => {
-  console.error("Unexpected error:", err);
+  process.stderr.write(`Unexpected error: ${err.stack || err}\n`);
   process.exitCode = 1;
 });

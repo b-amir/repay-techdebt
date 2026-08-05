@@ -86,3 +86,11 @@ Before publishing, confirm:
 - the lesson remains easy to scan despite the richer internal analysis;
 - unresolved questions are visible and no tool failure was hidden.
 - `check-lesson-quality.js` passes before the lesson is saved.
+
+### Required Anatomy Checklist
+
+- [ ] **BLUF:** Verify the opening paragraph states the core mechanism and its project consequence.
+- [ ] **Tricky-part heading:** Verify there is a specific section calling out a non-obvious part of the mechanism.
+- [ ] **Worked-trace:** Verify there is a step-by-step trace of the flow or mechanism.
+- [ ] **Contrast:** Verify there is a comparison (e.g., buggy vs fixed code, or consequences of omitting a step).
+- [ ] **Takeaway:** Verify the lesson ends with a concluding sentence anchoring the most important insight.

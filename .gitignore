@@ -5,3 +5,23 @@ repomix-output.*
 .repomix/
 .serena/
 coverage
+
+# OS generated files
+.DS_Store
+
+# Log files
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# IDEs and Editors
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+
+# Caches & build info
+.cache/
+.eslintcache
+*.tsbuildinfo

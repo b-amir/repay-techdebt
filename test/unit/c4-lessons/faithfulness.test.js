@@ -126,11 +126,10 @@ test("assessClaimFaithfulness: no CLAIMS block → auto-near-citation mode", asy
 test("runTeachFloors returns the documented floor shape", async () => {
   const dir = await fixture();
   try {
-    const md = "Some lesson body referencing `billing/capture.js:1`.\n";
+    const md =
+      "Some lesson body referencing `billing/capture.js:1`.\n\n# Code\n```javascript\nfunction x() {}\n```\n\n# Run\n# Modify\n# Make";
     const result = await runTeachFloors(dir, md);
-    assert.ok(
-      ["floorOk", "quality", "citations", "pedagogy", "faithfulness"].every((k) => k in result),
-    );
+    assert.ok(["floorOk", "quality", "citations", "faithfulness"].every((key) => key in result));
     assert.equal(result.citations.ok, true);
   } finally {
     await rm(dir, { recursive: true, force: true });

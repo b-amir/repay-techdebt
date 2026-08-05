@@ -147,7 +147,11 @@ export const programModelSchema = z.object({
   }),
   profile: z.object({
     archetypes: z.array(
-      z.object({ id: z.string(), score: z.number(), reasons: z.array(z.string()) }),
+      z.object({
+        id: z.string(),
+        score: z.number(),
+        reasons: z.array(z.string()),
+      }),
     ),
     primaryArchetype: z.string(),
     components: z.array(
@@ -157,7 +161,11 @@ export const programModelSchema = z.object({
         files: z.number().int().nonnegative(),
         manifests: z.array(z.string()),
         archetypes: z.array(
-          z.object({ id: z.string(), score: z.number(), reasons: z.array(z.string()) }),
+          z.object({
+            id: z.string(),
+            score: z.number(),
+            reasons: z.array(z.string()),
+          }),
         ),
         primaryArchetype: z.string(),
       }),

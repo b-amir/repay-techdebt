@@ -20,7 +20,7 @@ async function run() {
   ];
 
   for (const size of sizes) {
-    console.log(`\nBenchmarking ${size.name} repo...`);
+    process.stdout.write(`\nBenchmarking ${size.name} repo...\n`);
 
     // Cold start
     const coldStart = Date.now();
@@ -28,14 +28,17 @@ async function run() {
     let data = await cache.get(key);
 
     if (!data) {
-      data = { analyzedFiles: size.files.length, time: new Date().toISOString() };
+      data = {
+        analyzedFiles: size.files.length,
+        time: new Date().toISOString(),
+      };
       // Simulate analysis delay
       await new Promise((r) => setTimeout(r, 100));
       await cache.set(key, data);
     }
     const coldDuration = Date.now() - coldStart;
     const coldBudget = checkBudget(coldDuration, size.budgetMs);
-    console.log(`  Cold: ${coldBudget.message}`);
+    process.stdout.write(`  Cold: ${coldBudget.message}\n`);
 
     // Warm start
     const warmStart = Date.now();
@@ -43,15 +46,15 @@ async function run() {
     const warmData = await cache.get(warmKey);
     const warmDuration = Date.now() - warmStart;
     const warmBudget = checkBudget(warmDuration, size.budgetMs / 4); // warm should be much faster
-    console.log(`  Warm: ${warmBudget.message}`);
+    process.stdout.write(`  Warm: ${warmBudget.message}\n`);
 
     if (!warmData) {
-      console.error("  Error: Cache failed to retrieve data.");
+      process.stderr.write("  Error: Cache failed to retrieve data.\n");
     }
   }
 }
 
 run().catch((err) => {
-  console.error(err);
+  process.stderr.write(`${err.stack || err}\n`);
   process.exitCode = 1;
 });

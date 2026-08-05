@@ -503,6 +503,10 @@ export function summarizeModel(model) {
           .map((state) => [state, model.evidence.filter((item) => item.state === state).length]),
       ),
     },
-    graphSummary: { nodes: model.nodes.length, edges: model.edges.length, edgesByKind: edgeCounts },
+    graphSummary: {
+      nodes: model.nodes.length,
+      edges: model.edges.length,
+      edgesByKind: edgeCounts,
+    },
   };
 }

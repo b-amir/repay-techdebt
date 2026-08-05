@@ -58,7 +58,11 @@ test("programNodeSchema accepts a declared node and rejects an unknown kind", ()
   assert.deepEqual(parsed.attributes, {});
   assert.deepEqual(parsed.evidenceIds, []);
 
-  const bad = programNodeSchema.safeParse({ id: "n2", kind: "not-a-real-kind", name: "x" });
+  const bad = programNodeSchema.safeParse({
+    id: "n2",
+    kind: "not-a-real-kind",
+    name: "x",
+  });
   assert.equal(bad.success, false);
 });
 
@@ -72,8 +76,13 @@ test("programEdgeSchema enforces confidence bounds and a known edge kind", () =>
   });
   assert.equal(ok.kind, "calls");
   assert.equal(
-    programEdgeSchema.safeParse({ id: "e2", kind: "calls", from: "a", to: "b", confidence: 2 })
-      .success,
+    programEdgeSchema.safeParse({
+      id: "e2",
+      kind: "calls",
+      from: "a",
+      to: "b",
+      confidence: 2,
+    }).success,
     false,
   );
   assert.equal(

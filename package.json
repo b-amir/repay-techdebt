@@ -2,6 +2,9 @@
   "name": "repay-techdebt-scripts",
   "version": "1.0.0",
   "private": true,
+  "bin": {
+    "repay": "./bin/repay"
+  },
   "type": "module",
   "exports": {
     "./foundations": "./src/foundations/index.js",
@@ -13,12 +16,13 @@
   },
   "scripts": {
     "test": "vp test",
-    "test:hygiene": "vp test test/hygiene test/architecture-hygiene.test.js",
+    "test:hygiene": "vp test test/hygiene",
     "test:unit": "vp test test/unit",
     "test:integration": "vp test test/integration",
     "test:conformance": "vp test test/conformance",
     "lint:orphans": "dependency-cruise src scripts test --output-type err-long --progress none",
-    "test:coverage": "vp test --coverage --coverage.provider=v8 --coverage.reporter=text --coverage.include='src/**'"
+    "test:coverage": "vp test --coverage --coverage.provider=v8 --coverage.reporter=text --coverage.include='src/**'",
+    "typecheck": "tsc --noEmit --project jsconfig.json"
   },
   "dependencies": {
     "@ast-grep/lang-python": "0.0.6",
@@ -46,7 +50,9 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "4.1.10"
+    "@types/node": "^22.20.1",
+    "@vitest/coverage-v8": "4.1.10",
+    "typescript": "^5.0.0"
   },
   "devEngines": {
     "packageManager": {

@@ -1,4 +1,4 @@
-# Lesson writing standard
+# Lesson Writing Standard
 
 Read this before drafting or reviewing any learner-facing lesson. The repository analysis may be
 complex; the prose must not be.
@@ -6,7 +6,7 @@ complex; the prose must not be.
 ## The unit of teaching
 
 One lesson teaches one durable mental model, decision, flow, or mechanism. If the title needs “and”
-to join two independently useful subjects, split it. Code generation, API ownership, cache
+to join two independently useful topics, split it. Code generation, API ownership, cache
 invalidation, and handwritten contract drift are four lessons, not four sections in one chapter.
 
 Default size:
@@ -15,12 +15,24 @@ Default size:
 - balanced: 450–950 words;
 - deep: 700–1,300 words.
 
-Depth adds evidence or examines a mechanism more closely. It does not add unrelated subjects.
+Depth adds evidence or examines a mechanism more closely. It does not add unrelated topics.
+
+## Required anatomy
+
+Every lesson must contain these five elements to ensure it teaches effectively rather than just describing code.
+
+| Element                 | Description                                                                                  | Example                                                                                                                                              |
+| ----------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **BLUF**                | Bottom Line Up Front. The core mechanism and consequence in the opening paragraph.           | _When a request hits `/api/order`, the permission check runs **before** the price is computed — so a forbidden request never touches pricing state._ |
+| **Tricky-part heading** | A specific section heading calling out the non-obvious part of the mechanism.                | _## Why the cache is invalidated twice_                                                                                                              |
+| **Worked-trace**        | An ordered trace through the mechanism or flow.                                              | _1. `POST /order` → 2. `checkPermission` → 3. `computePrice` → 4. `invalidateCache`._                                                                |
+| **Contrast**            | A comparison showing what goes wrong if the mechanism is omitted or implemented incorrectly. | _`diff\n- old buggy code\n+ fixed code\n` or a "What goes wrong if you skip X" subsection._                                                          |
+| **Takeaway**            | A concluding sentence anchoring the most important insight.                                  | _**If you remember one thing:** the permission decision owns the request — never let pricing or caching run first._                                  |
 
 ## Choose importance before novelty
 
-A teachable curiosity is not automatically worth a lesson. Rank the subject before drafting it.
-Prefer subjects that explain:
+A teachable curiosity is not automatically worth a lesson. Rank the topic before drafting it.
+Prefer topics that explain:
 
 1. why the program exists and what a user is trying to accomplish;
 2. a critical user, business, security, data, or operational workflow;
@@ -43,7 +55,7 @@ Keep the same name for the same concept. Prefer “the route rejects a forbidden
 rejection is performed.” Prefer the exact consequence to adjectives such as “robust,” “powerful,”
 or “scalable.”
 
-Every section must answer a reader question. Good headings name the subject, such as “Where the
+Every section must answer a reader question. Good headings name the topic, such as “Where the
 permission decision happens” or “Why the cache is invalidated twice.” Do not expose teaching
 machinery as headings: `Predict`, `Read`, `Run`, `Investigate`, `Modify`, and `Make` are internal
 moves, not an outline. Avoid `Overview`, `Details`, and `Conclusion` when a specific heading exists.
@@ -81,7 +93,7 @@ like copies of the same form.
 
 Before saving:
 
-1. Remove every sentence that does not serve the title's single subject.
+1. Remove every sentence that does not serve the title's single topic.
 2. Split paragraphs that make two points.
 3. Replace passive constructions and abstract nouns with the actor and action.
 4. Remove repetition, throat-clearing, generic best practices, and AI-flavored filler such as
@@ -90,6 +102,7 @@ Before saving:
 6. Check that the ending asks for one useful act of recall, tracing, debugging, modification, or design challenge. Provide private rubric or answer guidance.
 7. Ensure the lesson establishes clear motivation, teaches a causal mental model, anticipates at least one misconception, and manages cognitive load appropriately.
 8. Run `check-lesson-quality.js`; fix every error. Treat warnings as revision prompts, not noise.
+9. Ensure your draft will pass the AI reviewer. See `references/lesson-reviewer.md` for the rubric.
 
 The automated check is a floor, not proof of an excellent lesson. A passing lesson can still be
 unimportant, incorrect, or dull; source verification and editorial judgment remain required.

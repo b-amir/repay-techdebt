@@ -17,15 +17,16 @@ function isPartial(coverage) {
   return coverage?.truncated === true || status === "partial" || status === "scoped-analysis";
 }
 
-/**
- * @param {object} options
- * @param {"gate"|"inventory"|"retrieve"|"propose"|"check"} options.role
- * @param {object} [options.coverage]
- * @param {string[]} [options.unresolved]
- * @param {string[]} [options.extraBlindSpots]
- * @param {string[]} [options.extraMustNotClaim]
- * @param {object[]} [options.extraNextAsks]
- * @param {"pr"|"workbook"|"focused"} [options.mode]
+/** Build a dialogue envelope for script→agent handoff.
+ * @param {object} [opts]
+ * @param {string} [opts.role] required; throws if missing
+ * @param {object} [opts.coverage]
+ * @param {string[]} [opts.unresolved]
+ * @param {string[]} [opts.extraBlindSpots]
+ * @param {string[]} [opts.extraMustNotClaim]
+ * @param {object[]} [opts.extraNextAsks]
+ * @param {string} [opts.mode]
+ * @param {string} [opts.flowState]
  */
 export function buildDialogueEnvelope({
   role,
@@ -35,6 +36,7 @@ export function buildDialogueEnvelope({
   extraMustNotClaim = [],
   extraNextAsks = [],
   mode = null,
+  flowState = "setup",
 } = {}) {
   if (!ROLES.has(role)) throw new Error(`dialogue role must be one of ${[...ROLES].join("|")}`);
 
@@ -96,6 +98,7 @@ export function buildDialogueEnvelope({
 
   return {
     role,
+    flowState,
     coverageStatus: coverageStatus(coverage),
     blindSpots: dedupe(blindSpots, (item) => item),
     mustNotClaim: dedupe(mustNotClaim, (item) => item),
@@ -103,7 +106,12 @@ export function buildDialogueEnvelope({
   };
 }
 
-/** Mark curriculum topic provenance for agent shortlist turns. */
+/** Mark curriculum topic provenance for agent shortlist turns.
+ * @param {object} opts
+ * @param {string} [opts.kind]
+ * @param {number} [opts.relationCount]
+ * @param {string[]} [opts.reasons]
+ */
 export function topicSignalClass({ kind, relationCount = 0, reasons = [] } = {}) {
   if (
     kind === "workflow" &&

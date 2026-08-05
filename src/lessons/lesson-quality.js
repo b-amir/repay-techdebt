@@ -10,6 +10,11 @@ const EMPTY_HEADING =
   /^(?:introduction|overview|details|more information|conclusion|predict|read|run|investigate|modify|make)$/i;
 const AI_PUFFERY =
   /\b(?:delve|game[- ]changer|revolutionary|cutting[- ]edge|robust and scalable|seamlessly|in today(?:'s)? (?:fast-paced|digital) world)\b/i;
+const TEMPLATED_CLAIMS = [
+  /Explains the purpose of/i,
+  /Explains how it is called by/i,
+  /Explains dependency on/i,
+];
 
 function wordCount(markdown) {
   return markdown
@@ -60,6 +65,14 @@ export function inspectLesson(markdown, { depth = "balanced", expectedEvidencePa
     errors.push("Cite at least one source anchor selected for this curriculum topic.");
   if (AI_PUFFERY.test(markdown))
     errors.push("Remove generic or promotional AI phrasing; use concrete project language.");
+
+  // Reject templated claims
+  const templatedMatches = TEMPLATED_CLAIMS.filter((regex) => regex.test(markdown));
+  if (templatedMatches.length >= 2) {
+    errors.push(
+      "Lesson uses templated claim language. Make specific, evidence-derived claims instead.",
+    );
+  }
 
   // Diagram constraints (Task 19)
   const mermaidBlocks = [...markdown.matchAll(/```mermaid\n([\s\S]*?)\n```/g)];
@@ -131,10 +144,11 @@ export function evaluateSpecification(markdown, spec) {
 
   // A simplistic heuristic since we don't have an LLM here:
   // We check if required claims are mentioned by keywords.
-  for (const claim of spec.requiredClaims) {
+  for (const item of spec.requiredClaims) {
+    const claim = typeof item === "string" ? item : item.claim;
     // Basic heuristic: check if any word of the claim > 4 letters is in the markdown
     const keyWords = claim
-      .split(/\s+/)
+      .split(/[^a-zA-Z0-9]+/)
       .filter((w) => w.length > 4)
       .map((w) => w.toLowerCase());
     const mdLower = markdown.toLowerCase();

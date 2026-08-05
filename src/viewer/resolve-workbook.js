@@ -30,7 +30,7 @@ function deriveLayout(memory, config) {
 /**
  * Resolve the workbook surface for a target root.
  *
- * @returns {Promise<{ ready: boolean, targetRoot: string } & Layout>}
+ * @returns {Promise<{ ready: boolean, targetRoot: string } & Record<string, unknown>>}
  *   `ready` is false when no project memory config exists yet; callers should still
  *   serve an empty shell rather than crash.
  */

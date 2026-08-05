@@ -55,7 +55,13 @@ try {
     nextAsks:
       blocking.length === 0
         ? [{ who: "agent", do: "proceed-or-save", why: "faithfulness-ok" }]
-        : [{ who: "agent", do: "rewrite-unsupported-claims", why: "faithfulness-failed" }],
+        : [
+            {
+              who: "agent",
+              do: "rewrite-unsupported-claims",
+              why: "faithfulness-failed",
+            },
+          ],
   };
   if (format === "text") {
     process.stdout.write(

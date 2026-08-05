@@ -6,9 +6,9 @@ argv, or raw CLI dumps into chat.
 
 ## Voice (Goldilocks)
 
-| Too short | Right | Too long |
-| --------- | ----- | -------- |
-| “Study list?” | One heading + why it matters + table | Paragraphs restating the table |
+| Too short                            | Right                                   | Too long                       |
+| ------------------------------------ | --------------------------------------- | ------------------------------ |
+| “Study list?”                        | One heading + why it matters + table    | Paragraphs restating the table |
 | Dumping paths with no “what is this” | 1–2 sentences that orient a first-timer | Narrating every script you ran |
 
 **Routine turn:** progress · blank line · **≤25 words** of useful status (what finished / what’s next).  
@@ -17,46 +17,33 @@ argv, or raw CLI dumps into chat.
 
 ## Hard rules
 
-| Do not | Do |
-| ------ | -- |
-| Stack tables with no blank line | **One blank line between every table** |
-| Empty header cells | **Every header cell has a short label** |
-| Important ask with only a tiny lead | **`###` heading** + one why-line |
+| Do not                              | Do                                          |
+| ----------------------------------- | ------------------------------------------- |
+| Stack tables with no blank line     | **One blank line between every table**      |
+| Empty header cells                  | **Every header cell has a short label**     |
+| Important ask with only a tiny lead | **`###` heading** + one why-line            |
 | Script JSON / `--open` argv in chat | Silent scripts; show human paths + URL only |
-| Ask save / open in **Fast** mode | Auto-save + auto-open viewer |
-| “I’ll now…”, filler | Run work; show oriented tables |
-| Bullets for progress | Progress table from `session-status.md` |
+| Ask save / open in **Fast** mode    | Auto-save + auto-open viewer                |
+| “I’ll now…”, filler                 | Run work; show oriented tables              |
+| Bullets for progress                | Progress table from `session-status.md`     |
 
 ## Modes
 
-| Mode | Reply | Asks | Saves |
-| ---- | ----- | ---- | ----- |
-| **Fast** | `fast` | Setup confirm · purpose · study list · wrap | **Automatic** — no save yes/no |
-| **Control** | `control` | Full settings + save/open confirms when policy is `ask` | As configured |
+| Mode        | Reply                   | Asks                                                     | Saves                          |
+| ----------- | ----------------------- | -------------------------------------------------------- | ------------------------------ |
+| **Fast**    | `fast` / `yes` to Start | Auto-purpose · inline review · auto-save · ask to refine | **Automatic** — no save yes/no |
+| **Control** | `control`               | Full settings + save/open confirms when policy is `ask`  | As configured                  |
 
-Fast still teaches and shows progress — it just **doesn’t stop** for save/open rituals.
+Fast still teaches and shows progress — it just **doesn’t stop** for setup or save/open rituals.
 
 ## Typography hierarchy
 
-| Level | Use |
-| ----- | --- |
+| Level         | Use                                               |
+| ------------- | ------------------------------------------------- |
 | `### Heading` | Every important question the user must understand |
-| One why-line | Under the heading — plain English, ≤20 words |
-| Tables | Facts, choices, paths |
-| `👉 Reply` | Last line when they must answer |
-
-```markdown
-### Where should we start?
-
-We map the whole app into a study list, then write **3 lessons** this session so your agent
-doesn’t burn a huge token budget. Easy to add more later — you’ll be walked through it.
-
-| Ask | Reply |
-| --- | ----- |
-| 🎯 Purpose | one sentence? |
-
-👉 **Reply:** your sentence · `skip`
-```
+| One why-line  | Under the heading — plain English, ≤20 words      |
+| Tables        | Facts, choices, paths                             |
+| `👉 Reply`    | Last line when they must answer                   |
 
 ## Exact turn shape
 
@@ -65,124 +52,123 @@ doesn’t burn a huge token budget. Easy to add more later — you’ll be walke
 
 | Step | {current}/{total} |
 | ---- | ----------------- |
-| ✅ | … |
-| 🔵 | **{current}** |
-| ⬜ | … |
+| ✅   | …                 |
+| 🔵   | **{current}**     |
+| ⬜   | …                 |
 
 ### {Question in plain words}
 
 {One why-line for a first-timer.}
 
-| Mark | … |
-| ---- | - |
-| … | … |
+| Mark | …   |
+| ---- | --- |
+| …    | …   |
 
 👉 **Reply:** `…`
 ```
 
 ## Emoji lexicon
 
-| Emoji | Use |
-| ----- | --- |
-| 🔵 ✅ ⬜ | Progress only |
-| ⚡ 🎛️ | Fast / Control |
-| 📁 📖 🔒 | Paths / privacy |
-| 🛠️ | Skill install |
-| 👉 | Reply footer |
-| ⚠️ | Blocker |
+| Emoji       | Use                              |
+| ----------- | -------------------------------- |
+| 🔵 ✅ ⬜    | Progress only                    |
+| ⚡ 🎛️       | Fast / Control                   |
+| 📁 📖 🔒    | Paths / privacy                  |
+| 🛠️          | Skill install                    |
+| 👉          | Reply footer                     |
+| ⚠️          | Blocker                          |
 | 🎯 📋 ✍️ 🌐 | Purpose / list / save / workbook |
 
 ## Table design
 
-| Rule | Value |
-| ---- | ----- |
-| Blank line between tables | **Required** |
-| Empty headers | **Forbidden** |
-| Progress header | `Step` \| `{current}/{total}` (1-based index of 🔵 — never 0, never ✅-count) |
-| Progress col 1 data | Emoji only |
-| Bold | 🔵 row only |
+| Rule                      | Value                                                                         |
+| ------------------------- | ----------------------------------------------------------------------------- |
+| Blank line between tables | **Required**                                                                  |
+| Empty headers             | **Forbidden**                                                                 |
+| Progress header           | `Step` \| `{current}/{total}` (1-based index of 🔵 — never 0, never ✅-count) |
+| Progress col 1 data       | Emoji only                                                                    |
+| Bold                      | 🔵 row only                                                                   |
 
 ### Progress (exact)
 
 ```markdown
 **Progress**
 
-| Step | 4/5 |
-| ---- | --- |
-| ✅ | Get ready |
-| 🔵 | **Write lessons** — 2/3 |
-| ⬜ | Wrap up |
+| Step | 3/4                                 |
+| ---- | ----------------------------------- |
+| ✅   | Reading your code                   |
+| ✅   | Picking the 3 most valuable lessons |
+| 🔵   | **Writing lesson 1/3**              |
+| ⬜   | You're set                          |
 ```
 
-In **Fast**, skip a separate **Open workbook** step — open the viewer when the batch is ready, then
-**Wrap up**.
+In **Fast**, skip a separate **Open workbook** step — open the viewer when the first lesson is ready.
 
 ### Paths (exact)
 
 ```markdown
-| Mark | Detail |
-| ---- | ------ |
-| 📖 | Short lessons from your repo → a browser workbook |
-| 📁 Project | `path/to/project` |
+| Mark       | Detail                                             |
+| ---------- | -------------------------------------------------- |
+| 📖         | Short lessons from your repo → a browser workbook  |
+| 📁 Project | `path/to/project`                                  |
 | 📖 Lessons | `path/to/workbook` _(folder beside your Git repo)_ |
-| 🔒 | Your app source is never modified |
+| 🔒         | Your app source is never modified                  |
 ```
 
-### Setup choice — Fast / Control (exact)
+### Setup choice — Control (exact)
 
 ```markdown
 ### How much setup do you want?
 
 **Fast** uses sensible defaults and auto-saves lessons. **Control** lets you pick every setting.
 
-| Mark | Mode | Reply |
-| ---- | ---- | ----- |
-| ⚡ | Fast — defaults + auto-save, fewer stops | `fast` |
-| 🎛️ | Control — pick notes, depth, saves yourself | `control` |
+| Mark | Mode                                        | Reply     |
+| ---- | ------------------------------------------- | --------- |
+| ⚡   | Fast — defaults + auto-save, fewer stops    | `fast`    |
+| 🎛️   | Control — pick notes, depth, saves yourself | `control` |
 
 👉 **Reply:** `fast` or `control`
 ```
 
-### Fast confirm (exact)
-
-```markdown
-### Start with these defaults?
-
-Notes stay private on this machine. Lessons land in the sister workbook folder beside your repo.
-Saves are automatic in Fast — we won’t ask yes/no for each lesson.
-
-| Mark | Setting | Value |
-| ---- | ------- | ----- |
-| ✅ | Notes | Private (this machine) |
-| ✅ | Lessons | Beside repo (`repay-…-techdebt`) |
-| ✅ | Depth | Balanced |
-| ✅ | Saves | Automatic |
-| ✅ | Mode | Workbook |
-
-| Optional | Focus areas, e.g. `auth, chat` in your `yes` |
-| -------- | --------------------------------------------- |
-
-👉 **Reply:** `yes`
-```
-
 ## Mid-session asks
 
-### Purpose (both modes)
+### Fast Mode Execution (Turn 2)
+
+In Fast mode, Turn 2 operates continuously without stopping:
+
+1. **Auto-derive purpose**: Use the project profile (top workflow + top 2 trust/data signals) to define the purpose silently.
+2. **Shortlist**: Select the most central `orient`-stage topic as lesson 1.
+3. **Draft & Mechanical**: Draft lesson 1 and run mechanical checks.
+4. **Inline Review**: Run reviewer judgment inline. If it fails, do one silent revise, then save. (Never save without judgment).
+5. **Auto-save & Auto-open**: Save the lesson, then immediately open the viewer for the user.
+
+### Refinement / Purpose Ask (Fast Turn 3 / Control Turn 2)
 
 ```markdown
-### What should this workbook teach?
+**Progress**
 
-One sentence is enough — e.g. “how Arlo auth and chat fit together.” We’ll turn that into a study
-list. You can refine later.
+| Step | 2/4                                     |
+| ---- | --------------------------------------- |
+| ✅   | Reading your code                       |
+| 🔵   | **Picking the 3 most valuable lessons** |
+| ⬜   | Writing lesson 1/3                      |
+| ⬜   | You're set                              |
 
-| Ask | Reply |
-| --- | ----- |
-| 🎯 Purpose | one sentence? |
+### Was that the right starting point?
 
-👉 **Reply:** your sentence · `skip`
+Here are some other angles to focus the rest of the study list on. You can pick one or suggest your own. (Optionally, let me know your familiarity with this code so I can adjust depth).
+
+| Ask            | Reply                                  |
+| -------------- | -------------------------------------- |
+| 🎯 Angle 1     | {Agent sentence 1}                     |
+| 🎯 Angle 2     | {Agent sentence 2}                     |
+| 🎯 Angle 3     | {Agent sentence 3}                     |
+| 🧠 Familiarity | `new` · `dabbled` · `owner` (optional) |
+
+👉 **Reply:** `1`, `2`, `3`, your sentence, or `skip` (and optionally your familiarity)
 ```
 
-### Study list (both modes) — explain the “only 3” rule
+### Study list (Control mode / Refined Fast)
 
 ```markdown
 ### Keep this study list?
@@ -190,31 +176,28 @@ list. You can refine later.
 We found many topics. This session we’ll **write 3** of the most important ones so we don’t blow
 your AI token budget. The rest stay planned — adding more lessons later is a short, guided step.
 
-| # | Topic (first batch) |
-| - | ------------------- |
-| 1 | … |
-| 2 | … |
-| 3 | … |
+| #   | Topic (first batch) |
+| --- | ------------------- |
+| 1   | …                   |
+| 2   | …                   |
+| 3   | …                   |
 
-| Mark | Detail |
-| ---- | ------ |
+| Mark             | Detail                    |
+| ---------------- | ------------------------- |
 | 📋 Planned later | N more topics on the list |
 
 👉 **Reply:** `yes` · or edits
 ```
-
-Show at most **5** topic rows in the chat table (the three you’ll write now, plus a “+N more” note).
-Don’t dump 70 rows.
 
 ### Save lesson — **Control only** (when save-policy is `ask`)
 
 ```markdown
 ### Save this lesson?
 
-| Mark | Detail |
-| ---- | ------ |
-| ✍️ File | `lessons/…` |
-| 📏 | Balanced · checks OK |
+| Mark       | Detail               |
+| ---------- | -------------------- |
+| ✍️ File    | `lessons/…`          |
+| ⚖️ Quality | Balanced · checks OK |
 
 👉 **Reply:** `yes` · `no`
 ```
@@ -224,8 +207,8 @@ Don’t dump 70 rows.
 ```markdown
 ### Open the workbook in your browser?
 
-| Mark | Detail |
-| ---- | ------ |
+| Mark      | Detail                |
+| --------- | --------------------- |
 | 🌐 Viewer | opens on this machine |
 
 👉 **Reply:** `view`
@@ -236,13 +219,12 @@ Don’t dump 70 rows.
 ```markdown
 **Progress**
 
-| Step | 4/5 |
-| ---- | --- |
-| ✅ | Get ready |
-| ✅ | What matters |
-| ✅ | Study list |
-| 🔵 | **Write lessons** — 1/3 |
-| ⬜ | Wrap up |
+| Step | 3/4                                 |
+| ---- | ----------------------------------- |
+| ✅   | Reading your code                   |
+| ✅   | Picking the 3 most valuable lessons |
+| 🔵   | **Writing lesson 2/3**              |
+| ⬜   | You're set                          |
 
 Saved `lessons/….md`. Next lesson next.
 ```
@@ -252,25 +234,24 @@ Saved `lessons/….md`. Next lesson next.
 ```markdown
 **Progress**
 
-| Step | 5/5 |
-| ---- | --- |
-| ✅ | Get ready |
-| ✅ | What matters |
-| ✅ | Study list |
-| ✅ | Write lessons — 3/3 |
-| 🔵 | **Wrap up** |
+| Step | 4/4                                 |
+| ---- | ----------------------------------- |
+| ✅   | Reading your code                   |
+| ✅   | Picking the 3 most valuable lessons |
+| ✅   | Writing lesson 3/3                  |
+| 🔵   | **You're set**                      |
 
 ### You’re set
 
 Lessons are in the sister workbook folder. The browser viewer is open — read there, not in chat.
 More topics stay planned; say `/repay-techdebt` anytime to write the next batch (you’ll be walked).
 
-| Mark | Detail |
-| ---- | ------ |
-| ✍️ Lessons | `…/repay-…-techdebt/lessons/` |
-| 🌐 Viewer | `http://127.0.0.1:8765` |
-| 📋 Still planned | N topics |
-| 🔁 Later | `/repay-techdebt --view` or `--create <id>` |
+| Mark             | Detail                                      |
+| ---------------- | ------------------------------------------- |
+| ✍️ Lessons       | `…/repay-…-techdebt/lessons/`               |
+| 🌐 Viewer        | `http://127.0.0.1:8765`                     |
+| 📋 Still planned | N topics                                    |
+| 🔁 Later         | `/repay-techdebt --view` or `--create <id>` |
 ```
 
 First-run Message 1: `templates/introduction-wizard.md` — paste verbatim.

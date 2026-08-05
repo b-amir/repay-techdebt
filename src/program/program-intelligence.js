@@ -47,7 +47,10 @@ export async function loadPackRegistry() {
   const languagePack = z.object({
     id: z.string(),
     kind: z.literal("language"),
-    detect: z.object({ extensions: z.array(z.string()), manifests: z.array(z.string()) }),
+    detect: z.object({
+      extensions: z.array(z.string()),
+      manifests: z.array(z.string()),
+    }),
     capabilities: z.array(z.string()),
     lenses: z.array(z.string()),
     investigations: z.array(z.string()),
@@ -282,6 +285,10 @@ function componentFor(path, roots) {
     .find((root) => root === "." || path === root || path.startsWith(`${root}/`));
 }
 
+/**
+ * @param {string} specifier
+ * @param {Iterable<string>} [declaredNames]
+ */
 function packageKey(specifier, declaredNames = []) {
   if (!specifier || specifier.startsWith(".") || specifier.startsWith("/")) return null;
   const normalizedSpecifier = specifier.toLowerCase();
@@ -512,7 +519,11 @@ export async function buildProgramModel(target, options = {}) {
       const parsed = parseManifest(path, content.slice(0, 2 * 1024 * 1024));
       manifestResults.push(parsed);
       parserDiagnostics.push(
-        ...parsed.diagnostics.map((item) => ({ path, parser: parsed.parser, ...item })),
+        ...parsed.diagnostics.map((item) => ({
+          path,
+          parser: parsed.parser,
+          ...item,
+        })),
       );
       for (const record of parsed.dependencies) {
         if (record.direct) packages.add(record.name);
@@ -551,7 +562,10 @@ export async function buildProgramModel(target, options = {}) {
     );
     if (matchingFiles.length === 0 && matchingManifests.length === 0) continue;
     const sources = [...matchingFiles.slice(0, 12), ...matchingManifests.slice(0, 6)].map(
-      (path) => ({ path, kind: manifestFiles.includes(path) ? "manifest" : "file" }),
+      (path) => ({
+        path,
+        kind: manifestFiles.includes(path) ? "manifest" : "file",
+      }),
     );
     const evidenceId = addEvidence(
       "observed",
@@ -1041,7 +1055,11 @@ export async function buildProgramModel(target, options = {}) {
   return programModelSchema.parse({
     schemaVersion: MODEL_VERSION,
     generatedAt,
-    target: { root: target.targetRoot, excludedSkillPath: target.relativeSkillRoot, scope },
+    target: {
+      root: target.targetRoot,
+      excludedSkillPath: target.relativeSkillRoot,
+      scope,
+    },
     coverage,
     profile: {
       archetypes,

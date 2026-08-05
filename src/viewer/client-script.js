@@ -155,7 +155,8 @@ export const CLIENT_SCRIPT = `
     document.querySelectorAll(".ds-btn-copy").forEach(function (btn) {
       btn.addEventListener("click", function () {
         var row = btn.closest(".ds-create-row");
-        var code = row && row.querySelector("code");
+        var block = btn.closest(".ds-codeblock");
+        var code = (row && row.querySelector("code")) || (block && block.querySelector("code"));
         if (!code) return;
         var text = code.textContent || "";
         function done() {
@@ -233,12 +234,177 @@ export const CLIENT_SCRIPT = `
     window.addEventListener("pagehide", saveNavScroll);
   }
 
+  function bindReadingScroll() {
+    var main = document.querySelector(".ds-main");
+    if (!main) return;
+
+    var btn = document.querySelector(".ds-mark-done");
+    var lessonKey = btn ? btn.getAttribute("data-lesson") : "";
+    if (!lessonKey) return;
+    
+    var scrollAttr = document.documentElement.getAttribute("data-last-scroll");
+    if (scrollAttr) {
+      if (/^heading-/.test(scrollAttr) || isNaN(Number(scrollAttr))) {
+        var el = document.getElementById(scrollAttr);
+        if (el) setTimeout(function(){ el.scrollIntoView({ behavior: "instant", block: "start" }); }, 10);
+      } else {
+        var y = Number(scrollAttr);
+        if (y > 0) setTimeout(function(){ window.scrollTo({ top: y, behavior: "instant" }); }, 10);
+      }
+    }
+
+    var headings = Array.from(document.querySelectorAll(".ds-section-heading"));
+    var links = document.querySelectorAll(".ds-toc-link");
+    var activeId = "";
+
+    function updateScroll() {
+      var bar = document.querySelector(".ds-reading-progress-bar");
+      if (bar) {
+        var max = document.documentElement.scrollHeight - window.innerHeight;
+        var pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+        bar.style.width = Math.min(100, Math.max(0, pct)) + "%";
+      }
+
+      var found = null;
+      for (var i = 0; i < headings.length; i++) {
+        var rect = headings[i].getBoundingClientRect();
+        if (rect.top <= 120) found = headings[i];
+      }
+      var currentId = found ? found.id : "";
+      if (currentId !== activeId) {
+        activeId = currentId;
+        links.forEach(function(l) {
+          if (l.getAttribute("data-id") === activeId) {
+            l.classList.add("ds-toc-link-active");
+          } else {
+            l.classList.remove("ds-toc-link-active");
+          }
+        });
+      }
+
+      if (window._readScrollTid) return;
+      window._readScrollTid = setTimeout(function() {
+        window._readScrollTid = null;
+        var val = activeId || Math.round(window.scrollY);
+        fetch("/api/progress-view", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path: lessonKey, lastScroll: val })
+        }).catch(function(){});
+      }, 1500);
+    }
+
+    document.addEventListener("scroll", updateScroll, { passive: true });
+    window.addEventListener("pagehide", updateScroll);
+    setTimeout(updateScroll, 100);
+  }
+
+  function showReloadToast() {
+    if (document.getElementById("ds-reload-toast")) return;
+    var t = document.createElement("div");
+    t.id = "ds-reload-toast";
+    t.className = "ds-reload-toast";
+    t.innerHTML = 'Lesson updated &mdash; <button type="button" class="ds-btn-reload">Refresh</button>';
+    document.body.appendChild(t);
+    t.querySelector(".ds-btn-reload").addEventListener("click", function() {
+      window.location.reload();
+    });
+  }
+
+  function updateCompletionUi(btn, completed, counts) {
+    btn.setAttribute("data-completed", completed ? "true" : "false");
+    btn.textContent = completed ? "Mark not done" : "Mark done";
+    btn.className = completed ? "ds-btn-ghost ds-mark-done" : "ds-btn-primary ds-mark-done";
+    btn.disabled = false;
+    var strip = document.querySelector(".ds-orientation-strip");
+    if (strip) {
+      strip.textContent = strip.textContent.replace(/· (Open|Done)$/, "· " + (completed ? "Done" : "Open"));
+    }
+    var nav = document.querySelector(".ds-nav-current");
+    if (nav) {
+      nav.classList.toggle("ds-nav-done", completed);
+      var mark = nav.querySelector(".ds-nav-mark");
+      if (mark) {
+        mark.textContent = completed ? "✓" : "";
+        mark.classList.toggle("ds-nav-mark-done", completed);
+      }
+    }
+    if (counts) {
+      var doneEl = document.querySelector(".ds-stats-item .ds-stats-value");
+      if (doneEl) doneEl.textContent = counts.done;
+    }
+  }
+
+  function bindSearchPalette() {
+    var root = document.getElementById("ds-search-root");
+    if (!root) {
+      root = document.createElement("div");
+      root.id = "ds-search-root";
+      root.className = "ds-search-root";
+      root.innerHTML = '<div class="ds-search-backdrop"></div><div class="ds-search-panel" role="dialog" aria-label="Search lessons"><input class="ds-search-input" type="search" placeholder="Search lessons…" aria-label="Search lessons" /><ul class="ds-search-results"></ul></div>';
+      document.body.appendChild(root);
+    }
+    var input = root.querySelector(".ds-search-input");
+    var results = root.querySelector(".ds-search-results");
+    var backdrop = root.querySelector(".ds-search-backdrop");
+    var timer = null;
+
+    function close() {
+      root.classList.remove("ds-search-open");
+      input.value = "";
+      results.innerHTML = "";
+    }
+    function open() {
+      root.classList.add("ds-search-open");
+      input.focus();
+      runSearch("");
+    }
+    function runSearch(q) {
+      fetch("/api/search?q=" + encodeURIComponent(q))
+        .then(function(r) { return r.ok ? r.json() : { results: [] }; })
+        .then(function(data) {
+          results.innerHTML = "";
+          (data.results || []).forEach(function(item) {
+            var li = document.createElement("li");
+            var a = document.createElement("a");
+            a.href = "/lesson/" + encodeURIComponent(item.key);
+            a.textContent = item.title;
+            li.appendChild(a);
+            results.appendChild(li);
+          });
+        })
+        .catch(function() {});
+    }
+
+    backdrop.addEventListener("click", close);
+    input.addEventListener("input", function() {
+      clearTimeout(timer);
+      timer = setTimeout(function() { runSearch(input.value); }, 120);
+    });
+    input.addEventListener("keydown", function(e) {
+      if (e.key === "Escape") close();
+      if (e.key === "Enter" && results.firstChild) {
+        var link = results.querySelector("a");
+        if (link) window.location.href = link.getAttribute("href");
+      }
+    });
+    document.addEventListener("keydown", function(e) {
+      if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+      if (e.key === "/") {
+        e.preventDefault();
+        open();
+      }
+    });
+  }
+
   ready(function () {
     bindPrefs();
     bindSettingsPanel();
     bindSidebarToggle();
     bindCopyButtons();
     bindNavScroll();
+    bindReadingScroll();
+    bindSearchPalette();
     renderMermaid();
 
     var btn = document.querySelector(".ds-mark-done");
@@ -256,7 +422,9 @@ export const CLIENT_SCRIPT = `
           .then(function (r) {
             return r.ok ? r.json() : Promise.reject(new Error("completion failed"));
           })
-          .then(function () { window.location.reload(); })
+          .then(function (data) {
+            updateCompletionUi(btn, data.completed, data.counts);
+          })
           .catch(function () { btn.disabled = false; });
       });
     }
@@ -272,7 +440,7 @@ export const CLIENT_SCRIPT = `
           .then(function (data) {
             if (data && data.mtimeMs && lastMtime && data.mtimeMs !== lastMtime) {
               saveNavScroll();
-              window.location.reload();
+              showReloadToast();
             }
             if (data && data.mtimeMs) lastMtime = data.mtimeMs;
           })

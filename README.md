@@ -211,27 +211,26 @@ same integrations.
 
 ## Start learning
 
-Invoke the skill from the repository you want to understand. The first request can be broad or
-specific:
+Once installed, you can start the learning flow using the new `repay` CLI from within the repository you want to understand:
 
-```text
-Use $repay-techdebt to turn this application into a whole-app workbook.
-Start with the flows I need to understand before changing production code.
+```bash
+repay init
 ```
 
-```text
-Use $repay-techdebt to teach me the last commit as a PR mentor.
-Trace each important change to its consumers, tests, failure paths, and deployment consequences.
+For specific inquiries, you can pass a plan context:
+
+```bash
+repay plan "Start with the flows I need to understand before changing production code."
+repay plan "Trace each important change to its consumers, tests, failure paths, and deployment consequences."
 ```
 
-```text
-Use $repay-techdebt to explain why this state-management module exists,
-how data reaches it, who consumes it, and what would break if I changed its contract.
-```
+On the first run, the agent asks if you want to use the Fast or Control setup flow. Fast uses recommended defaults: private machine memory, a discoverable `repay-<project>-techdebt` sister workbook, balanced depth, automatic saves, and the whole-app workbook mode.
 
-On the first run, the skill asks where private memory and the readable workbook should live. The
-recommended defaults are private machine memory, a discoverable `repay-<project>-techdebt` sister
-workbook, balanced depth, ask-before-save, and ask-before-fallback.
+You can later open the generated lesson workbook using:
+
+```bash
+repay view
+```
 
 ## What the bundled runtime understands
 

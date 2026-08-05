@@ -106,7 +106,10 @@ test("skipped without a reason fails", () => {
 });
 
 test("done without a reply fails", () => {
-  const trajectory = { mode: "focused", steps: [{ id: "B0", status: "done" }, done("B1")] };
+  const trajectory = {
+    mode: "focused",
+    steps: [{ id: "B0", status: "done" }, done("B1")],
+  };
   const result = validateTrajectory(trajectory);
   assert.equal(result.ok, false);
   assert.ok(result.errors.some((e) => /done without reply/.test(e)));

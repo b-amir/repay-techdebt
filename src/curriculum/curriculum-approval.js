@@ -2,7 +2,11 @@
  * Agent shortlist approval required before persisting a curriculum proposal.
  */
 
-import { findOmnibusTopics } from "./curriculum-policy.js";
+import {
+  findOmnibusTopics,
+  isTopicCorroborated,
+  requiresCorroboration,
+} from "./curriculum-policy.js";
 
 const PURPOSE_STATUSES = new Set(["accepted", "unresolved"]);
 
@@ -16,7 +20,10 @@ export function validateAgentApproval(curriculum) {
     };
   }
   if (!approval.approvedAt || typeof approval.approvedAt !== "string") {
-    return { ok: false, error: "agentApproval.approvedAt (ISO timestamp) is required" };
+    return {
+      ok: false,
+      error: "agentApproval.approvedAt (ISO timestamp) is required",
+    };
   }
   if (!PURPOSE_STATUSES.has(approval.purposeStatus)) {
     return {
@@ -39,7 +46,6 @@ export function validateAgentApproval(curriculum) {
   }
 
   const demoted = new Set(approval.demotedTopicIds ?? []);
-  const corroborated = new Set(approval.corroboratedTopicIds ?? []);
   const topics = (curriculum.topics ?? []).filter((topic) => !demoted.has(topic.id));
   const omnibus = findOmnibusTopics(topics);
   if (omnibus.length > 0) {
@@ -51,20 +57,17 @@ export function validateAgentApproval(curriculum) {
         .join("; ")}. One subject / outcome per topic (B4a).`,
     };
   }
-  const uncorroborated = topics.filter((topic) => {
-    const signal = topic.signalClass ?? "naming-heuristic";
-    if (signal !== "naming-heuristic") return false;
-    return !corroborated.has(topic.id) && topic.corroborated !== true;
-  });
+  const uncorroborated = topics.filter((topic) => !isTopicCorroborated(topic, approval));
   if (uncorroborated.length > 0) {
+    const needs = uncorroborated.filter(requiresCorroboration);
     return {
       ok: false,
-      error: `Naming-heuristic topics need corroboration before save: ${uncorroborated
+      error: `Topics need structured corroboration before save: ${needs
         .slice(0, 8)
         .map((topic) => topic.id)
         .join(
           ", ",
-        )}${uncorroborated.length > 8 ? "…" : ""}. Add their IDs to agentApproval.corroboratedTopicIds or set topic.corroborated=true after graph/source/docs/user evidence.`,
+        )}${needs.length > 8 ? "…" : ""}. Set agentApproval.corroboration[topicId] = { corroborated: true, reason, evidence } or add the id to corroboratedTopicIds.`,
     };
   }
 
@@ -82,22 +85,31 @@ export function applyAgentApproval(curriculum, approval) {
     note: approval.note ?? null,
     demotedTopicIds: approval.demotedTopicIds ?? [],
     corroboratedTopicIds: approval.corroboratedTopicIds ?? [],
+    corroboration: approval.corroboration ?? {},
     addedTopicIds: approval.addedTopicIds ?? [],
     acceptedPartialScope: approval.acceptedPartialScope ?? null,
   };
   const demoted = new Set(curriculum.agentApproval.demotedTopicIds);
-  if (demoted.size > 0)
-    curriculum.topics = curriculum.topics.filter((topic) => !demoted.has(topic.id));
+  if (demoted.size > 0) {
+    for (const topic of curriculum.topics) {
+      if (demoted.has(topic.id)) topic.status = "demoted";
+    }
+  }
   const corroborated = new Set(curriculum.agentApproval.corroboratedTopicIds);
   for (const topic of curriculum.topics) {
     if (corroborated.has(topic.id)) topic.corroborated = true;
   }
-  curriculum.topics.forEach((topic, index) => {
-    topic.rank = index + 1;
+  let rank = 1;
+  curriculum.topics.forEach((topic) => {
+    if (topic.status !== "demoted") {
+      topic.rank = rank++;
+    } else {
+      delete topic.rank;
+    }
   });
   curriculum.scale = {
     ...curriculum.scale,
-    selectedTopics: curriculum.topics.length,
+    selectedTopics: curriculum.topics.filter((t) => t.status !== "demoted").length,
   };
   return curriculum;
 }

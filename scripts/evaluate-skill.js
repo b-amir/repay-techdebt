@@ -17,7 +17,7 @@ async function main() {
   try {
     entries = await fs.readdir(fixturesDir, { withFileTypes: true });
   } catch (e) {
-    console.error(`Could not read fixtures directory: ${fixturesDir} ${e}`);
+    process.stderr.write(`Could not read fixtures directory: ${fixturesDir} ${e}\n`);
     process.exit(1);
   }
 
@@ -52,35 +52,35 @@ async function main() {
   }
 
   if (format === "json") {
-    console.log(JSON.stringify(results, null, 2));
+    process.stdout.write(JSON.stringify(results, null, 2) + "\n");
   } else {
-    console.log("# Evaluation Report\n");
+    process.stdout.write("# Evaluation Report\n\n");
     for (const res of results) {
-      console.log(`## Fixture: ${res.fixture}`);
+      process.stdout.write(`## Fixture: ${res.fixture}\n`);
       if (res.error) {
-        console.log(`- **Error:** ${res.error}`);
+        process.stdout.write(`- **Error:** ${res.error}\n`);
         continue;
       }
 
       const { evaluation } = res;
-      console.log(`- Status: ${evaluation.ok ? "✅ PASS" : "❌ FAIL"}`);
-      console.log(`- Expected Must-Find: ${evaluation.totalExpected}`);
-      console.log(`- Total Generated Topics: ${evaluation.totalGenerated}`);
+      process.stdout.write(`- Status: ${evaluation.ok ? "✅ PASS" : "❌ FAIL"}\n`);
+      process.stdout.write(`- Expected Must-Find: ${evaluation.totalExpected}\n`);
+      process.stdout.write(`- Total Generated Topics: ${evaluation.totalGenerated}\n`);
 
       if (evaluation.missingMustFind.length > 0) {
-        console.log(`- Missing Must-Find Topics:`);
+        process.stdout.write(`- Missing Must-Find Topics:\n`);
         for (const t of evaluation.missingMustFind) {
-          console.log(`  - \`${t.id}\`: ${t.description}`);
+          process.stdout.write(`  - \`${t.id}\`: ${t.description}\n`);
         }
       }
 
       if (evaluation.presentForbidden.length > 0) {
-        console.log(`- Present Forbidden Topics:`);
+        process.stdout.write(`- Present Forbidden Topics:\n`);
         for (const t of evaluation.presentForbidden) {
-          console.log(`  - \`${t.id}\`: ${t.description}`);
+          process.stdout.write(`  - \`${t.id}\`: ${t.description}\n`);
         }
       }
-      console.log();
+      process.stdout.write("\n");
     }
   }
 
@@ -88,4 +88,4 @@ async function main() {
   process.exit(failed ? 1 : 0);
 }
 
-main().catch(console.error);
+main().catch((err) => process.stderr.write(`${err.stack || err}\n`));

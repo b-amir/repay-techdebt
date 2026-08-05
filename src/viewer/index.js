@@ -7,6 +7,7 @@ export {
   emptyProgress,
   readProgress,
   setCompletion,
+  setLastRead,
   normalizeLessonKey,
 } from "./progress-store.js";
 

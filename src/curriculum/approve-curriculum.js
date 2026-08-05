@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 import { validateAgentApproval } from "./curriculum-approval.js";
+import { REPO_SIZE_THRESHOLDS } from "./repo-scale.js";
 
 /**
  * Validate a curriculum proposal for persistence (approval + structural floors).
@@ -34,7 +35,12 @@ export function validateCurriculum(value, targetRoot) {
     delete topic.writtenAt;
   }
   const modeledFiles = Number(value.coverage?.modeledFiles ?? 0);
-  const expectedMinimum = modeledFiles >= 1000 ? 60 : modeledFiles >= 100 ? 25 : 12;
+  const expectedMinimum =
+    modeledFiles >= REPO_SIZE_THRESHOLDS.MEDIUM
+      ? 60
+      : modeledFiles >= REPO_SIZE_THRESHOLDS.SMALL
+        ? 25
+        : 12;
   const available = Number(value.scale?.availableCandidates ?? value.topics.length);
   const required = Math.min(expectedMinimum, available);
   if (value.topics.length < required)
@@ -43,7 +49,7 @@ export function validateCurriculum(value, targetRoot) {
     );
   if (value.topics.length > 150) throw new Error("Curriculum cannot exceed 150 focused topics");
   if (
-    modeledFiles >= 1000 &&
+    modeledFiles >= REPO_SIZE_THRESHOLDS.MEDIUM &&
     available >= 60 &&
     new Set(value.topics.map((topic) => topic.chapter)).size < 5
   )

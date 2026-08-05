@@ -1,4 +1,4 @@
-# Bottleneck checkpoints
+# Bottleneck Checkpoints
 
 Read with `script-agent-dialogue.md`. After each major script/tool turn, complete the matching
 checkpoint (or `SKIP … because …` in the ledger). One semantic rewrite max per checkpoint.
@@ -43,7 +43,7 @@ questions (symbol/path/workflow).
 
 ---
 
-## B3 — Lesson-worthy subjects
+## B3 — Lesson-worthy topics
 
 **Ask:** `SHORTLIST` keep/demote/add. Each keep: one sentence why it enables a safe change.
 Corroborate naming-heuristic IDs or demote.
@@ -67,7 +67,7 @@ rejected by `agentApproval` validation.
 
 ## B4b — Lesson craft (PRIMM moves)
 
-**Ask:** Draft one subject. Self-check predict hook, investigate-from-citations, concrete modify
+**Ask:** Draft one topic. Self-check predict hook, investigate-from-citations, concrete modify
 challenge, transfer recap—without empty PRIMM headings.
 
 **Floor:** `check-lesson-quality.js`.
@@ -78,7 +78,7 @@ challenge, transfer recap—without empty PRIMM headings.
 
 ## B5 — Relationship retrieval
 
-**Ask:** For subject X: who calls it? what does it call? where registered? how fails? Verify ≤3
+**Ask:** For topic X: who calls it? what does it call? where registered? how fails? Verify ≤3
 returned nodes in live source.
 
 **Floor:** tool ledger + fallback disclosure.

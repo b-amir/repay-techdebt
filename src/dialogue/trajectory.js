@@ -19,7 +19,12 @@ export function validateTrajectory(trajectory, options = {}) {
     mode === "pr" ? PR_TRAJECTORY : mode === "focused" ? FOCUSED_TRAJECTORY : WORKBOOK_TRAJECTORY;
   const errors = [];
   if (!trajectory || typeof trajectory !== "object")
-    return { ok: false, errors: ["trajectory must be an object"], required, observed: [] };
+    return {
+      ok: false,
+      errors: ["trajectory must be an object"],
+      required,
+      observed: [],
+    };
 
   const steps = Array.isArray(trajectory.steps) ? trajectory.steps : [];
   const observed = [];
@@ -74,7 +79,11 @@ export function stubWorkbookTrajectory(overrides = {}) {
   const base = {
     mode: "workbook",
     steps: [
-      { id: "B0", status: "done", reply: "UNRESOLVED purpose: who are the users?" },
+      {
+        id: "B0",
+        status: "done",
+        reply: "UNRESOLVED purpose: who are the users?",
+      },
       { id: "B1", status: "done", reply: "Confirm languages: javascript" },
       {
         id: "B2",

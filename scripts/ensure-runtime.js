@@ -6,10 +6,7 @@
 import { parseArgs } from "node:util";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  ensureSkillRuntime,
-  RuntimeBootstrapError,
-} from "../src/foundations/ensure-runtime.js";
+import { ensureSkillRuntime, RuntimeBootstrapError } from "../src/foundations/ensure-runtime.js";
 import { isDirectCliInvocation } from "../src/foundations/cli-entry.js";
 
 const skillRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -18,17 +15,22 @@ async function main() {
   const { values } = parseArgs({
     options: {
       "dry-run": { type: "boolean" },
+      "prune-runtime": { type: "boolean" },
       format: { type: "string", default: "json" },
       help: { type: "boolean", short: "h" },
     },
   });
   if (values.help) {
     process.stdout.write(
-      "Usage: node scripts/ensure-runtime.js [--dry-run] [--format json]\n\nInstalls skill-root node_modules when missing.\n",
+      "Usage: node scripts/ensure-runtime.js [--dry-run] [--prune-runtime] [--format json]\n\nInstalls skill-root node_modules when missing.\n",
     );
     process.exit(0);
   }
-  const result = await ensureSkillRuntime({ skillRoot, install: !values["dry-run"] });
+  const result = await ensureSkillRuntime({
+    skillRoot,
+    install: !values["dry-run"],
+    prune: values["prune-runtime"] || false,
+  });
   if (values.format === "json") {
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   } else {

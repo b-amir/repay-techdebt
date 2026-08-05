@@ -15,7 +15,7 @@ import {
 import { basename, dirname, relative, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
-import { fileURLToPath } from "node:url";
+
 import { promisify } from "node:util";
 import { isSameOrInside, resolveTargetRoot, skillRoot } from "../src/foundations/targeting.js";
 import { ensureSkillRuntime } from "../src/foundations/ensure-runtime.js";
@@ -38,6 +38,7 @@ import {
   planSkillMaintenance,
 } from "../src/memory/skill-maintenance.js";
 import { renderWorkbookReadme } from "../src/memory/workbook-readme.js";
+import { cleanupDraftInput, cleanupAllDrafts } from "../src/lessons/draft-cleanup.js";
 
 export { resolveMemoryPaths } from "../src/foundations/memory-paths.js";
 
@@ -90,7 +91,17 @@ function parseArguments(argv) {
     const argument = rest[index];
     if (!argument.startsWith("--")) throw new Error(`Unexpected argument: ${argument}`);
     const name = argument.slice(2);
-    if (new Set(["yes", "interactive", "allow-non-git", "verified", "dry-run", "open"]).has(name))
+    if (
+      new Set([
+        "yes",
+        "interactive",
+        "allow-non-git",
+        "verified",
+        "dry-run",
+        "open",
+        "no-cleanup-input",
+      ]).has(name)
+    )
       options[name] = true;
     else if (
       new Set(["keep-lessons", "keep-config", "revert-target-markers", "include-cache"]).has(name)
@@ -260,7 +271,10 @@ async function proposedOutputRoot(targetRoot, options, memoryRoot) {
     throw new Error("--output-root can be used only with --output-location custom");
   const repositoryRoot = await repositoryRootFor(targetRoot);
   const projectName = basename(targetRoot).replace(/[^A-Za-z0-9._-]+/g, "-");
-  return { location, root: resolve(dirname(repositoryRoot), `repay-${projectName}-techdebt`) };
+  return {
+    location,
+    root: resolve(dirname(repositoryRoot), `repay-${projectName}-techdebt`),
+  };
 }
 
 async function readConfig(paths) {
@@ -284,7 +298,7 @@ function emit(value, format = "json") {
       process.stdout.write(`Saved lessons: ${value.lessonCount}\n`);
     if (typeof value.curriculumTopicCount === "number")
       process.stdout.write(
-        `Curriculum: ${value.curriculumTopicCount} subjects; ${value.pendingTopicCount} planned\n`,
+        `Curriculum: ${value.curriculumTopicCount} topics; ${value.pendingTopicCount} planned\n`,
       );
     for (const warning of value.warnings ?? []) process.stdout.write(`Warning: ${warning}\n`);
   }
@@ -573,7 +587,11 @@ function configFor(options, targetRoot, output) {
       lessonQuality: "strict",
       artifactTypes: ["atlas", "snapshot", "notebook"],
     },
-    memory: { recordDecisions: true, maintainCurriculum: true, typedArtifacts: true },
+    memory: {
+      recordDecisions: true,
+      maintainCurriculum: true,
+      typedArtifacts: true,
+    },
     analysis: {
       budgets: {
         maxFiles: integerOption("max-files", 30000, 1_000_000),
@@ -698,9 +716,15 @@ async function init(targetRoot, initialOptions) {
   let graphifyIgnoreUpdated = false;
   try {
     await mkdir(resolve(stagingRoot, "lessons"));
-    await mkdir(resolve(stagingRoot, "artifacts", "atlases"), { recursive: true });
-    await mkdir(resolve(stagingRoot, "artifacts", "snapshots"), { recursive: true });
-    await mkdir(resolve(stagingRoot, "artifacts", "notebooks"), { recursive: true });
+    await mkdir(resolve(stagingRoot, "artifacts", "atlases"), {
+      recursive: true,
+    });
+    await mkdir(resolve(stagingRoot, "artifacts", "snapshots"), {
+      recursive: true,
+    });
+    await mkdir(resolve(stagingRoot, "artifacts", "notebooks"), {
+      recursive: true,
+    });
     await Promise.all([
       writeFile(resolve(stagingRoot, CONFIG_FILE), `${JSON.stringify(config, null, 2)}\n`, "utf8"),
       writeFile(
@@ -852,7 +876,11 @@ async function saveCurriculum(targetRoot, options) {
     );
     for (const topic of input.topics) {
       const existing = completed.get(topic.id);
-      if (existing) Object.assign(topic, { status: "written", lessonPath: existing.lessonPath });
+      if (existing)
+        Object.assign(topic, {
+          status: "written",
+          lessonPath: existing.lessonPath,
+        });
     }
   }
   const markdown = renderCurriculumMarkdown(input);
@@ -871,7 +899,10 @@ async function saveCurriculum(targetRoot, options) {
   await acquireLessonLock(paths);
   try {
     input.history = input.history || [];
-    input.history.push({ action: "save-curriculum", date: new Date().toISOString() });
+    input.history.push({
+      action: "save-curriculum",
+      date: new Date().toISOString(),
+    });
     await writeCurriculum(paths.curriculumData, input, priorRevision);
     await replaceLessonIndex(workbook, markdown);
   } finally {
@@ -1056,6 +1087,7 @@ async function saveLesson(targetRoot, options) {
   const { ok, quality } = await evaluateLessonForSave(targetRoot, content, {
     depth: config.defaults.lessonDepth,
     expectedEvidencePaths: topic?.evidencePaths ?? [],
+    draftPath: inputPath,
   });
   if (!ok) {
     emit({
@@ -1064,7 +1096,7 @@ async function saveLesson(targetRoot, options) {
       targetRoot,
       quality,
       requiredAction:
-        "Keep one subject, strengthen its project evidence, and fix every error before saving.",
+        "Keep one topic, strengthen its project evidence, and fix every error before saving.",
     });
     process.exitCode = 2;
     return;
@@ -1133,6 +1165,13 @@ async function saveLesson(targetRoot, options) {
     const writtenCount = curriculum?.topics?.filter((item) => item.lessonPath).length ?? 0;
     const pendingCount = curriculum?.topics?.filter((item) => !item.lessonPath).length ?? 0;
     const openRecommended = writtenCount >= 3 || (writtenCount > 0 && pendingCount === 0);
+
+    // Draft cleanup after successful save
+    const draftCleanup = await cleanupDraftInput(inputPath, candidate.path, {
+      cleanupInput: !options["no-cleanup-input"],
+      lessonsDir: workbook.lessons,
+    });
+
     emit({
       type: "lesson-saved",
       status: "saved",
@@ -1143,11 +1182,16 @@ async function saveLesson(targetRoot, options) {
       file: lessonRel,
       writtenLessonCount: writtenCount,
       pendingTopicCount: pendingCount,
+      draftCleanup: draftCleanup.cleaned
+        ? `draft-cleaned: ${inputPath}`
+        : `draft-cleanup-skipped: ${draftCleanup.reason}`,
       viewer: {
-        script: "scripts/view-lessons.js",
+        command: "repay view",
+        targetRoot,
         deepLinkRel: lessonRel,
         openRecommended,
         openFlags: ["--open", `--lesson ${lessonRel}`],
+        hint: `repay view ${targetRoot} --open --lesson ${lessonRel}`,
       },
     });
   } finally {
@@ -1235,7 +1279,10 @@ async function repairIndex(targetRoot, options) {
         }
         if (changed) {
           curriculum.history = curriculum.history || [];
-          curriculum.history.push({ action: "status-sync", date: new Date().toISOString() });
+          curriculum.history.push({
+            action: "status-sync",
+            date: new Date().toISOString(),
+          });
           await writeCurriculum(paths.curriculumData, curriculum, expectedRevision);
         }
         await replaceLessonIndex(workbook, renderCurriculumMarkdown(curriculum));
@@ -1306,7 +1353,12 @@ async function recordDecision(targetRoot, options) {
     `| ${date} | ${tableCell(options.scope || "project")} | ${tableCell(options.decision)} | ${tableCell(options.reason || "Not recorded")} |\n`,
     "utf8",
   );
-  emit({ type: "decision-recorded", status: "saved", targetRoot, memoryRoot: paths.root });
+  emit({
+    type: "decision-recorded",
+    status: "saved",
+    targetRoot,
+    memoryRoot: paths.root,
+  });
 }
 
 async function acquireArtifactLock(paths) {
@@ -1337,8 +1389,16 @@ async function replaceJsonFile(path, value) {
 
 function artifactDefinition(type) {
   return {
-    atlas: { directory: "atlases", extension: ".md", contentType: "text/markdown" },
-    snapshot: { directory: "snapshots", extension: ".json", contentType: "application/json" },
+    atlas: {
+      directory: "atlases",
+      extension: ".md",
+      contentType: "text/markdown",
+    },
+    snapshot: {
+      directory: "snapshots",
+      extension: ".json",
+      contentType: "application/json",
+    },
     notebook: {
       directory: "notebooks",
       extension: ".ipynb",
@@ -1469,7 +1529,12 @@ async function migrate(targetRoot, options) {
   const paths = await resolveMemoryPaths(targetRoot, options);
   const { config } = await readConfig(paths);
   if (config.schemaVersion === 2 && config.storage && config.tooling) {
-    emit({ type: "migration-not-needed", status: "ready", targetRoot, schemaVersion: 2 });
+    emit({
+      type: "migration-not-needed",
+      status: "ready",
+      targetRoot,
+      schemaVersion: 2,
+    });
     return;
   }
   const migrated = {
@@ -1527,7 +1592,12 @@ async function migrate(targetRoot, options) {
   }
   if (config.schemaVersion === 2) {
     await replaceJsonFile(paths.config, migrated);
-    emit({ type: "memory-migrated", status: "ready", targetRoot, schemaVersion: 2 });
+    emit({
+      type: "memory-migrated",
+      status: "ready",
+      targetRoot,
+      schemaVersion: 2,
+    });
     return;
   }
   const staging = resolve(paths.root, `.artifacts-migration-${process.pid}-${Date.now()}`);
@@ -1549,7 +1619,12 @@ async function migrate(targetRoot, options) {
     if (installedArtifacts) await rm(paths.artifacts, { recursive: true, force: true });
     throw error;
   }
-  emit({ type: "memory-migrated", status: "ready", targetRoot, schemaVersion: 2 });
+  emit({
+    type: "memory-migrated",
+    status: "ready",
+    targetRoot,
+    schemaVersion: 2,
+  });
 }
 
 async function recordExerciseAction(targetRoot, options) {
@@ -1633,7 +1708,12 @@ async function runMaintenanceAction(targetRoot, options, { type, includeCache })
   }
   const summary = summarizeMaintenancePlan(plan);
   if (options["dry-run"]) {
-    emit({ type: `${type}-preview`, status: "preview", targetRoot, plan: summary });
+    emit({
+      type: `${type}-preview`,
+      status: "preview",
+      targetRoot,
+      plan: summary,
+    });
     return;
   }
   if (!options.yes) {
@@ -1660,7 +1740,10 @@ async function runMaintenanceAction(targetRoot, options, { type, includeCache })
 }
 
 async function clearOutput(targetRoot, options) {
-  await runMaintenanceAction(targetRoot, options, { type: "clear-output", includeCache: false });
+  await runMaintenanceAction(targetRoot, options, {
+    type: "clear-output",
+    includeCache: false,
+  });
 }
 
 async function clearCache(targetRoot, options) {
@@ -1672,7 +1755,12 @@ async function clearCache(targetRoot, options) {
   }
   const summary = summarizeMaintenancePlan(plan);
   if (options["dry-run"]) {
-    emit({ type: "clear-cache-preview", status: "preview", targetRoot, plan: summary });
+    emit({
+      type: "clear-cache-preview",
+      status: "preview",
+      targetRoot,
+      plan: summary,
+    });
     return;
   }
   if (!options.yes) {
@@ -1698,7 +1786,10 @@ async function clearCache(targetRoot, options) {
 }
 
 async function resetSkillState(targetRoot, options) {
-  await runMaintenanceAction(targetRoot, options, { type: "reset", includeCache: true });
+  await runMaintenanceAction(targetRoot, options, {
+    type: "reset",
+    includeCache: true,
+  });
 }
 
 async function askReconfigWizard(existing, options) {
@@ -1796,6 +1887,27 @@ async function openViewer(targetRoot, options) {
   });
 }
 
+async function cleanupDraftsCommand(targetRoot, options) {
+  if (!options.yes) {
+    emit({
+      type: "consent-required",
+      status: "not-cleaned",
+      targetRoot,
+      requiredAction: "Confirm the removal of all draft files (.draft-*), then rerun with --yes.",
+    });
+    process.exitCode = 2;
+    return;
+  }
+
+  await cleanupAllDrafts(targetRoot);
+
+  emit({
+    type: "drafts-cleaned",
+    status: "ready",
+    targetRoot,
+  });
+}
+
 if (isDirectCliInvocation(import.meta.url)) {
   try {
     await ensureSkillRuntime({ skillRoot });
@@ -1818,11 +1930,12 @@ if (isDirectCliInvocation(import.meta.url)) {
         "reset",
         "reconfig",
         "open-viewer",
+        "cleanup-drafts",
       ]).has(action)
     ) {
       printHelp();
       throw new Error(
-        "Expected status, init, configure-output, save-curriculum, save-lesson, save-artifact, record-decision, migrate, repair-index, record-exercise, schedule-review, clear-output, clear-cache, reset, reconfig, or open-viewer",
+        "Expected status, init, configure-output, save-curriculum, save-lesson, save-artifact, record-decision, migrate, repair-index, record-exercise, schedule-review, clear-output, clear-cache, reset, reconfig, open-viewer, or cleanup-drafts",
       );
     }
     const { targetRoot } = await resolveTargetRoot(targetInput);
@@ -1842,6 +1955,7 @@ if (isDirectCliInvocation(import.meta.url)) {
     else if (action === "reset") await resetSkillState(targetRoot, options);
     else if (action === "reconfig") await reconfig(targetRoot, options);
     else if (action === "open-viewer") await openViewer(targetRoot, options);
+    else if (action === "cleanup-drafts") await cleanupDraftsCommand(targetRoot, options);
   } catch (error) {
     if (error.code === "NO_MEMORY") {
       process.stderr.write(

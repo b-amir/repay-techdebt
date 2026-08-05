@@ -46,7 +46,9 @@ test(
       files.map((file) =>
         limit(async () => {
           // reject:false so a non-zero exit (syntax error) becomes a result we inspect.
-          const result = await execa(process.execPath, ["--check", file], { reject: false });
+          const result = await execa(process.execPath, ["--check", file], {
+            reject: false,
+          });
           return {
             file,
             ok: result.exitCode === 0,

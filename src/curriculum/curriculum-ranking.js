@@ -6,7 +6,7 @@
  * naming-heuristic topics before save-curriculum.
  *
  * @param {Object} candidate The topic candidate.
- * @param {Object} context Context about the program (e.g. total nodes, workflows).
+ * @param {Object} _context Context about the program (e.g. total nodes, workflows).
  * @returns {Object} Score details including total, positive contributions, and negative penalties.
  */
 export function rankCandidate(candidate, _context = {}) {

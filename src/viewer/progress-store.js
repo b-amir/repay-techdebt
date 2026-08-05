@@ -5,10 +5,17 @@ import { readFile, writeFile, rename, rm } from "node:fs/promises";
 import { isAbsolute, relative, resolve } from "node:path";
 import { isSameOrInside } from "../foundations/targeting.js";
 
-export const PROGRESS_SCHEMA_VERSION = 1;
+export const PROGRESS_SCHEMA_VERSION = 2;
 
 export function emptyProgress() {
-  return { schemaVersion: PROGRESS_SCHEMA_VERSION, updatedAt: null, completed: {} };
+  return {
+    schemaVersion: PROGRESS_SCHEMA_VERSION,
+    updatedAt: null,
+    lastRead: null,
+    lastReadAt: null,
+    lastScroll: null,
+    completed: {},
+  };
 }
 
 /**
@@ -23,8 +30,14 @@ export async function readProgress(progressPath) {
     throw error;
   }
   const data = JSON.parse(content);
+  if (data.schemaVersion === 1) {
+    data.schemaVersion = 2;
+    data.lastRead = null;
+    data.lastReadAt = null;
+    data.lastScroll = null;
+  }
   if (data.schemaVersion !== PROGRESS_SCHEMA_VERSION || data.completed == null) {
-    throw new Error("progress.json must be schemaVersion 1 with a completed map");
+    throw new Error("progress.json must be schemaVersion 2 with a completed map");
   }
   if (
     data.completed == null ||
@@ -61,7 +74,7 @@ export function normalizeLessonKey(lessonPath, workbookRoot) {
  * @param {boolean} [opts.completed] Explicit state; omit to toggle.
  * @returns {Promise<{ key: string, completed: boolean, progress: object }>}
  */
-export async function setCompletion(progressPath, lessonPath, workbookRoot, opts = {}) {
+export async function setCompletion(progressPath, lessonPath, workbookRoot, opts) {
   const { nowIso, topicId, completed: explicit } = opts;
   const key = normalizeLessonKey(lessonPath, workbookRoot);
   const progress = await readProgress(progressPath);
@@ -77,6 +90,27 @@ export async function setCompletion(progressPath, lessonPath, workbookRoot, opts
   progress.updatedAt = nowIso;
   await atomicWrite(progressPath, progress);
   return { key, completed: desired, progress };
+}
+
+/**
+ * Update the last read lesson and scroll position.
+ *
+ * @param {object} opts
+ * @param {string} opts.nowIso
+ * @param {string|number} [opts.lastScroll]
+ */
+export async function setLastRead(progressPath, lessonPath, workbookRoot, opts) {
+  const { nowIso, lastScroll } = opts;
+  const key = normalizeLessonKey(lessonPath, workbookRoot);
+  const progress = await readProgress(progressPath);
+  progress.lastRead = key;
+  progress.lastReadAt = nowIso;
+  if (lastScroll !== undefined) {
+    progress.lastScroll = lastScroll;
+  }
+  progress.updatedAt = nowIso;
+  await atomicWrite(progressPath, progress);
+  return progress;
 }
 
 async function atomicWrite(path, data) {

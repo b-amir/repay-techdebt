@@ -45,7 +45,10 @@ function buildFromTopics(topics, progress, currentKey) {
   return {
     total: topics.length,
     counts,
-    chapters: chapterOrder.map((title) => ({ title, items: byChapter.get(title) })),
+    chapters: chapterOrder.map((title) => ({
+      title,
+      items: byChapter.get(title),
+    })),
   };
 }
 

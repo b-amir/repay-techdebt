@@ -1,7 +1,7 @@
 import { assessClaimFaithfulness } from "./claim-faithfulness.js";
 import { verifyLessonCitations } from "./lesson-citation-check.js";
 import { inspectLesson } from "./lesson-quality.js";
-import { evaluatePedagogy } from "./pedagogy.js";
+import { hasPassingJudgment } from "./lesson-judgment.js";
 
 /**
  * Mechanical floors for saving a lesson (quality + citation validity + faithfulness).
@@ -31,6 +31,18 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
   } else if (faithfulness.problems.length > 0) {
     quality.warnings = [...(quality.warnings ?? []), ...faithfulness.problems];
   }
+
+  if (options.draftPath) {
+    const judgment = await hasPassingJudgment(options.draftPath);
+    if (!judgment.ok) {
+      quality.ok = false;
+      quality.errors.push(`AI Judgment missing or failed: ${judgment.reason}`);
+    }
+  } else {
+    quality.ok = false;
+    quality.errors.push("AI Judgment missing (no draftPath provided to evaluateLessonForSave).");
+  }
+
   return { ok: quality.ok, quality, faithfulness };
 }
 
@@ -50,17 +62,17 @@ export async function runTeachFloors(targetRoot, markdown, options = {}) {
     quality.ok = false;
     quality.errors.push(...citations.problems);
   }
-  const pedagogy = evaluatePedagogy(markdown);
   const faithfulness = await assessClaimFaithfulness(targetRoot, markdown);
   if (options.strictFaithfulness && faithfulness.problems.length > 0) {
     quality.ok = false;
     quality.errors.push(...faithfulness.problems);
   }
+  // Optional check, as evaluate-lesson does not enforce AI judgment by itself,
+  // but we can surface it if it exists.
   return {
     floorOk: quality.ok,
     quality,
     citations,
-    pedagogy,
     faithfulness,
   };
 }

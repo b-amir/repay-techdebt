@@ -34,7 +34,12 @@ function parse(argv) {
     process.exit(0);
   }
   const positional = [];
-  const options = { kind: "auto", depth: "balanced", format: "json", focus: null };
+  const options = {
+    kind: "auto",
+    depth: "balanced",
+    format: "json",
+    focus: null,
+  };
   const allowed = new Set([
     "focus",
     "kind",

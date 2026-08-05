@@ -14,7 +14,7 @@ const { values, positionals } = parseArgs({
 
 async function run() {
   if (!values.command) {
-    console.error("Error: --command is required.");
+    process.stderr.write("Error: --command is required.\n");
     process.exitCode = 1;
     return;
   }
@@ -29,23 +29,23 @@ async function run() {
   const result = await collectRuntimeEvidence(plan, values.consent || false);
 
   if (result.status === "refused") {
-    console.error(`[REFUSED] ${result.error}`);
-    console.error("To authorize this execution, run again with --consent.");
+    process.stderr.write(`[REFUSED] ${result.error}\n`);
+    process.stderr.write("To authorize this execution, run again with --consent.\n");
     process.exitCode = 1;
     return;
   }
 
   if (result.status === "failed") {
-    console.error(`[FAILED] ${result.error}`);
-    if (result.stderr) console.error(result.stderr);
+    process.stderr.write(`[FAILED] ${result.error}\n`);
+    if (result.stderr) process.stderr.write(`${result.stderr}\n`);
     process.exitCode = 2;
     return;
   }
 
-  console.log(JSON.stringify(result, null, 2));
+  process.stdout.write(JSON.stringify(result, null, 2) + "\n");
 }
 
 run().catch((err) => {
-  console.error(err);
+  process.stderr.write(`${err.stack || err}\n`);
   process.exitCode = 1;
 });

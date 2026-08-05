@@ -107,7 +107,6 @@ const BARRELS = [
       "verifyLessonCitations",
       "parseClaimsBlock",
       "assessClaimFaithfulness",
-      "evaluatePedagogy",
       "planLesson",
       "composeMermaidBlock",
       "lessonPlanSchema",

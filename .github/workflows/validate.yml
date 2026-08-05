@@ -11,13 +11,16 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 11
       - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
@@ -25,6 +28,10 @@ jobs:
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm install
+      - name: Run typecheck
+        run: pnpm typecheck
+      - name: Run orphans lint
+        run: pnpm lint:orphans
       - name: Run tests
         run: pnpm test
       - name: Validate Release

@@ -69,10 +69,26 @@ node <skill-root>/scripts/project-memory.js reconfig <target-root> \
   --mode workbook --depth balanced --save-policy ask --yes
 ```
 
-Interactive terminal wizard:
+interactive terminal wizard:
 
 ```text
 node <skill-root>/scripts/project-memory.js reconfig <target-root> --interactive
+```
+
+### Status
+
+Prints a human-readable summary of the current workbook, configuration, and curriculum state.
+
+```text
+node <skill-root>/scripts/project-memory.js status <target-root>
+```
+
+### Configure Output
+
+Updates the base path for workbook generation and optionally migrates existing data to the new location. Useful for shifting from private agent memory to team-visible documentation.
+
+```text
+node <skill-root>/scripts/project-memory.js configure-output <target-root> --path <new-path> [--yes]
 ```
 
 ### Open workbook viewer

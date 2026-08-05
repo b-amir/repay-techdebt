@@ -17,7 +17,7 @@ Exit 2 only when mechanical floors fail (quality/citations). Rubric proxies are 
 `);
 }
 
-function rubricProxies(markdown, quality, pedagogy) {
+function rubricProxies(markdown, quality) {
   const lower = markdown.toLowerCase();
   const hasCite = (quality.citations?.length ?? 0) >= 2;
   const hasYou = /\b(?:you|your)\b/i.test(markdown);
@@ -36,10 +36,7 @@ function rubricProxies(markdown, quality, pedagogy) {
         quality.sectionCount > 0,
       ),
       clarity: score(hasYou && (quality.warnings?.length ?? 0) === 0, hasYou),
-      pedagogy: score(
-        pedagogy.ok && hasPredict && hasChallenge,
-        hasChallenge || pedagogy.warnings.length < 3,
-      ),
+      pedagogy: score(hasPredict && hasChallenge, hasChallenge),
       actionability: score(hasChallenge && hasCausal, hasChallenge || hasCausal),
     },
   };
@@ -64,8 +61,8 @@ try {
   const target = await resolveTargetRoot(args[0]);
   const markdown = await readFile(resolve(args[1]), "utf8");
   const floors = await runTeachFloors(target.targetRoot, markdown, { depth });
-  const { floorOk, quality, citations, pedagogy, faithfulness } = floors;
-  const rubric = rubricProxies(markdown, quality, pedagogy);
+  const { floorOk, quality, citations, faithfulness } = floors;
+  const rubric = rubricProxies(markdown, quality);
   const payload = {
     analyzer: "evaluate-lesson",
     role: "check",
@@ -73,7 +70,6 @@ try {
     floorOk,
     quality,
     citations,
-    pedagogy,
     faithfulness: {
       mode: faithfulness.mode,
       ok: faithfulness.ok,
@@ -82,14 +78,20 @@ try {
     },
     rubric,
     nextAsks: floorOk
-      ? [{ who: "agent", do: "review-rubric-proxies-then-save", why: "floors-passed" }]
+      ? [
+          {
+            who: "agent",
+            do: "review-rubric-proxies-then-save",
+            why: "floors-passed",
+          },
+        ]
       : [{ who: "agent", do: "fix-floor-errors", why: "floors-failed" }],
   };
   if (format === "text") {
     process.stdout.write(
-      `${floorOk ? "PASS" : "FAIL"} floors; pedagogy=${pedagogy.ok ? "ok" : "issues"}; faithfulness=${faithfulness.ok ? "ok" : "issues"}\n`,
+      `${floorOk ? "PASS" : "FAIL"} floors; faithfulness=${faithfulness.ok ? "ok" : "issues"}\\n`,
     );
-    for (const item of [...quality.errors, ...pedagogy.errors]) process.stdout.write(`- ${item}\n`);
+    for (const item of quality.errors) process.stdout.write(`- ${item}\\n`);
   } else process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
   if (!floorOk) process.exitCode = 2;
 } catch (error) {

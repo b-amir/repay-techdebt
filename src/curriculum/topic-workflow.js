@@ -51,8 +51,8 @@ export async function runTopicWorkflow(target, options) {
     const draftMarkdown = await readFile(options.draftPath, "utf8");
     const evaluation = inspectLesson(draftMarkdown, {
       depth: options.depth || "balanced",
-      expectedEvidencePaths: [],
-    }); // TODO: compute expected paths if necessary
+      expectedEvidencePaths: topic.evidencePaths || [],
+    });
 
     if (!evaluation.ok) {
       return {
@@ -103,7 +103,10 @@ export async function runTopicWorkflow(target, options) {
     maxRelationBytes: options.maxRelationBytes,
   });
 
-  const plan = planLesson(model, { focus: topic.title, depth: options.depth || "balanced" });
+  const plan = planLesson(model, {
+    focus: topic.title,
+    depth: options.depth || "balanced",
+  });
 
   return {
     status: "paused",

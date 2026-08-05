@@ -28,7 +28,9 @@ test("buildSidebar marks done, written, and planned rows", () => {
     ],
   };
   const progress = {
-    completed: { "lessons/done.md": { completedAt: "2026-08-02T12:00:00.000Z" } },
+    completed: {
+      "lessons/done.md": { completedAt: "2026-08-02T12:00:00.000Z" },
+    },
   };
   const sidebar = buildSidebar(curriculum, progress, "lessons/open.md");
   assert.equal(sidebar.counts.done, 1);

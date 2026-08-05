@@ -97,7 +97,10 @@ async function runSemgrep(projectRoot, relativeSkillRoot) {
       engineErrors: parsed.errors?.length ?? 0,
     };
   } catch (error) {
-    return { ok: false, reason: `Semgrep returned invalid JSON: ${error.message}` };
+    return {
+      ok: false,
+      reason: `Semgrep returned invalid JSON: ${error.message}`,
+    };
   }
 }
 
@@ -134,7 +137,11 @@ async function runSecretlint(projectRoot, relativeSkillRoot) {
     terminalLink: false,
   });
   const result = await engine.executeOnFiles({ filePathList: files });
-  return { ok: result.ok, diagnostics: result.output.trim(), scannedFiles: files.length };
+  return {
+    ok: result.ok,
+    diagnostics: result.output.trim(),
+    scannedFiles: files.length,
+  };
 }
 
 try {

@@ -34,6 +34,7 @@ in the workbook output; curriculum.json (private) drives the directory rail.
 
 function openInBrowser(url) {
   const platform = process.platform;
+  /** @type {[string, string[]]} */
   const command =
     platform === "darwin"
       ? ["open", [url]]
@@ -49,9 +50,7 @@ async function main() {
   const { ensureSkillRuntime } = await import("../src/foundations/ensure-runtime.js");
   await ensureSkillRuntime({ skillRoot });
 
-  const { resolveTargetRoot, formatTargetError, TargetRootError } = await import(
-    "../src/foundations/targeting.js",
-  );
+  const { resolveTargetRoot } = await import("../src/foundations/targeting.js");
   const { resolveWorkbook } = await import("../src/viewer/resolve-workbook.js");
   const { createViewerServer } = await import("../src/viewer/server.js");
 

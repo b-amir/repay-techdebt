@@ -16,58 +16,30 @@ export function renderWorkbookReadme({ targetRoot, workbookRoot, projectName }) 
   } catch {
     targetRel = targetRoot;
   }
-  if (!targetRel) targetRel = ".";
-  const targetDisplay = targetRel.startsWith("..") || targetRel === "." ? targetRel : targetRoot;
-
+  if (!targetRel || targetRel === ".") targetRel = "..";
   return `${WORKBOOK_README_MARKER}
 # ${name} workbook
 
-Short lessons about this project, written from the real source. You do **not** need an AI agent
+Short lessons about this project, from the real source. No AI agent needed
 to read them.
 
 ## Open in the browser
 
-Needs **Node.js 22+** and the \`repay-techdebt\` skill installed on this machine (once).
-
-1. Find the skill folder (common locations):
-
-\`\`\`text
-~/.agents/skills/repay-techdebt
-~/.claude/skills/repay-techdebt
-\`\`\`
-
-2. Point the viewer at the **project** this workbook teaches (not this workbook folder):
-
 \`\`\`bash
-# From anywhere — replace SKILL_ROOT if yours differs
-export SKILL_ROOT="$HOME/.agents/skills/repay-techdebt"
-node "$SKILL_ROOT/scripts/view-lessons.js" "${targetDisplay}" --open
+repay view ${targetRel} --open
 \`\`\`
 
-Same thing via project-memory:
-
-\`\`\`bash
-node "$SKILL_ROOT/scripts/project-memory.js" open-viewer "${targetDisplay}"
-\`\`\`
-
-The first run may install packages **inside the skill folder only** — never into this project.
-
-No chat agent is required. An internet connection is only needed the first time the browser
-fetches fonts/diagram scripts; lesson text and code highlighting work offline after that.
+Needs Node.js 22+ and the \`repay-techdebt\` skill (installs \`repay\` on your
+PATH the first time). Flags: \`--port\`, \`--lesson\`, \`--open\`.
 
 ## Read as Markdown
 
-| File | What it is |
-| ---- | ---------- |
-| [\`INDEX.md\`](./INDEX.md) | Curriculum index |
-| [\`lessons/\`](./lessons/) | Lesson files |
-| \`progress.json\` | Mark-done state (created when you use the viewer) |
-
-Open \`INDEX.md\` or any file under \`lessons/\` in your editor if you prefer not to run the viewer.
+Open [\`INDEX.md\`](./INDEX.md) or any file under [\`lessons/\`](./lessons/).
 
 ## Create more lessons
 
-That part uses an AI agent with the \`/repay-techdebt\` skill. Reading what is already here does not.
+That part uses an AI agent with \`/repay-techdebt\`. Reading what is here does
+not.
 `;
 }
 
@@ -80,6 +52,7 @@ That part uses an AI agent with the \`/repay-techdebt\` skill. Reading what is a
  */
 export async function ensureWorkbookReadme(workbookRoot, meta) {
   const readmePath = resolve(workbookRoot, "README.md");
+  /** @type {"created"|"updated"|"skipped"} */
   let mode = "created";
   if (await pathExists(readmePath)) {
     let existing = "";
@@ -91,14 +64,6 @@ export async function ensureWorkbookReadme(workbookRoot, meta) {
     if (!existing.includes(WORKBOOK_README_MARKER)) return "skipped";
     mode = "updated";
   }
-  await writeFile(
-    readmePath,
-    renderWorkbookReadme({
-      targetRoot: meta.targetRoot,
-      workbookRoot,
-      projectName: meta.projectName,
-    }),
-    "utf8",
-  );
+  await writeFile(readmePath, `${renderWorkbookReadme(meta)}\n`, "utf8");
   return mode;
 }
