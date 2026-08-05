@@ -170,10 +170,11 @@ function prefsBootstrapScript() {
 </script>`;
 }
 
-function renderShell({ documentTitle, sidebarHtml, mainHtml, progress = null }) {
+function renderShell({ documentTitle, sidebarHtml, mainHtml, rightRailHtml = "", progress = null }) {
   const scrollAttr = progress?.lastScroll
     ? ` data-last-scroll="${escapeHtml(String(progress.lastScroll))}"`
     : "";
+  const layoutClass = rightRailHtml ? "ds-layout ds-layout-toc" : "ds-layout";
   return `<!doctype html>
 <html lang="en" data-theme="paper" data-scale="m" data-accent="teal" data-sidebar="open"${scrollAttr}>
 <head>
@@ -186,9 +187,10 @@ ${fontLinks()}
 <link rel="stylesheet" href="/assets/viewer.css">
 </head>
 <body class="ds-shell">
-<div class="ds-layout">
+<div class="${layoutClass}">
 ${sidebarHtml}
 <main class="ds-main">${sidebarToggleButton("ds-sidebar-toggle-float", false)}<div class="ds-main-inner">${mainHtml}</div></main>
+${rightRailHtml}
 </div>
 ${viewSettingsPanel()}
 <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
@@ -341,8 +343,18 @@ function findContinueLesson(sidebar, progress) {
 }
 
 /**
+ * Strip agent-facing CLAIMS blocks from lesson HTML — not shown to learners.
+ */
+export function stripClaimsHtml(html) {
+  return String(html ?? "")
+    .replace(/<details class="ds-claims">[\s\S]*?<\/details>/gi, "")
+    .replace(/<p>CLAIMS:\s*<\/p>\s*(?:<ol>[\s\S]*?<\/ol>|<ul>[\s\S]*?<\/ul>)?/gi, "");
+}
+
+/**
  * Wrap a CLAIMS: paragraph (and the list that follows it) in a collapsed
  * <details> so it reads as secondary evidence, not plaque body. Best-effort.
+ * @deprecated Viewer uses stripClaimsHtml instead; kept for tooling that may reuse it.
  */
 export function wrapClaims(html) {
   return html.replace(
@@ -350,6 +362,68 @@ export function wrapClaims(html) {
     (match, list) =>
       `<details class="ds-claims"><summary>Show claims</summary>${list ?? ""}</details>`,
   );
+}
+
+/** Lessons often repeat the title as a markdown H1; strip it when the shell renders the title. */
+export function stripLeadingTitleHtml(html) {
+  return String(html ?? "").replace(/^\s*<h1[^>]*>[\s\S]*?<\/h1>\s*/i, "");
+}
+
+function renderTocRail(headings) {
+  if (headings.filter((h) => h.level === 2).length < 4) return "";
+  const listItems = headings
+    .map((h) => {
+      const cls = h.level === 3 ? "ds-toc-h3" : "ds-toc-h2";
+      return `<li class="${cls}"><a href="#${escapeHtml(h.id)}" class="ds-toc-link" data-id="${escapeHtml(h.id)}">${h.text}</a></li>`;
+    })
+    .join("\n");
+  return `<aside class="ds-rail ds-rail-toc" id="ds-toc-rail" aria-label="On this page">
+  <div class="ds-rail-toc-inner">
+    <h2 class="ds-rail-toc-title">On this page</h2>
+    <ul class="ds-toc-list">${listItems}</ul>
+  </div>
+</aside>`;
+}
+
+function formatLearningStage(stage) {
+  const match = String(stage ?? "").match(/^\d+\.\s*(.+)$/);
+  const label = match ? match[1] : String(stage ?? "");
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function learningStageChip(stage) {
+  if (!stage) return "";
+  return `<span class="ds-planned-stage-chip">${escapeHtml(formatLearningStage(stage))}</span>`;
+}
+
+function citationHref(targetRoot, raw) {
+  const match = String(raw).match(/^(.+?):(\d+)$/);
+  const filePath = match ? match[1] : raw;
+  const line = match ? match[2] : "1";
+  const abs = filePath.startsWith("/")
+    ? filePath
+    : `${String(targetRoot ?? "").replace(/\/$/, "")}/${filePath}`;
+  return `vscode://file/${abs}:${line}`;
+}
+
+function lessonNavCell(nav, dir) {
+  const label = dir === "prev" ? "Previous" : "Next";
+  if (nav) {
+    const arrow = dir === "prev" ? "← " : " →";
+    const titleHtml =
+      dir === "prev"
+        ? `${arrow}${escapeHtml(nav.title)}`
+        : `${escapeHtml(nav.title)}${arrow}`;
+    return `<a class="ds-lesson-nav ds-lesson-nav-${dir}" href="${lessonHref(nav.key)}" rel="${dir}">
+      <span class="ds-lesson-nav-kicker">${label}</span>
+      <span class="ds-lesson-nav-title">${titleHtml}</span>
+    </a>`;
+  }
+  const placeholder = dir === "prev" ? "Start of workbook" : "End of workbook";
+  return `<span class="ds-lesson-nav ds-lesson-nav-${dir} ds-lesson-nav-muted" aria-disabled="true">
+    <span class="ds-lesson-nav-kicker">${label}</span>
+    <span class="ds-lesson-nav-title">${placeholder}</span>
+  </span>`;
 }
 
 function renderCopyBlock(label, command) {
@@ -373,24 +447,21 @@ export function renderLesson({
   prev,
   next,
 }) {
-  const buttonClass = completed ? "ds-btn-ghost ds-mark-done" : "ds-btn-primary ds-mark-done";
-  const buttonLabel = completed ? "Mark not done" : "Mark done";
-  const button = `<button type="button" class="${buttonClass}" data-lesson="${escapeHtml(lessonKey)}" data-completed="${completed ? "true" : "false"}">${buttonLabel}</button>`;
-  const prevHtml = prev
-    ? `<a class="ds-lesson-nav ds-lesson-nav-prev" href="${lessonHref(prev.key)}" rel="prev">
-        <span class="ds-lesson-nav-kicker">Previous</span>
-        <span class="ds-lesson-nav-title">${escapeHtml(prev.title)}</span>
-      </a>`
-    : `<span class="ds-lesson-nav ds-lesson-nav-prev ds-lesson-nav-empty" aria-hidden="true"></span>`;
-  const nextHtml = next
-    ? `<a class="ds-lesson-nav ds-lesson-nav-next" href="${lessonHref(next.key)}" rel="next">
-        <span class="ds-lesson-nav-kicker">Next</span>
-        <span class="ds-lesson-nav-title">${escapeHtml(next.title)}</span>
-      </a>`
-    : `<span class="ds-lesson-nav ds-lesson-nav-next ds-lesson-nav-empty" aria-hidden="true"></span>`;
+  const buttonClass = completed
+    ? "ds-mark-done ds-mark-done-complete"
+    : "ds-mark-done ds-mark-done-primary";
+  const buttonLabel = completed ? "✓ Completed" : "Mark as done";
+  const buttonHint = completed ? "Tap to mark not done" : "Save your progress";
+  const button = `<button type="button" class="${buttonClass}" data-lesson="${escapeHtml(lessonKey)}" data-completed="${completed ? "true" : "false"}" aria-pressed="${completed ? "true" : "false"}">
+    <span class="ds-mark-done-label">${buttonLabel}</span>
+    <span class="ds-mark-done-hint">${buttonHint}</span>
+  </button>`;
   const footer = `<footer class="ds-lesson-footer">
-    <nav class="ds-lesson-nav-row" aria-label="Lesson navigation">${prevHtml}${nextHtml}</nav>
-    <div class="ds-lesson-footer-actions">${button}</div>
+    <div class="ds-lesson-footer-bar">
+      <div class="ds-lesson-nav-slot">${lessonNavCell(prev, "prev")}</div>
+      <div class="ds-lesson-footer-primary">${button}</div>
+      <div class="ds-lesson-nav-slot ds-lesson-nav-slot-end">${lessonNavCell(next, "next")}</div>
+    </div>
   </footer>`;
 
   let currentChapter = "";
@@ -437,28 +508,35 @@ export function renderLesson({
         return `<li class="${cls}"><a href="#${escapeHtml(h.id)}" class="ds-toc-link" data-id="${escapeHtml(h.id)}">${h.text}</a></li>`;
       })
       .join("\n");
-    jumpList = `<aside class="ds-toc">
-      <details class="ds-toc-details" open>
-        <summary>Jump to section</summary>
+    jumpList = `<aside class="ds-toc-mobile" aria-label="On this page">
+      <details class="ds-toc-details">
+        <summary>On this page</summary>
         <ul class="ds-toc-list">${listItems}</ul>
       </details>
     </aside>`;
   }
 
   const progressBar = `<div class="ds-reading-progress" aria-hidden="true"><div class="ds-reading-progress-bar"></div></div>`;
+  const bodyContent = stripClaimsHtml(stripLeadingTitleHtml(bodyHtml));
 
   const main = `<article class="ds-plaque">
     ${progressBar}
-    <h1 class="ds-plaque-title">${escapeHtml(title)}</h1>
-    ${orientationStrip}
-    ${jumpList ? `<div class="ds-plaque-layout"><div class="ds-plaque-body ds-plaque-with-toc">${wrapClaims(bodyHtml)}</div>${jumpList}</div>` : `<div class="ds-plaque-body">${wrapClaims(bodyHtml)}</div>`}
+    <header class="ds-lesson-header">
+      <h1 class="ds-lesson-title">${escapeHtml(title)}</h1>
+      ${orientationStrip}
+    </header>
+    ${jumpList}
+    <div class="ds-plaque-body">${bodyContent}</div>
     ${footer}
   </article>`;
+
+  const rightRailHtml = renderTocRail(headings);
 
   return renderShell({
     documentTitle: `${title} · ${workbookTitle}`,
     sidebarHtml: renderSidebar(sidebar, workbookTitle),
     mainHtml: main,
+    rightRailHtml,
     progress,
   });
 }
@@ -492,36 +570,34 @@ export function renderPlanned({ workbookTitle, sidebar, topic, targetRoot }) {
     <ul class="ds-planned-evidence-list">
       ${evidencePaths
         .map((raw) => {
-          const match = String(raw).match(/^(.+?):(\d+)$/);
-          const filePath = match ? match[1] : raw;
-          const line = match ? match[2] : "1";
-          const abs = filePath.startsWith("/")
-            ? filePath
-            : `${String(targetRoot ?? "").replace(/\/$/, "")}/${filePath}`;
-          const href = `vscode://file/${abs}:${line}`;
+          const href = citationHref(targetRoot, raw);
           return `<li><a class="ds-citation" href="${escapeHtml(href)}">${escapeHtml(raw)}</a></li>`;
         })
         .join("")}
     </ul>
   </div>`
       : "";
-  const stageHtml = topic.learningStage
-    ? `<p class="ds-planned-stage">${escapeHtml(topic.learningStage)}</p>`
-    : "";
   const main = `<article class="ds-plaque ds-plaque-planned">
-    <p class="ds-planned-badge">Not written yet</p>
-    <h1 class="ds-plaque-title">${escapeHtml(topic.title)}</h1>
-    ${stageHtml}
-    ${
-      topic.learnerOutcome
-        ? `<p class="ds-planned-outcome">${escapeHtml(topic.learnerOutcome)}</p>`
-        : ""
-    }
+    <header class="ds-planned-header">
+      <div class="ds-planned-badges">
+        <span class="ds-planned-badge">Not written yet</span>
+        ${learningStageChip(topic.learningStage)}
+      </div>
+      <h1 class="ds-lesson-title">${escapeHtml(topic.title)}</h1>
+      ${
+        topic.learnerOutcome
+          ? `<p class="ds-planned-outcome">${escapeHtml(topic.learnerOutcome)}</p>`
+          : ""
+      }
+    </header>
     ${evidenceHtml}
-    <p class="ds-planned-lead">Ask your agent to write this lesson from project evidence.</p>
-    <div class="ds-create-box">
-      ${renderCopyBlock("In chat", chatCmd)}
-    </div>
+    <section class="ds-planned-cta" aria-labelledby="ds-planned-cta-title">
+      <h2 class="ds-planned-cta-title" id="ds-planned-cta-title">Write this lesson</h2>
+      <p class="ds-planned-cta-lead">Paste the command below in your agent chat. It will draft the lesson from project evidence.</p>
+      <div class="ds-create-box ds-create-box-prominent">
+        ${renderCopyBlock("In chat", chatCmd)}
+      </div>
+    </section>
   </article>`;
   return renderShell({
     documentTitle: `${topic.title} · ${workbookTitle}`,

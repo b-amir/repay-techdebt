@@ -7,14 +7,14 @@ import { readFile } from "node:fs/promises";
 import { resolveMemoryPaths } from "../foundations/memory-paths.js";
 import { pathExists } from "../foundations/private-storage.js";
 
-function deriveLayout(memory, config) {
+function deriveLayout(memory, config, repoRoot) {
   const location = config.output?.location ?? "private";
   const isPrivate = location === "private";
   const root = isPrivate ? memory.root : resolve(config.output.root);
   return {
     location,
     storageMode: memory.location.mode,
-    targetRoot: memory.location.projectId ? memory.root : undefined,
+    targetRoot: repoRoot,
     memoryRoot: memory.root,
     workbookRoot: root,
     lessonsDir: resolve(root, "lessons"),
@@ -54,5 +54,5 @@ export async function resolveWorkbook(targetRoot, options = {}) {
     };
   }
   const config = JSON.parse(await readFile(memory.config, "utf8"));
-  return { ready: true, config, ...deriveLayout(memory, config) };
+  return { ready: true, config, ...deriveLayout(memory, config, targetRoot) };
 }

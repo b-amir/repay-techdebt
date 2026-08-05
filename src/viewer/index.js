@@ -20,6 +20,7 @@ export {
   lessonHref,
   plannedHref,
   wrapClaims,
+  stripClaimsHtml,
   renderHome,
   renderLesson,
   renderEmpty,

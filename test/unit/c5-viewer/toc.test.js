@@ -28,7 +28,7 @@ Content 4
     next: null,
   });
 
-  assert.match(html, /<aside class="ds-toc">/);
+  assert.match(html, /<aside class="ds-rail ds-rail-toc"/);
   assert.match(html, /href="#section-1"/);
   assert.match(html, /href="#section-2"/);
   assert.match(html, /href="#section-2a"/);
@@ -58,5 +58,5 @@ Content 3
     next: null,
   });
 
-  assert.doesNotMatch(html, /<aside class="ds-toc">/);
+  assert.doesNotMatch(html, /ds-rail-toc/);
 });

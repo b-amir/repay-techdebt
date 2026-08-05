@@ -313,8 +313,14 @@ export const CLIENT_SCRIPT = `
 
   function updateCompletionUi(btn, completed, counts) {
     btn.setAttribute("data-completed", completed ? "true" : "false");
-    btn.textContent = completed ? "Mark not done" : "Mark done";
-    btn.className = completed ? "ds-btn-ghost ds-mark-done" : "ds-btn-primary ds-mark-done";
+    btn.setAttribute("aria-pressed", completed ? "true" : "false");
+    var label = btn.querySelector(".ds-mark-done-label");
+    var hint = btn.querySelector(".ds-mark-done-hint");
+    if (label) label.textContent = completed ? "✓ Completed" : "Mark as done";
+    if (hint) hint.textContent = completed ? "Tap to mark not done" : "Save your progress";
+    btn.className = completed
+      ? "ds-mark-done ds-mark-done-complete"
+      : "ds-mark-done ds-mark-done-primary";
     btn.disabled = false;
     var strip = document.querySelector(".ds-orientation-strip");
     if (strip) {
