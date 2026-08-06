@@ -529,11 +529,20 @@ export const CLIENT_SCRIPT = `
   function continueEntry() {
     var last = document.documentElement.getAttribute("data-last-read") || "";
     if (!last) return null;
-    var safe = String(last).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-    var a = document.querySelector('.ds-nav-list a[data-lesson-key="' + safe + '"]');
+    var a = null;
+    if (window.CSS && typeof CSS.escape === "function") {
+      a = document.querySelector('.ds-nav-list a[data-lesson-key="' + CSS.escape(last) + '"]');
+    } else {
+      document.querySelectorAll(".ds-nav-list a[data-lesson-key]").forEach(function (el) {
+        if (!a && el.getAttribute("data-lesson-key") === last) a = el;
+      });
+    }
     if (!a) {
+      var bare = last;
+      if (bare.indexOf("lessons/") === 0) bare = bare.slice(8);
+      if (bare.slice(-3) === ".md") bare = bare.slice(0, -3);
       return {
-        title: last.replace(/^lessons\\//, "").replace(/\\.md$/, ""),
+        title: bare,
         href: "/lesson/" + encodeURIComponent(last),
         key: last,
         match: "continue",
