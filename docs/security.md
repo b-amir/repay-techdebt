@@ -12,7 +12,7 @@ the default path.
 | Target application repo         | Read-only analysis by default. Writes only under consented workbook / `.repay-techdebt/` / private store.                                        |
 | Skill root (`SKILL.md` package) | May run `pnpm install` here when `node_modules` is missing.                                                                                      |
 | User home                       | Optional PATH shim for `repay` CLI — **opt-in only**.                                                                                            |
-| Network                         | Bundled dep install (skill lockfile); optional user-consented analyzer installs (`uv tool …`); pinned `npx skills@…` for CLI `init`/`plan` only. |
+| Network                         | Bundled dep install (skill lockfile); optional user-consented analyzer installs (`uv tool …`). CLI never calls remote `skills` invoke.          |
 | Browser viewer                  | Loopback `127.0.0.1` only; Markdown rendered with `html:false`; path sandbox on lesson files.                                                    |
 
 ## Sensitive surfaces and mitigations
@@ -33,19 +33,16 @@ the default path.
 
 Manual: `node <skill-root>/scripts/ensure-runtime.js [--dry-run]`.
 
-### 2. CLI `init` / `plan` → skills invoke (`repay-cli.js`)
+### 2. Human CLI (`repay-cli.js` / `bin/repay`)
 
-**Intent:** thin human convenience wrapper when the agent skill host is unavailable.
+**Intent:** run local skill scripts without an agent host.
 
 **Mitigations:**
 
-- Skill id is a **constant** (`b-amir/repay-techdebt`), never from argv.
-- Package pin: `npx --yes skills@1.5.22` (not floating `skills`).
-- `spawn` with `shell: false`.
-- Trailing args pass through an **allowlist** of known flags; unknown flags rejected.
-- Prefer invoking the skill from the agent host (no `npx`) when possible.
-
-`repay view` never calls `npx`; it only spawns local `view-lessons.js` with `node`.
+- Commands map to local scripts only (`project-memory.js`, `plan-analysis.js`, `view-lessons.js`).
+- No `npx skills` / remote invoke path.
+- `spawn` with `shell: false` and `node` + script path.
+- Flags pass through per-command **allowlists**; unknown flags rejected.
 
 ### 3. PATH shim (`repay-shim.js`)
 
@@ -89,6 +86,6 @@ Manual: `node <skill-root>/scripts/ensure-runtime.js [--dry-run]`.
 ## Operator checklist
 
 1. Review `pnpm-lock.yaml` with the skill version you install.
-2. Prefer agent skill activation over `repay init`/`plan` when the host supports it.
+2. Prefer agent skill activation for teach/save turns; use `repay init`/`plan`/`view` for local scripts.
 3. Only set `REPAY_LINK_CLI=1` if you want a global `repay` command.
 4. Never pass secrets as CLI flags; keep them out of lesson Markdown.

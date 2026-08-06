@@ -4,7 +4,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { join } from "node:path";
 import { locateSkillRoot } from "../../src/foundations/skill-locator.js";
-import { sanitizeInvokeArgs } from "../../scripts/repay-cli.js";
+import { sanitizeArgs, sanitizeInvokeArgs } from "../../scripts/repay-cli.js";
 
 const exec = promisify(execFile);
 const CLI_PATH = join(process.cwd(), "scripts", "repay-cli.js");
@@ -20,7 +20,7 @@ test("CLI prints help for view --help", async () => {
   assert.match(stdout, /repay view/);
   assert.match(stdout, /--open/);
   assert.match(stdout, /--lesson/);
-  assert.match(stdout, /skills@1\.5\.22/);
+  assert.match(stdout, /Local skill scripts only/);
 });
 
 test("bin/repay entry runs main (not silent no-op)", async () => {
@@ -42,25 +42,45 @@ test("CLI handles unknown commands", async () => {
   assert.ok(threw, "CLI should exit with code 1 on unknown commands");
 });
 
-test("sanitizeInvokeArgs allowlists flags and keeps positionals", () => {
-  assert.deepEqual(sanitizeInvokeArgs(["--yes", "--task", "plan", "../app"]), [
+test("sanitizeArgs allowlists flags and keeps positionals", () => {
+  const allowed = new Set(["--yes", "--mode", "--focus", "--help", "-h"]);
+  assert.deepEqual(sanitizeArgs(["--yes", "--mode", "workbook", "../app"], allowed), [
     "--yes",
-    "--task",
+    "--mode",
+    "workbook",
+    "../app",
+  ]);
+  assert.throws(() => sanitizeArgs(["--eval", "1"], allowed), /Rejected unknown flag/);
+  assert.throws(
+    () => sanitizeArgs(["--focus", "plan\n--evil"], allowed),
+    /control characters/,
+  );
+});
+
+test("sanitizeInvokeArgs remains exported for compatibility", () => {
+  assert.deepEqual(sanitizeInvokeArgs(["--yes", "--mode", "plan", "../app"]), [
+    "--yes",
+    "--mode",
     "plan",
     "../app",
   ]);
-  assert.throws(() => sanitizeInvokeArgs(["--eval", "1"]), /Rejected unknown skill flag/);
-  assert.throws(() => sanitizeInvokeArgs(["--task", "plan\n--evil"]), /control characters/);
 });
 
-test("CLI rejects unknown skill flags on init without spawning npx", async () => {
+test("CLI rejects unknown flags on init without spawning scripts", async () => {
   let threw = false;
   try {
     await exec("node", [CLI_PATH, "init", "--eval", "process.exit(0)"]);
   } catch (error) {
     threw = true;
     assert.equal(error.code, 1);
-    assert.match(error.stderr, /Rejected unknown skill flag: --eval/);
+    assert.match(error.stderr, /Rejected unknown flag: --eval/);
   }
   assert.ok(threw);
+});
+
+test("CLI plan --help stays local (no npx skills invoke)", async () => {
+  const { stdout, stderr } = await exec("node", [CLI_PATH, "plan", "--help"]);
+  assert.match(stdout, /repay plan/);
+  assert.doesNotMatch(stdout + stderr, /Unknown command: invoke/);
+  assert.doesNotMatch(stdout + stderr, /npx skills/);
 });

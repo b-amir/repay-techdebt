@@ -38,15 +38,12 @@ and a tool-use ledger.
 Inside the repo you want to understand:
 
 ```bash
-repay init
-repay view
-```
-
-Or plan a specific question:
-
-```bash
+repay init --yes
 repay plan "Start with the flows I need before changing production code."
+repay view --open
 ```
+
+`init` / `plan` / `view` run **local** skill scripts (no remote skills CLI).
 
 First run: Fast (recommended defaults) or Control (step through choices). Workbook opens in a
 script-owned browser viewer—agents never hand-build HTML.
@@ -94,7 +91,7 @@ viewer.
 | Runtime shell evidence | Requires `--consent` |
 | Optional analyzers | Printed install hints only; never auto into target |
 | Workbook viewer | `127.0.0.1` only; sanitized Markdown; path sandbox |
-| `repay init`/`plan` | Pinned `skills@1.5.22`, fixed skill id, flag allowlist |
+| `repay init`/`plan`/`view` | Local scripts only; flag allowlists |
 
 Details: **[docs/security.md](docs/security.md)**.
 

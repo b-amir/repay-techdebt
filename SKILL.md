@@ -47,9 +47,9 @@ Full model: `<skill-root>/docs/security.md`.
 | Runtime evidence | optional shell capture | mandatory `--consent`; refuse without it |
 | Optional tools | graphifyy / serena / semgrep | suggest install only; never silent target install |
 | Viewer | loopback HTTP | `127.0.0.1` only; path sandbox; Markdown `html:false` |
-| CLI `init`/`plan` | `npx skills@1.5.22` | fixed skill id; flag allowlist; `shell:false` |
+| CLI `init`/`plan`/`view` | local scripts only | flag allowlist; `shell:false`; no remote `skills` invoke |
 
-No telemetry. No outbound upload of target source. Prefer agent host over `repay init`/`plan` when available.
+No telemetry. No outbound upload of target source.
 
 ## Resolve skill and target
 
