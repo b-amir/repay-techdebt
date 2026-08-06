@@ -50,18 +50,17 @@ test("covered-map chips: done / next why / evidence", () => {
   assert.match(chips.evidenceState, /1\/2/);
 });
 
-test("renderHome includes continue + covered map chips", () => {
+test("renderHome includes primary continue + compact stats", () => {
   const sidebar = sampleSidebar();
   const html = renderHome({
     workbookTitle: "Demo workbook",
     sidebar,
     progress: { lastRead: "lessons/settle.md", completed: {} },
   });
-  assert.match(html, /ds-home-continue/);
-  assert.match(html, /ds-covered-map/);
-  assert.match(html, /ds-covered-done/);
-  assert.match(html, /ds-covered-next/);
-  assert.match(html, /ds-covered-evidence/);
-  assert.match(html, /Next why/);
+  assert.match(html, /ds-home-primary/);
+  assert.match(html, /ds-home-stats/);
+  assert.match(html, /Continue/);
+  assert.match(html, /Settle path/);
+  assert.doesNotMatch(html, /ds-covered-map|ds-home-continue|ds-home-next|Next why/);
   assert.doesNotMatch(html, /spaced.?repetition|stale-mark|LMS/i);
 });

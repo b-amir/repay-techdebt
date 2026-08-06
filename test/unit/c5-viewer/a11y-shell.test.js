@@ -19,7 +19,7 @@ test("shell HTML has skip link and main landmark id", () => {
   assert.match(html, /lang="en"/);
 });
 
-test("home render keeps skip link with covered map", () => {
+test("home render keeps skip link with compact home", () => {
   const html = renderHome({
     workbookTitle: "Demo workbook",
     sidebar: {
@@ -47,7 +47,8 @@ test("home render keeps skip link with covered map", () => {
   assert.match(html, /data-filter-clear/);
   assert.match(html, /data-last-read="lessons\/open\.md"/);
   assert.match(html, /data-nav-state="planned"/);
-  assert.match(html, /ds-lesson-card-head/);
+  assert.match(html, /ds-home-primary/);
+  assert.match(html, /ds-lesson-card/);
   assert.match(html, /data-focus="off"/);
   assert.doesNotMatch(html, /fonts\.googleapis\.com/);
   // mermaid only lazy-loads when diagrams exist — no blocking <script src=...>

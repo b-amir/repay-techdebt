@@ -277,76 +277,74 @@ export function renderHome({ workbookTitle, sidebar, progress }) {
   const { counts, total } = sidebar;
   const readPct = counts.written > 0 ? Math.round((counts.done / counts.written) * 100) : 0;
 
-  const continueCard = continueItem
-    ? `<a class="ds-home-continue" href="${lessonHref(continueItem.lessonKey)}">
-    <span class="ds-home-continue-label">Continue</span>
-    <span class="ds-home-continue-title">${escapeHtml(continueItem.title)}</span>
-    <span class="ds-home-continue-cta">Open lesson →</span>
-  </a>`
-    : counts.written > 0
-      ? `<div class="ds-home-continue ds-home-continue-done">
-    <span class="ds-home-continue-label">All caught up</span>
-    <span class="ds-home-continue-title">Every written lesson is marked done</span>
-    <span class="ds-home-continue-hint">Pick any lesson below or from the sidebar</span>
-  </div>`
-      : `<div class="ds-home-continue ds-home-continue-empty">
-    <span class="ds-home-continue-label">No lessons yet</span>
-    <span class="ds-home-continue-title">Pick a planned topic to create your first lesson</span>
+  // One primary CTA. Prefer last-read continue; else first open/next from covered map.
+  let primaryCard;
+  if (continueItem) {
+    const why =
+      chips.nextTitle && chips.nextTitle !== continueItem.title
+        ? `<span class="ds-home-primary-why">Next after this: ${escapeHtml(chips.nextTitle)}</span>`
+        : chips.nextWhy && chips.nextWhy !== "Continue this lesson"
+          ? `<span class="ds-home-primary-why">${escapeHtml(chips.nextWhy)}</span>`
+          : "";
+    primaryCard = `<a class="ds-home-primary" href="${lessonHref(continueItem.lessonKey)}">
+    <span class="ds-home-primary-label">Continue</span>
+    <span class="ds-home-primary-title">${escapeHtml(continueItem.title)}</span>
+    ${why}
+    <span class="ds-home-primary-cta">Open lesson →</span>
+  </a>`;
+  } else if (chips.nextTitle && chips.nextHref) {
+    primaryCard = `<a class="ds-home-primary" href="${chips.nextHref}">
+    <span class="ds-home-primary-label">Start</span>
+    <span class="ds-home-primary-title">${escapeHtml(chips.nextTitle)}</span>
+    <span class="ds-home-primary-why">${escapeHtml(chips.nextWhy)}</span>
+    <span class="ds-home-primary-cta">Open →</span>
+  </a>`;
+  } else if (counts.written > 0) {
+    primaryCard = `<div class="ds-home-primary ds-home-primary-static">
+    <span class="ds-home-primary-label">All caught up</span>
+    <span class="ds-home-primary-title">Every written lesson is marked done</span>
+    <span class="ds-home-primary-why">Pick any lesson below or from the sidebar</span>
   </div>`;
-
-  const nextCard = chips.nextTitle
-    ? `<a class="ds-home-next" href="${chips.nextHref ?? "#"}">
-    <span class="ds-home-next-label">Next</span>
-    <span class="ds-home-next-title">${escapeHtml(chips.nextTitle)}</span>
-    <span class="ds-home-next-why">${escapeHtml(chips.nextWhy)}</span>
-  </a>`
-    : `<div class="ds-home-next ds-home-next-empty">
-    <span class="ds-home-next-label">Next</span>
-    <span class="ds-home-next-title">Nothing queued</span>
-    <span class="ds-home-next-why">Add a planned topic or write a lesson</span>
+  } else {
+    primaryCard = `<div class="ds-home-primary ds-home-primary-static">
+    <span class="ds-home-primary-label">No lessons yet</span>
+    <span class="ds-home-primary-title">Pick a planned topic to create your first lesson</span>
   </div>`;
+  }
 
-  const coveredChips = `<div class="ds-covered-map" aria-label="Covered map">
-    <div class="ds-covered-chip ds-covered-done">
-      <span class="ds-covered-chip-label">Done</span>
-      <span class="ds-covered-chip-value">${
-        chips.done.length ? escapeHtml(chips.done.join(" · ")) : "None marked done yet"
-      }</span>
+  const stats = `<div class="ds-home-stats" aria-label="Workbook progress">
+    <div class="ds-home-stats-row">
+      <span class="ds-home-stat"><strong>${counts.done}</strong> done</span>
+      <span class="ds-home-stat-sep" aria-hidden="true">·</span>
+      <span class="ds-home-stat"><strong>${counts.written}</strong> written</span>
+      <span class="ds-home-stat-sep" aria-hidden="true">·</span>
+      <span class="ds-home-stat"><strong>${counts.planned}</strong> planned</span>
     </div>
-    <div class="ds-covered-chip ds-covered-next">
-      <span class="ds-covered-chip-label">Next why</span>
-      <span class="ds-covered-chip-value">${escapeHtml(chips.nextWhy)}</span>
-    </div>
-    <div class="ds-covered-chip ds-covered-evidence">
-      <span class="ds-covered-chip-label">Evidence</span>
-      <span class="ds-covered-chip-value">${escapeHtml(chips.evidenceState)}</span>
+    <div class="ds-home-progress">
+      <div class="ds-home-progress-track" role="progressbar" aria-valuenow="${readPct}" aria-valuemin="0" aria-valuemax="100" aria-label="Marked done">
+        <span class="ds-home-progress-fill" style="width: ${readPct}%"></span>
+      </div>
+      <p class="ds-home-progress-note">${counts.done} of ${counts.written} written · ${readPct}%</p>
     </div>
   </div>`;
 
   const writtenCards = written
-    .slice(0, 9)
+    .slice(0, 12)
     .map((item) => {
-      const mark =
-        item.state === "done"
-          ? '<span class="ds-nav-mark ds-nav-mark-done" aria-hidden="true">✓</span>'
-          : '<span class="ds-nav-mark ds-nav-mark-dot" aria-hidden="true">·</span>';
-      const status =
-        item.state === "done"
-          ? '<span class="ds-lesson-card-status ds-lesson-card-done">Done</span>'
-          : '<span class="ds-lesson-card-status">Open</span>';
-      return `<a class="ds-lesson-card${item.state === "done" ? " ds-lesson-card-is-done" : ""}" href="${lessonHref(item.lessonKey)}">
-    <span class="ds-lesson-card-head">${mark}<span class="ds-lesson-card-title">${escapeHtml(item.title)}</span></span>
-    ${status}
+      const done = item.state === "done";
+      return `<a class="ds-lesson-card${done ? " ds-lesson-card-is-done" : ""}" href="${lessonHref(item.lessonKey)}">
+    <span class="ds-lesson-card-title">${escapeHtml(item.title)}</span>
+    <span class="ds-lesson-card-status${done ? " ds-lesson-card-done" : ""}">${done ? "Done" : "Open"}</span>
   </a>`;
     })
     .join("");
 
   const plannedCards = planned
-    .slice(0, 6)
+    .slice(0, 8)
     .map(
       (item) =>
         `<a class="ds-lesson-card ds-lesson-card-planned" href="${plannedHref(item.id)}">
-    <span class="ds-lesson-card-head"><span class="ds-nav-mark ds-nav-mark-dot" aria-hidden="true">·</span><span class="ds-lesson-card-title">${escapeHtml(item.title)}</span></span>
+    <span class="ds-lesson-card-title">${escapeHtml(item.title)}</span>
     <span class="ds-lesson-card-status">Planned</span>
   </a>`,
     )
@@ -354,45 +352,21 @@ export function renderHome({ workbookTitle, sidebar, progress }) {
 
   const main = `<div class="ds-home-dashboard">
     <header class="ds-home-hero">
-      <h1 class="ds-home-title">${escapeHtml(project)}</h1>
-      <p class="ds-home-sub">${escapeHtml(total)} topics in this workbook</p>
+      <div class="ds-home-hero-text">
+        <h1 class="ds-home-title">${escapeHtml(project)}</h1>
+        <p class="ds-home-sub">${escapeHtml(total)} topics</p>
+      </div>
+      ${stats}
     </header>
 
     <div class="ds-home-top">
-      ${continueCard}
-      ${nextCard}
-      <div class="ds-home-metrics">
-        <div class="ds-home-metric">
-          <span class="ds-home-metric-value">${counts.done}</span>
-          <span class="ds-home-metric-label">Done</span>
-        </div>
-        <div class="ds-home-metric">
-          <span class="ds-home-metric-value">${counts.written}</span>
-          <span class="ds-home-metric-label">Written</span>
-        </div>
-        <div class="ds-home-metric">
-          <span class="ds-home-metric-value">${counts.planned}</span>
-          <span class="ds-home-metric-label">Planned</span>
-        </div>
-        <div class="ds-home-progress">
-          <div class="ds-home-progress-head">
-            <span>Marked done</span>
-            <span class="ds-home-progress-pct">${readPct}%</span>
-          </div>
-          <div class="ds-home-progress-track" role="progressbar" aria-valuenow="${readPct}" aria-valuemin="0" aria-valuemax="100">
-            <span class="ds-home-progress-fill" style="width: ${readPct}%"></span>
-          </div>
-          <p class="ds-home-progress-note">${counts.done} of ${counts.written} written lessons</p>
-        </div>
-      </div>
+      ${primaryCard}
     </div>
-
-    ${coveredChips}
 
     ${
       written.length
         ? `<section class="ds-home-section">
-      <h2 class="ds-home-section-title">Written lessons</h2>
+      <h2 class="ds-home-section-title">Written</h2>
       <div class="ds-home-card-grid">${writtenCards}</div>
     </section>`
         : ""
@@ -401,7 +375,7 @@ export function renderHome({ workbookTitle, sidebar, progress }) {
     ${
       planned.length
         ? `<section class="ds-home-section">
-      <h2 class="ds-home-section-title">Planned topics</h2>
+      <h2 class="ds-home-section-title">Planned</h2>
       <div class="ds-home-card-grid">${plannedCards}</div>
     </section>`
         : ""
