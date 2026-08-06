@@ -432,17 +432,26 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
 
 .ds-filter-clear {
   align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   margin: 0;
-  padding: 0;
+  padding: 2px 0;
   border: 0;
   background: transparent;
   color: var(--text-tertiary);
   font: inherit;
   font-size: 0.75rem;
   font-weight: 500;
+  line-height: 1.2;
   cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration: none;
+}
+
+.ds-filter-clear-arrow {
+  font-size: 0.85em;
+  line-height: 1;
+  transform: translateY(-0.5px);
 }
 
 .ds-filter-clear:hover {

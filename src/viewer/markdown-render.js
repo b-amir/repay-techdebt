@@ -135,21 +135,25 @@ function linkifyCitations(html, targetRoot) {
   /** @type {Map<string, number>} */
   const keyToNum = new Map();
 
-  const body = html.replace(/<code>([^<]+?):(\d+)<\/code>/g, (match, filePath, line) => {
-    if (!/^[\w./@-]+$/.test(filePath)) return match;
-    const key = `${filePath}:${line}`;
-    let num = keyToNum.get(key);
-    let first = false;
-    if (!num) {
-      num = notes.length + 1;
-      keyToNum.set(key, num);
-      first = true;
-      const abs = filePath.startsWith("/") ? filePath : `${root}/${filePath}`;
-      notes.push({ num, label: key, href: `vscode://file/${abs}:${line}` });
-    }
-    const idAttr = first ? ` id="fnref-${num}"` : "";
-    return `<sup class="ds-fn-ref"><a href="#fn-${num}"${idAttr} aria-describedby="fn-${num}">${num}</a></sup>`;
-  });
+  // Eat optional surrounding parens/spaces so prose (`path:line`) → bare footnote number.
+  const body = html.replace(
+    /(?:\(|（)?\s*<code>([^<]+?):(\d+)<\/code>\s*(?:\)|）)?/g,
+    (match, filePath, line) => {
+      if (!/^[\w./@-]+$/.test(filePath)) return match;
+      const key = `${filePath}:${line}`;
+      let num = keyToNum.get(key);
+      let first = false;
+      if (!num) {
+        num = notes.length + 1;
+        keyToNum.set(key, num);
+        first = true;
+        const abs = filePath.startsWith("/") ? filePath : `${root}/${filePath}`;
+        notes.push({ num, label: key, href: `vscode://file/${abs}:${line}` });
+      }
+      const idAttr = first ? ` id="fnref-${num}"` : "";
+      return `<sup class="ds-fn-ref"><a href="#fn-${num}"${idAttr} aria-describedby="fn-${num}">${num}</a></sup>`;
+    },
+  );
 
   if (notes.length === 0) return body;
 

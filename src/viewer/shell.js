@@ -44,7 +44,7 @@ function progressStats(counts) {
       <span class="ds-stats-label">planned</span>
     </button>
   </div>
-  <button type="button" class="ds-filter-clear" data-filter-clear hidden>Show all</button>`;
+  <button type="button" class="ds-filter-clear" data-filter-clear hidden><span class="ds-filter-clear-arrow" aria-hidden="true">←</span> Show all</button>`;
 }
 
 function brandLockup(workbookTitle) {
