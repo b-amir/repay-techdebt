@@ -169,12 +169,14 @@ export const CLIENT_SCRIPT = `
       '<div class="ds-mermaid-dialog-body"></div>';
 
     var body = dialog.querySelector(".ds-mermaid-dialog-body");
-    var svg = wrap.querySelector("svg");
+    // Diagram lives under .mermaid — never wrap.querySelector("svg") (expand icon is first SVG).
+    var diagram = wrap.querySelector(".mermaid");
+    var svg = diagram && diagram.querySelector("svg");
     if (svg) {
       body.appendChild(svg.cloneNode(true));
     } else {
-      var sourceNode = wrap.querySelector(".mermaid");
-      var source = (sourceNode && sourceNode.dataset.mermaidSource) || (sourceNode && sourceNode.textContent) || "";
+      var source =
+        (diagram && diagram.dataset.mermaidSource) || (diagram && diagram.textContent) || "";
       var pre = document.createElement("pre");
       pre.className = "mermaid";
       pre.textContent = source;
