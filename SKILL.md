@@ -219,6 +219,13 @@ node <skill-root>/scripts/check-lesson-faithfulness.js <target-root> <draft.md>
 node <skill-root>/scripts/check-snippet-secrets.js <target-root> <snippet-file>
 ```
 
+Re-verify **saved** lessons against live sources (stale claim / missing citation → exit 2):
+
+```text
+node <skill-root>/scripts/recheck-claims.js <target-root> [<lesson.md>]
+node <skill-root>/scripts/project-memory.js recheck-claims <target-root> [<lesson.md>] --format json
+```
+
 Optional report-only bundle (floors + pedagogy proxies + rubric scores; not a save gate):
 
 ```text

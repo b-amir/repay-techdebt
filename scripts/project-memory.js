@@ -30,6 +30,11 @@ import { computeEvidenceDigests } from "../src/memory/curriculum-refresh.js";
 import { readCurriculum, writeCurriculum } from "../src/memory/curriculum-store.js";
 import { renderCurriculumMarkdown } from "../src/curriculum/curriculum-planning.js";
 import { evaluateLessonForSave } from "../src/lessons/save-lesson.js";
+import {
+  reverifyLessonClaims,
+  reverifyWorkbookClaims,
+  displayLessonPath,
+} from "../src/lessons/claim-reverify.js";
 import { checkTrajectoryGate, formatPathIncompleteReason } from "../src/dialogue/trajectory.js";
 import { recordExercise, scheduleReview } from "../src/memory/learning-progress.js";
 import { validateCurriculum } from "../src/curriculum/approve-curriculum.js";
@@ -58,6 +63,7 @@ function printHelp() {
   node project-memory.js status <target-root> [--storage private|project-local|team] [--format table|json]
   node project-memory.js doctor <target-root> [--storage private|project-local|team] [--format table|json]
   node project-memory.js recheck-trajectory <target-root> [--storage private|project-local|team] [--format table|json]
+  node project-memory.js recheck-claims <target-root> [<lesson.md>] [--storage private|project-local|team] [--format table|json]
   node project-memory.js init <target-root> [--storage private|project-local|team] [--output-location sister|private|custom] [--output-root <path>] [--mode ask|pr|workbook] [--depth concise|balanced|deep] [--save-policy ask|automatic] [--boundary-hints <csv>] [--critical-workflows <csv>] [--max-files <count>] [--max-manifest-files <count>] [--max-relation-files <count>] [--max-relation-bytes <count>] [--allow-non-git] [--yes|--interactive]
   node project-memory.js save-curriculum <target-root> --input <curriculum.json> --yes
 
@@ -82,6 +88,7 @@ Thin resume helpers:
   status              read-only health + plain-language learning path state
   doctor              same health check, emphasizes what blocks a durable save
   recheck-trajectory  re-read trajectory-gate.json and print plain refuse reasons
+  recheck-claims      re-verify saved lesson CLAIMS/citations against live sources
   open-workbook       alias for open-viewer
   clear-skill-memory  alias for reset (skill memory only — never app source)
 
@@ -99,6 +106,11 @@ function parseArguments(argv) {
   }
   const [action, targetInput, ...rest] = argv;
   const options = {};
+  // Optional positional (e.g. recheck-claims <target> <lesson.md>) before flags.
+  while (rest.length > 0 && !String(rest[0]).startsWith("--")) {
+    if (!options.lessonPath) options.lessonPath = resolve(rest.shift());
+    else throw new Error(`Unexpected argument: ${rest[0]}`);
+  }
   for (let index = 0; index < rest.length; index += 1) {
     const argument = rest[index];
     if (!argument.startsWith("--")) throw new Error(`Unexpected argument: ${argument}`);
@@ -603,6 +615,79 @@ async function doctor(targetRoot, options) {
     }
   }
   if (!pathComplete) process.exitCode = 2;
+}
+
+/**
+ * Re-verify saved lesson claims against live target sources (fail closed).
+ */
+async function recheckClaims(targetRoot, options) {
+  const format = options.format === "json" ? "json" : options.format === "text" ? "text" : "table";
+  const lessonPath = options.lessonPath ?? options.lesson ?? null;
+
+  if (lessonPath) {
+    if (!(await pathExists(lessonPath))) throw new Error(`Lesson not found: ${lessonPath}`);
+    const markdown = await readFile(lessonPath, "utf8");
+    const result = await reverifyLessonClaims(targetRoot, markdown, { lessonPath });
+    const payload = {
+      type: "recheck-claims",
+      scope: "lesson",
+      status: result.ok ? "succeeded" : "failed",
+      targetRoot,
+      ...result,
+    };
+    if (format === "json") emit(payload, "json");
+    else {
+      process.stdout.write(`Claim recheck: ${result.ok ? "ok" : "failed"} (${result.mode})\n`);
+      for (const problem of result.problems) process.stdout.write(`- ${problem}\n`);
+    }
+    if (!result.ok) process.exitCode = 2;
+    return;
+  }
+
+  const paths = await resolveMemoryPaths(targetRoot, options);
+  if (!(await pathExists(paths.config))) {
+    const payload = {
+      type: "recheck-claims",
+      scope: "workbook",
+      status: "not-initialized",
+      ok: false,
+      empty: true,
+      lessonCount: 0,
+      failedCount: 0,
+      problems: ["Project memory not initialized; cannot locate saved lessons."],
+      targetRoot,
+      memoryRoot: paths.root,
+    };
+    if (format === "json") emit(payload, "json");
+    else process.stdout.write("Claim recheck: project memory not initialized\n");
+    process.exitCode = 2;
+    return;
+  }
+
+  const { config } = await readConfig(paths);
+  const workbook = workbookPaths(paths, config);
+  const batch = await reverifyWorkbookClaims(targetRoot, workbook.lessons);
+  const payload = {
+    type: "recheck-claims",
+    scope: "workbook",
+    status: batch.empty ? "empty" : batch.ok ? "succeeded" : "failed",
+    targetRoot,
+    memoryRoot: paths.root,
+    lessonsDir: workbook.lessons,
+    ...batch,
+  };
+  if (format === "json") emit(payload, "json");
+  else {
+    process.stdout.write(
+      `Claim recheck: ${batch.empty ? "empty" : batch.ok ? "ok" : "failed"} — ${batch.lessonCount} lessons, ${batch.failedCount} failed\n`,
+    );
+    for (const lesson of batch.lessons) {
+      if (lesson.ok) continue;
+      process.stdout.write(`- ${displayLessonPath(targetRoot, lesson.lessonPath)}\n`);
+      for (const problem of lesson.problems) process.stdout.write(`  - ${problem}\n`);
+    }
+  }
+  if (!batch.ok) process.exitCode = 2;
 }
 
 /**
@@ -2161,6 +2246,7 @@ if (isDirectCliInvocation(import.meta.url)) {
         "status",
         "doctor",
         "recheck-trajectory",
+        "recheck-claims",
         "init",
         "save-lesson",
         "save-curriculum",
@@ -2183,13 +2269,14 @@ if (isDirectCliInvocation(import.meta.url)) {
     ) {
       printHelp();
       throw new Error(
-        "Expected status, doctor, recheck-trajectory, init, configure-output, save-curriculum, save-lesson, save-artifact, record-decision, migrate, repair-index, record-exercise, schedule-review, clear-output, clear-cache, clear-skill-memory, reset, reconfig, open-viewer, open-workbook, or cleanup-drafts",
+        "Expected status, doctor, recheck-trajectory, recheck-claims, init, configure-output, save-curriculum, save-lesson, save-artifact, record-decision, migrate, repair-index, record-exercise, schedule-review, clear-output, clear-cache, clear-skill-memory, reset, reconfig, open-viewer, open-workbook, or cleanup-drafts",
       );
     }
     const { targetRoot } = await resolveTargetRoot(targetInput);
     if (action === "status") await status(targetRoot, options);
     else if (action === "doctor") await doctor(targetRoot, options);
     else if (action === "recheck-trajectory") await recheckTrajectory(targetRoot, options);
+    else if (action === "recheck-claims") await recheckClaims(targetRoot, options);
     else if (action === "init") await init(targetRoot, options);
     else if (action === "configure-output") await configureOutput(targetRoot, options);
     else if (action === "save-curriculum") await saveCurriculum(targetRoot, options);

@@ -21,6 +21,7 @@ import {
   resolveSubjectPath,
   checkSubjectPathGate,
   checkAntiClone,
+  checkPrPrimaryPaths,
 } from "../../../src/lessons/subject-path-gate.js";
 import {
   checkPolyglotHonesty,
@@ -207,6 +208,25 @@ test("anti-clone flags same primary set; deeper layer allowed", () => {
 
   const fresh = checkAntiClone({ primaryPaths: ["c.js"], citations: ["c.js:1"] }, prior);
   assert.equal(fresh.ok, true);
+});
+
+test("PR primary paths must sit inside changed-file set", () => {
+  const skipped = checkPrPrimaryPaths({ primaryPaths: ["src/a.ts"] }, []);
+  assert.equal(skipped.ok, true);
+  assert.equal(skipped.skipped, true);
+
+  const ok = checkPrPrimaryPaths(
+    { primaryPaths: ["src/routes/admin.ts"], citations: ["src/routes/admin.ts:1"] },
+    ["src/routes/admin.ts", "src/auth/permission.ts"],
+  );
+  assert.equal(ok.ok, true);
+
+  const bad = checkPrPrimaryPaths(
+    { primaryPaths: ["src/unrelated.ts"], citations: ["src/unrelated.ts:1"] },
+    ["src/routes/admin.ts"],
+  );
+  assert.equal(bad.ok, false);
+  assert.ok(bad.errors.some((e) => /outside the changed-file set/i.test(e)));
 });
 
 test("polyglot honesty blocks deep claims on unsupported languages", () => {

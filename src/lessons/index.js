@@ -9,6 +9,11 @@ export {
 } from "./lesson-citation-check.js";
 
 export { parseClaimsBlock, assessClaimFaithfulness } from "./claim-faithfulness.js";
+export {
+  reverifyLessonClaims,
+  reverifyWorkbookClaims,
+  displayLessonPath,
+} from "./claim-reverify.js";
 export { evaluateLessonForSave, runTeachFloors } from "./save-lesson.js";
 
 export { lessonPlanSchema, planLesson, composeMermaidBlock } from "./lesson-composition.js";
@@ -47,6 +52,7 @@ export {
   resolveSubjectPath,
   checkSubjectPathGate,
   checkAntiClone,
+  checkPrPrimaryPaths,
 } from "./subject-path-gate.js";
 
 export {

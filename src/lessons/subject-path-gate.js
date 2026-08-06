@@ -155,6 +155,56 @@ export function checkSubjectPathGate(input = {}) {
  * @param {{ citations?: string[], primaryPaths?: string[] }} nextLesson
  * @param {{ citations?: string[], primaryPaths?: string[] }[]} priorLessons
  */
+/**
+ * PR/diff mentor: primary lesson paths must sit inside the changed-file set.
+ * Empty changedPaths → skip (not a PR teach). Paths compared without line numbers.
+ *
+ * @param {{ primaryPaths?: string[], citations?: string[], evidencePaths?: string[] }} lesson
+ * @param {string[]|null|undefined} changedPaths
+ */
+export function checkPrPrimaryPaths(lesson, changedPaths) {
+  if (!Array.isArray(changedPaths) || changedPaths.length === 0) {
+    return { ok: true, skipped: true, errors: [], offDiff: [] };
+  }
+  const changed = normalizeSet(changedPaths);
+  const candidates = normalizeSet([
+    ...(lesson.primaryPaths ?? []),
+    ...(lesson.evidencePaths ?? []),
+    ...(lesson.citations ?? []).map(stripLine),
+  ]);
+  if (candidates.size === 0) {
+    return {
+      ok: false,
+      skipped: false,
+      errors: ["PR lesson needs primary paths or citations inside the changed-file set."],
+      offDiff: [],
+    };
+  }
+  const offDiff = [...candidates].filter((p) => !pathInChangedSet(p, changed));
+  if (offDiff.length > 0) {
+    return {
+      ok: false,
+      skipped: false,
+      errors: [
+        `PR lesson primary path(s) outside the changed-file set: ${offDiff.slice(0, 6).join(", ")}`,
+      ],
+      offDiff,
+    };
+  }
+  return { ok: true, skipped: false, errors: [], offDiff: [] };
+}
+
+function pathInChangedSet(path, changed) {
+  const n = String(path).replace(/^\.\//, "").replaceAll("\\", "/");
+  if (changed.has(n)) return true;
+  // Allow lesson path that is a prefix match only when exact file is in set already handled;
+  // also accept when a changed path is under the lesson path directory (rare).
+  for (const c of changed) {
+    if (c === n || c.endsWith(`/${n}`) || n.endsWith(`/${c}`)) return true;
+  }
+  return false;
+}
+
 export function checkAntiClone(nextLesson, priorLessons = []) {
   const nextPrimary = normalizeSet([
     ...(nextLesson.primaryPaths ?? []),

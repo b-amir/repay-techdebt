@@ -13,10 +13,11 @@ const execute = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const cli = resolve(root, "scripts/project-memory.js");
 
-test("help documents doctor, recheck-trajectory, open-workbook, clear-skill-memory", async () => {
+test("help documents doctor, recheck-trajectory, recheck-claims, open-workbook, clear-skill-memory", async () => {
   const { stdout } = await execute(process.execPath, [cli, "--help"], { cwd: root });
   assert.match(stdout, /doctor/);
   assert.match(stdout, /recheck-trajectory/);
+  assert.match(stdout, /recheck-claims/);
   assert.match(stdout, /open-workbook/);
   assert.match(stdout, /clear-skill-memory/);
   assert.match(stdout, /status/);

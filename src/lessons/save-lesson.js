@@ -7,7 +7,7 @@ import { parseLessonFrontmatter, craftFieldsFromFrontmatter } from "./lesson-fro
 import { inspectLessonShape, checkMapXor } from "./lesson-shape.js";
 import { inspectUsefulnessFloors } from "./usefulness-floors.js";
 import { checkDiagramGate } from "./diagram-gate.js";
-import { checkSubjectPathGate, checkAntiClone } from "./subject-path-gate.js";
+import { checkSubjectPathGate, checkAntiClone, checkPrPrimaryPaths } from "./subject-path-gate.js";
 import { checkPolyglotHonesty, checkAbsenceHonesty } from "./polyglot-honesty.js";
 
 /**
@@ -57,6 +57,7 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
     diagram: null,
     subjectPath: null,
     antiClone: null,
+    prPaths: null,
     polyglot: null,
     absence: null,
   };
@@ -124,6 +125,23 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
       if (!craft.antiClone.ok) {
         quality.ok = false;
         quality.errors.push(...craft.antiClone.errors);
+      }
+    }
+
+    const changedPaths =
+      options.changedPaths ?? options.prChangedPaths ?? options.diffPaths ?? null;
+    if (Array.isArray(changedPaths) && changedPaths.length > 0) {
+      craft.prPaths = checkPrPrimaryPaths(
+        {
+          primaryPaths: craftFields.primaryPaths,
+          citations: quality.citations,
+          evidencePaths: options.expectedEvidencePaths ?? options.topic?.evidencePaths,
+        },
+        changedPaths,
+      );
+      if (!craft.prPaths.ok) {
+        quality.ok = false;
+        quality.errors.push(...craft.prPaths.errors);
       }
     }
 
