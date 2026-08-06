@@ -175,4 +175,4 @@ important asks, one blank line between tables, ≤25 words status on routine tur
 | `?` | Shortcuts sheet |
 | `esc` | Close palette / sheet / exit focus |
 
-Sidebar: filter All / Open / Done / Planned. Empty palette shows Continue, Recent, Planned, Jump. Planned topic pages expose create command + deep link copy.
+Sidebar: click Done / Written / Planned counts to filter nav; Show all clears. Empty palette shows Continue, Recent, Planned, Jump. Planned topic pages show the create command to paste in chat.

@@ -30,11 +30,21 @@ export function parseWorkbookBrand(workbookTitle) {
 }
 
 function progressStats(counts) {
-  return `<div class="ds-stats" aria-label="Progress summary">
-    <div class="ds-stats-item"><span class="ds-stats-value">${counts.done}</span><span class="ds-stats-label">done</span></div>
-    <div class="ds-stats-item"><span class="ds-stats-value">${counts.written}</span><span class="ds-stats-label">written</span></div>
-    <div class="ds-stats-item"><span class="ds-stats-value">${counts.planned}</span><span class="ds-stats-label">planned</span></div>
-  </div>`;
+  return `<div class="ds-stats" role="group" aria-label="Filter by status">
+    <button type="button" class="ds-stats-item" data-filter="done" aria-pressed="false" title="Show done lessons">
+      <span class="ds-stats-value">${counts.done}</span>
+      <span class="ds-stats-label">done</span>
+    </button>
+    <button type="button" class="ds-stats-item" data-filter="written" aria-pressed="false" title="Show written lessons">
+      <span class="ds-stats-value">${counts.written}</span>
+      <span class="ds-stats-label">written</span>
+    </button>
+    <button type="button" class="ds-stats-item" data-filter="planned" aria-pressed="false" title="Show planned topics">
+      <span class="ds-stats-value">${counts.planned}</span>
+      <span class="ds-stats-label">planned</span>
+    </button>
+  </div>
+  <button type="button" class="ds-filter-clear" data-filter-clear hidden>Show all</button>`;
 }
 
 function brandLockup(workbookTitle) {
@@ -150,12 +160,6 @@ function renderSidebar(sidebar, workbookTitle) {
     : "";
   return `<aside class="ds-rail" id="ds-rail">
     ${header}
-    <div class="ds-rail-filter" role="group" aria-label="Filter lessons">
-      <button type="button" class="ds-filter-btn ds-filter-btn-active" data-filter="all" aria-pressed="true">All</button>
-      <button type="button" class="ds-filter-btn" data-filter="open" aria-pressed="false">Open</button>
-      <button type="button" class="ds-filter-btn" data-filter="done" aria-pressed="false">Done</button>
-      <button type="button" class="ds-filter-btn" data-filter="planned" aria-pressed="false">Planned</button>
-    </div>
     <div class="ds-rail-progress">${progressStats(sidebar.counts)}</div>
     <nav class="ds-nav-list" aria-label="Lessons">${chapters || '<p class="ds-empty">No curriculum yet.</p>'}</nav>
   </aside>`;
@@ -538,7 +542,7 @@ export function renderLesson({
 }) {
   const buttonClass = completed ? "ds-mark-done ds-mark-done-complete" : "ds-mark-done";
   const buttonLabel = completed ? "Mark not done" : "Mark as done";
-  const button = `<button type="button" class="${buttonClass}" data-lesson="${escapeHtml(lessonKey)}" data-completed="${completed ? "true" : "false"}" aria-pressed="${completed ? "true" : "false"}"><span class="ds-mark-done-check" aria-hidden="true"></span><span class="ds-mark-done-label">${buttonLabel}</span></button>`;
+  const button = `<button type="button" class="${buttonClass}" data-lesson="${escapeHtml(lessonKey)}" data-completed="${completed ? "true" : "false"}" aria-pressed="${completed ? "true" : "false"}"><span class="ds-mark-done-label">${buttonLabel}</span></button>`;
   const footer = `<footer class="ds-lesson-footer">
     ${button}
     <nav class="ds-lesson-footer-nav" aria-label="Lesson navigation" data-lesson-nav>
@@ -645,7 +649,6 @@ export function renderEmpty({ workbookTitle, reason }) {
 export function renderPlanned({ workbookTitle, sidebar, topic, targetRoot }) {
   const createArg = topic.id;
   const chatCmd = `/repay-techdebt --create ${createArg}`;
-  const deepLink = plannedHref(topic.id);
   const evidencePaths = (topic.evidencePaths ?? []).slice(0, 8);
   const evidenceHtml =
     evidencePaths.length > 0
@@ -676,13 +679,6 @@ export function renderPlanned({ workbookTitle, sidebar, topic, targetRoot }) {
     <section class="ds-planned-cta">
       <p class="ds-planned-cta-lead">Ask your agent to write this lesson from project evidence.</p>
       ${renderPlannedCommandRow(chatCmd, "create command")}
-      <div class="ds-planned-deeplink">
-        <span class="ds-planned-deeplink-label">Deep link</span>
-        <div class="ds-cmd-row">
-          <code class="ds-cmd-text">${escapeHtml(deepLink)}</code>
-          <button type="button" class="ds-btn-copy ds-btn-copy-icon" data-copy="${escapeHtml(deepLink)}" aria-label="Copy deep link">${COPY_ICON}</button>
-        </div>
-      </div>
     </section>
     ${evidenceHtml}
   </article>`;

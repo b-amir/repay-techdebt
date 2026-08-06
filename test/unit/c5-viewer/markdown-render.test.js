@@ -40,10 +40,20 @@ test("renderMarkdown emits mermaid blocks for client rendering", () => {
   assert.doesNotMatch(html, /ds-codeblock/);
 });
 
-test("renderMarkdown linkifies path:line citations when targetRoot is provided", () => {
-  const html = renderMarkdown("See `src/auth.js:42` for the guard.", {
-    targetRoot: "/work/app",
-  });
+test("renderMarkdown turns path:line citations into footnotes when targetRoot is provided", () => {
+  const html = renderMarkdown(
+    "See `src/auth.js:42` for the guard. Also `src/auth.js:42` again and `app/core/api/http-client.ts:123`.",
+    { targetRoot: "/work/app" },
+  );
+  assert.match(html, /class="ds-fn-ref"/);
+  assert.match(html, /class="ds-footnotes"/);
+  assert.match(html, /href="#fn-1"/);
+  assert.match(html, /id="fn-1"/);
   assert.match(html, /class="ds-citation"/);
   assert.match(html, /vscode:\/\/file\/\/work\/app\/src\/auth.js:42/);
+  assert.match(html, /vscode:\/\/file\/\/work\/app\/app\/core\/api\/http-client.ts:123/);
+  // body keeps prose free of long path chips
+  assert.doesNotMatch(html, /See <a class="ds-citation"/);
+  // duplicate path:line reuses one note
+  assert.equal((html.match(/id="fn-\d+"/g) || []).length, 2);
 });

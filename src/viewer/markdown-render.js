@@ -130,12 +130,36 @@ function escapeAttr(value) {
 function linkifyCitations(html, targetRoot) {
   if (!targetRoot) return html;
   const root = String(targetRoot).replace(/\/$/, "");
-  return html.replace(/<code>([^<]+?):(\d+)<\/code>/g, (match, filePath, line) => {
+  /** @type {{ num: number, label: string, href: string }[]} */
+  const notes = [];
+  /** @type {Map<string, number>} */
+  const keyToNum = new Map();
+
+  const body = html.replace(/<code>([^<]+?):(\d+)<\/code>/g, (match, filePath, line) => {
     if (!/^[\w./@-]+$/.test(filePath)) return match;
-    const abs = filePath.startsWith("/") ? filePath : `${root}/${filePath}`;
-    const href = `vscode://file/${abs}:${line}`;
-    return `<a class="ds-citation" href="${escapeAttr(href)}" title="Open in editor">${match}</a>`;
+    const key = `${filePath}:${line}`;
+    let num = keyToNum.get(key);
+    let first = false;
+    if (!num) {
+      num = notes.length + 1;
+      keyToNum.set(key, num);
+      first = true;
+      const abs = filePath.startsWith("/") ? filePath : `${root}/${filePath}`;
+      notes.push({ num, label: key, href: `vscode://file/${abs}:${line}` });
+    }
+    const idAttr = first ? ` id="fnref-${num}"` : "";
+    return `<sup class="ds-fn-ref"><a href="#fn-${num}"${idAttr} aria-describedby="fn-${num}">${num}</a></sup>`;
   });
+
+  if (notes.length === 0) return body;
+
+  const list = notes
+    .map(
+      (n) =>
+        `<li id="fn-${n.num}" class="ds-fn-item"><a class="ds-citation" href="${escapeAttr(n.href)}" title="Open in editor"><code>${escapeAttr(n.label)}</code></a> <a class="ds-fn-back" href="#fnref-${n.num}" aria-label="Back to reference ${n.num}">↩</a></li>`,
+    )
+    .join("");
+  return `${body}<footer class="ds-footnotes" aria-label="Source references"><h2 class="ds-footnotes-title">Sources</h2><ol class="ds-fn-list">${list}</ol></footer>`;
 }
 
 export function extractTitle(source) {

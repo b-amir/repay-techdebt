@@ -194,16 +194,24 @@ export const CLIENT_SCRIPT = `
     });
   }
 
+  function itemMatchesFilter(state, filter) {
+    if (filter === "all") return true;
+    if (filter === "written") return state === "open" || state === "done";
+    return state === filter;
+  }
+
   function applyNavFilter(filter) {
-    document.querySelectorAll(".ds-filter-btn").forEach(function (btn) {
-      var active = btn.getAttribute("data-filter") === filter;
-      btn.classList.toggle("ds-filter-btn-active", active);
+    var activeFilter = filter || "all";
+    document.querySelectorAll(".ds-stats-item[data-filter]").forEach(function (btn) {
+      var active = btn.getAttribute("data-filter") === activeFilter;
+      btn.classList.toggle("ds-stats-item-active", active);
       btn.setAttribute("aria-pressed", active ? "true" : "false");
     });
+    var clearBtn = document.querySelector("[data-filter-clear]");
+    if (clearBtn) clearBtn.hidden = activeFilter === "all";
     document.querySelectorAll(".ds-nav-list a.ds-nav, .ds-nav-list a.ds-nav-planned").forEach(function (a) {
       var state = a.getAttribute("data-nav-state") || "open";
-      var show = filter === "all" || state === filter;
-      a.hidden = !show;
+      a.hidden = !itemMatchesFilter(state, activeFilter);
     });
     document.querySelectorAll(".ds-chapter").forEach(function (chapter) {
       var visible = chapter.querySelectorAll("a.ds-nav:not([hidden]), a.ds-nav-planned:not([hidden])").length > 0;
@@ -211,16 +219,29 @@ export const CLIENT_SCRIPT = `
     });
   }
 
+  function setNavFilter(filter) {
+    var prefs = readPrefs();
+    prefs.navFilter = filter || "all";
+    writePrefs(prefs);
+    applyNavFilter(prefs.navFilter);
+  }
+
   function bindNavFilter() {
-    document.querySelectorAll(".ds-filter-btn").forEach(function (btn) {
+    document.querySelectorAll(".ds-stats-item[data-filter]").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        var filter = btn.getAttribute("data-filter") || "all";
+        var next = btn.getAttribute("data-filter") || "all";
         var prefs = readPrefs();
-        prefs.navFilter = filter;
-        writePrefs(prefs);
-        applyNavFilter(filter);
+        // toggle off if already active
+        if (prefs.navFilter === next) setNavFilter("all");
+        else setNavFilter(next);
       });
     });
+    var clearBtn = document.querySelector("[data-filter-clear]");
+    if (clearBtn) {
+      clearBtn.addEventListener("click", function () {
+        setNavFilter("all");
+      });
+    }
   }
 
   function bindCopyButtons() {

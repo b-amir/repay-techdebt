@@ -41,7 +41,10 @@ test("home render keeps skip link with covered map", () => {
   assert.match(html, /ds-skip-link/);
   assert.match(html, /id="ds-main-content"/);
   assert.match(html, /ds-search-trigger/);
-  assert.match(html, /data-filter="all"/);
+  assert.match(html, /data-filter="done"/);
+  assert.match(html, /data-filter="written"/);
+  assert.match(html, /data-filter="planned"/);
+  assert.match(html, /data-filter-clear/);
   assert.match(html, /data-last-read="lessons\/open\.md"/);
   assert.match(html, /data-nav-state="planned"/);
   assert.match(html, /ds-lesson-card-head/);
