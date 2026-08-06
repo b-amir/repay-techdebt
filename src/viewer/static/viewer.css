@@ -522,6 +522,13 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
     color var(--dur) var(--ease);
 }
 
+/* Author display:grid beats UA [hidden] — force hide when filtered. */
+.ds-nav[hidden],
+.ds-nav-planned[hidden],
+.ds-chapter[hidden] {
+  display: none !important;
+}
+
 .ds-nav-mark {
   display: flex;
   align-items: center;
@@ -1328,12 +1335,49 @@ html[data-theme="dark"] .ds-settings-panel {
 }
 
 .ds-mermaid-wrap {
+  position: relative;
   margin: 1.5rem 0;
   padding: 18px 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
   overflow: auto;
+}
+
+.ds-mermaid-expand {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity 120ms ease, color 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.ds-mermaid-wrap:hover .ds-mermaid-expand,
+.ds-mermaid-expand:focus-visible {
+  opacity: 1;
+}
+
+.ds-mermaid-expand:hover {
+  color: var(--text);
+  border-color: var(--text-secondary);
+  background: var(--bg);
+}
+
+.ds-mermaid-expand:focus-visible {
+  outline: 2px solid var(--accent, #3b82f6);
+  outline-offset: 2px;
 }
 
 .ds-mermaid-wrap pre.mermaid {
@@ -1352,6 +1396,78 @@ html[data-theme="dark"] .ds-settings-panel {
   margin: 0 auto;
   max-width: 100%;
   height: auto;
+}
+
+.ds-mermaid-dialog {
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 4px);
+  background: var(--surface);
+  color: var(--text);
+  max-width: min(96vw, 1200px);
+  max-height: 92vh;
+  width: max-content;
+  box-shadow: 0 24px 64px color-mix(in srgb, #000 28%, transparent);
+}
+
+.ds-mermaid-dialog::backdrop {
+  background: color-mix(in srgb, #000 48%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.ds-mermaid-dialog-chrome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ds-mermaid-dialog-title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.ds-mermaid-dialog-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.ds-mermaid-dialog-close:hover {
+  color: var(--text);
+  background: var(--bg);
+}
+
+.ds-mermaid-dialog-body {
+  padding: 20px;
+  overflow: auto;
+  max-height: calc(92vh - 54px);
+}
+
+.ds-mermaid-dialog-body svg {
+  display: block;
+  margin: 0 auto;
+  max-width: min(90vw, 1120px);
+  max-height: calc(92vh - 100px);
+  width: auto;
+  height: auto;
+}
+
+.ds-mermaid-dialog-body .mermaid {
+  margin: 0;
+  background: transparent;
 }
 
 .ds-plaque-body blockquote {

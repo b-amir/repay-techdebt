@@ -145,6 +145,90 @@ export const CLIENT_SCRIPT = `
       });
   }
 
+  function closeMermaidDialog(dialog) {
+    if (!dialog) return;
+    if (typeof dialog.close === "function") dialog.close();
+    dialog.remove();
+  }
+
+  function openMermaidDialog(wrap) {
+    var existing = document.getElementById("ds-mermaid-dialog");
+    if (existing) closeMermaidDialog(existing);
+
+    var dialog = document.createElement("dialog");
+    dialog.id = "ds-mermaid-dialog";
+    dialog.className = "ds-mermaid-dialog";
+    dialog.setAttribute("aria-label", "Expanded diagram");
+    dialog.innerHTML =
+      '<div class="ds-mermaid-dialog-chrome">' +
+      '<p class="ds-mermaid-dialog-title">Diagram</p>' +
+      '<button type="button" class="ds-mermaid-dialog-close" aria-label="Close diagram" title="Close">' +
+      '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">' +
+      '<path d="M3 3l8 8M11 3L3 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+      "</svg></button></div>" +
+      '<div class="ds-mermaid-dialog-body"></div>';
+
+    var body = dialog.querySelector(".ds-mermaid-dialog-body");
+    var svg = wrap.querySelector("svg");
+    if (svg) {
+      body.appendChild(svg.cloneNode(true));
+    } else {
+      var sourceNode = wrap.querySelector(".mermaid");
+      var source = (sourceNode && sourceNode.dataset.mermaidSource) || (sourceNode && sourceNode.textContent) || "";
+      var pre = document.createElement("pre");
+      pre.className = "mermaid";
+      pre.textContent = source;
+      body.appendChild(pre);
+    }
+
+    document.body.appendChild(dialog);
+    dialog.querySelector(".ds-mermaid-dialog-close").addEventListener("click", function () {
+      closeMermaidDialog(dialog);
+    });
+    dialog.addEventListener("click", function (e) {
+      if (e.target === dialog) closeMermaidDialog(dialog);
+    });
+    dialog.addEventListener("close", function () {
+      dialog.remove();
+    });
+
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
+
+    // No inline SVG yet (still rendering) — paint source in dialog.
+    if (!svg) {
+      var pending = body.querySelector(".mermaid");
+      if (pending) {
+        ensureMermaid()
+          .then(function (mermaid) {
+            var theme =
+              document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "neutral";
+            mermaid.initialize({
+              startOnLoad: false,
+              theme: theme,
+              securityLevel: "strict",
+              fontFamily: "system-ui, -apple-system, Segoe UI, sans-serif",
+            });
+            return mermaid.run({ nodes: [pending] });
+          })
+          .catch(function (err) {
+            console.error("mermaid dialog render failed", err);
+          });
+      }
+    }
+  }
+
+  function bindMermaidExpand() {
+    document.addEventListener("click", function (e) {
+      var btn = e.target.closest && e.target.closest(".ds-mermaid-expand");
+      if (!btn) return;
+      var wrap = btn.closest(".ds-mermaid-wrap");
+      if (!wrap) return;
+      e.preventDefault();
+      openMermaidDialog(wrap);
+    });
+  }
+
   function bindPrefs() {
     var prefs = readPrefs();
     applyPrefs(prefs);
@@ -1076,6 +1160,7 @@ export const CLIENT_SCRIPT = `
     bindSidebarToggle();
     bindNavFilter();
     bindCopyButtons();
+    bindMermaidExpand();
     bindNavScroll();
     bindReadingScroll();
     bindFocusExit();

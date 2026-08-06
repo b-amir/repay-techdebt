@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { extractTitle } from "./markdown-render.js";
+import { prepareLessonMarkdown } from "./markdown-render.js";
 
 /**
  * @param {string} lessonsDir
@@ -51,9 +51,11 @@ export async function searchLessons(workbook, query, limit = 20) {
     } catch {
       continue;
     }
-    const title = extractTitle(source) ?? file.name.replace(/\.md$/, "");
+    const prepared = prepareLessonMarkdown(source);
+    const title = prepared.title ?? file.name.replace(/\.md$/, "");
     const titleHit = title.toLowerCase().includes(q);
-    const bodyHit = source.toLowerCase().includes(q);
+    // Search reader body only — craft frontmatter (id/shape/mapAnswers) is not content.
+    const bodyHit = prepared.body.toLowerCase().includes(q);
     if (!titleHit && !bodyHit) continue;
     results.push({
       key: file.key,

@@ -11,7 +11,7 @@ export {
   normalizeLessonKey,
 } from "./progress-store.js";
 
-export { renderMarkdown, extractTitle } from "./markdown-render.js";
+export { renderMarkdown, extractTitle, prepareLessonMarkdown } from "./markdown-render.js";
 
 export { buildSidebar, buildLessonsSidebar } from "./sidebar.js";
 

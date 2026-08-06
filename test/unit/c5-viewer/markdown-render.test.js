@@ -1,7 +1,11 @@
 // @category C5
 import assert from "node:assert/strict";
 import { test } from "vite-plus/test";
-import { renderMarkdown } from "../../../src/viewer/markdown-render.js";
+import {
+  renderMarkdown,
+  prepareLessonMarkdown,
+} from "../../../src/viewer/markdown-render.js";
+import { renderLesson } from "../../../src/viewer/shell.js";
 
 test("renderMarkdown renders GFM tables", () => {
   const html = renderMarkdown(
@@ -35,6 +39,8 @@ test("renderMarkdown emits mermaid blocks for client rendering", () => {
     "```mermaid\nflowchart TD\n  accTitle: Test\n  accDescr: Desc\n  A-->B\n```\n",
   );
   assert.match(html, /ds-mermaid-wrap/);
+  assert.match(html, /ds-mermaid-expand/);
+  assert.match(html, /aria-label="Expand diagram"/);
   assert.match(html, /<pre class="mermaid">/);
   assert.match(html, /flowchart TD/);
   assert.doesNotMatch(html, /ds-codeblock/);
@@ -58,4 +64,54 @@ test("renderMarkdown turns path:line citations into footnotes when targetRoot is
   assert.doesNotMatch(html, /ds-fn-ref"><a[^>]*>\d+<\/a><\/sup>\)/);
   // duplicate path:line reuses one note
   assert.equal((html.match(/id="fn-\d+"/g) || []).length, 2);
+});
+
+test("prepareLessonMarkdown drops craft frontmatter and leading H1", () => {
+  const source = `---
+id: auth-boundary
+title: Auth boundary
+subject: map
+shape: map
+primaryPaths:
+  - src/auth.js
+mapAnswers: |
+  capture tokens at edge
+---
+# Auth boundary
+
+## Learner outcome
+
+Tokens validated at the edge.
+`;
+  const prepared = prepareLessonMarkdown(source);
+  assert.equal(prepared.title, "Auth boundary");
+  assert.doesNotMatch(prepared.body, /^---/m);
+  assert.doesNotMatch(prepared.body, /\bid:\s*auth-boundary\b/);
+  assert.doesNotMatch(prepared.body, /mapAnswers/);
+  assert.doesNotMatch(prepared.body, /primaryPaths/);
+  assert.doesNotMatch(prepared.body, /^#\s+Auth boundary/m);
+  assert.match(prepared.body, /## Learner outcome/);
+
+  const page = renderLesson({
+    workbookTitle: "WB",
+    sidebar: {
+      chapters: [
+        {
+          title: "Core",
+          items: [{ lessonKey: "lessons/auth.md", title: "Auth boundary" }],
+        },
+      ],
+      counts: { done: 0, written: 1, planned: 0 },
+    },
+    title: prepared.title,
+    bodyHtml: renderMarkdown(prepared.body),
+    lessonKey: "lessons/auth.md",
+    completed: false,
+    progress: {},
+    prev: null,
+    next: null,
+  });
+  assert.equal((page.match(/<h1 class="ds-lesson-title">/g) || []).length, 1);
+  assert.doesNotMatch(page, /mapAnswers|primaryPaths|subject:|shape:/);
+  assert.match(page, /Learner outcome/);
 });

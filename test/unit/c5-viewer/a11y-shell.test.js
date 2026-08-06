@@ -60,3 +60,12 @@ test("a11y checklist fixture exists", async () => {
   assert.match(md, /skip link/i);
   assert.match(md, /Residual risk/);
 });
+
+test("nav filter CSS forces [hidden] despite display:grid on nav links", async () => {
+  const css = await readFile(resolve(root, "src/viewer/static/viewer.css"), "utf8");
+  // display:grid on .ds-nav overrides UA [hidden] unless we force display:none
+  assert.match(css, /\.ds-nav\[hidden\]/);
+  assert.match(css, /\.ds-nav-planned\[hidden\]/);
+  assert.match(css, /\.ds-chapter\[hidden\]/);
+  assert.match(css, /display:\s*none\s*!important/);
+});

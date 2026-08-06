@@ -4,6 +4,7 @@
 import MarkdownIt from "markdown-it";
 import markdownItMultimdTable from "markdown-it-multimd-table";
 import hljs from "highlight.js/lib/common";
+import { parseLessonFrontmatter } from "../lessons/lesson-frontmatter.js";
 
 const LANG_ALIASES = {
   ts: "typescript",
@@ -20,7 +21,8 @@ const md = new MarkdownIt({
   typographer: false,
 });
 
-md.use(markdownItMultimdTable, {
+// CJS default export; package types don't match markdown-it's PluginWithOptions overloads.
+md.use(/** @type {any} */ (markdownItMultimdTable), {
   multiline: true,
   rowspan: true,
   headerless: false,
@@ -77,7 +79,7 @@ md.renderer.rules.fence = function renderFence(tokens, idx) {
   const code = token.content;
 
   if (info.split(/\s+/)[0].toLowerCase() === "mermaid") {
-    return `<div class="ds-mermaid-wrap"><pre class="mermaid">${escapeFenceText(code)}</pre></div>\n`;
+    return `<div class="ds-mermaid-wrap"><button type="button" class="ds-mermaid-expand" aria-label="Expand diagram" title="Expand diagram"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M9.5 2.5H13.5V6.5M6.5 13.5H2.5V9.5M13.5 2.5L9 7M2.5 13.5L7 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><pre class="mermaid">${escapeFenceText(code)}</pre></div>\n`;
   }
 
   const lang = resolveLanguage(info);
@@ -118,6 +120,24 @@ md.renderer.rules.link_open = function hardenLink(tokens, idx, options, env, sel
 export function renderMarkdown(source, { targetRoot } = {}) {
   const html = md.render(String(source ?? ""));
   return linkifyCitations(html, targetRoot);
+}
+
+/**
+ * Strip craft YAML + leading markdown H1 for reader display.
+ * Frontmatter is agent/save metadata (id, shape, mapAnswers…) — not lesson prose.
+ * @param {string} source
+ * @returns {{ body: string, title: string | null }}
+ */
+export function prepareLessonMarkdown(source) {
+  const { frontmatter, body } = parseLessonFrontmatter(source);
+  const fmTitle =
+    typeof frontmatter.title === "string" && frontmatter.title.trim()
+      ? frontmatter.title.trim()
+      : null;
+  const title = extractTitle(body) ?? fmTitle;
+  // Drop leading ATX H1; shell paints the title once.
+  const displayBody = body.replace(/^\s*#\s+.+\r?\n?/, "");
+  return { body: displayBody, title };
 }
 
 function escapeAttr(value) {

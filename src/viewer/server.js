@@ -11,7 +11,7 @@ import { renderCurriculumMarkdown } from "../curriculum/curriculum-planning.js";
 import { readProgress, setCompletion, setLastRead, normalizeLessonKey } from "./progress-store.js";
 import { buildSidebar, buildLessonsSidebar } from "./sidebar.js";
 import { renderHome, renderLesson, renderEmpty, renderPlanned, lessonHref } from "./shell.js";
-import { renderMarkdown, extractTitle } from "./markdown-render.js";
+import { renderMarkdown, prepareLessonMarkdown } from "./markdown-render.js";
 import { searchLessons } from "./search-lessons.js";
 import { searchWorkbookClaims } from "../lessons/claim-search.js";
 
@@ -62,7 +62,7 @@ async function listLessonFiles(lessonsDir) {
       const full = resolve(lessonsDir, e.name);
       let title = e.name.replace(/\.md$/, "");
       try {
-        title = extractTitle(await readFile(full, "utf8")) ?? title;
+        title = prepareLessonMarkdown(await readFile(full, "utf8")).title ?? title;
       } catch {
         /* keep filename title */
       }
@@ -312,7 +312,8 @@ export function createViewerServer({ workbook, now = defaultNow }) {
         const normalizedKey = normalizeLessonKey(key, workbook.workbookRoot);
         const source = await readFile(file, "utf8");
         const { curriculum, sidebar } = await buildModel(workbook, normalizedKey);
-        const title = extractTitle(source) ?? basename(file, ".md");
+        const prepared = prepareLessonMarkdown(source);
+        const title = prepared.title ?? basename(file, ".md");
         const progress = await readProgress(workbook.progressPath);
         const completed = Boolean(progress.completed[normalizedKey]);
         const written = flattenWritten(sidebar);
@@ -320,7 +321,7 @@ export function createViewerServer({ workbook, now = defaultNow }) {
           workbookTitle: await workbookTitle(curriculum, workbook.workbookRoot),
           sidebar,
           title,
-          bodyHtml: renderMarkdown(source.replace(/^#\s+.+\r?\n?/, ""), {
+          bodyHtml: renderMarkdown(prepared.body, {
             targetRoot: workbook.targetRoot,
           }),
           lessonKey: normalizedKey,
