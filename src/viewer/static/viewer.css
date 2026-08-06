@@ -531,12 +531,11 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
 }
 
 .ds-nav-mark-done {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--text-secondary);
-  border: 0;
-  box-sizing: border-box;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  transform: translateY(0.5px);
 }
 
 .ds-nav-planned .ds-nav-mark-dot {
@@ -1522,6 +1521,7 @@ html[data-theme="dark"] .ds-settings-panel {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   width: 100%;
   padding: 12px 16px;
   border: 0;
@@ -1542,6 +1542,19 @@ html[data-theme="dark"] .ds-settings-panel {
 
 .ds-mark-done:hover {
   background: color-mix(in srgb, var(--code-bg) 60%, transparent);
+}
+
+.ds-mark-done-check {
+  display: none;
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-secondary);
+}
+
+.ds-mark-done-complete .ds-mark-done-check {
+  display: inline;
 }
 
 .ds-mark-done-complete {
@@ -2152,15 +2165,6 @@ html[data-theme="dark"] .ds-settings-panel {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  @view-transition {
-    navigation: none;
-  }
-
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation: none !important;
-  }
-
   *,
   *::before,
   *::after {
@@ -2196,15 +2200,16 @@ html[data-theme="dark"] .ds-settings-panel {
 /* path:line citations → end footnotes (body stays readable) */
 .ds-fn-ref {
   font-family: var(--font-ui);
-  font-size: 0.7em;
-  font-weight: 600;
+  font-size: 0.65em;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
   line-height: 0;
   vertical-align: super;
-  margin-left: 1px;
+  margin-left: 0.15em;
 }
 
 .ds-fn-ref a {
-  color: var(--text-tertiary);
+  color: color-mix(in srgb, var(--text) 38%, transparent);
   text-decoration: none;
 }
 
@@ -2586,17 +2591,6 @@ html[data-focus="on"] .ds-main-inner {
 
 .ds-kbd-hints-hide {
   opacity: 0;
-}
-
-/* Cross-document View Transitions (progressive) */
-@view-transition {
-  navigation: auto;
-}
-
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 180ms;
-  animation-timing-function: var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 }
 
 /* ---- Shortcuts sheet ---- */

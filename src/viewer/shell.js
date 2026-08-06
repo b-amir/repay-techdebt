@@ -117,7 +117,7 @@ function viewSettingsMarkup() {
   </div>`;
 }
 
-const NAV_CHECK_MARK = `<span class="ds-nav-mark ds-nav-mark-done" aria-hidden="true"></span>`;
+const NAV_CHECK_MARK = `<span class="ds-nav-mark ds-nav-mark-done" aria-hidden="true">✓</span>`;
 const NAV_DOT_MARK = `<span class="ds-nav-mark ds-nav-mark-dot" aria-hidden="true">·</span>`;
 const COPY_ICON = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 10.5h-1a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.3"/></svg>`;
 const TOC_ICON = `<span class="ds-rail-toc-icon" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 3h8M2 6h8M2 9h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>`;
@@ -222,7 +222,6 @@ ${sidebarHtml}
 ${rightRailHtml}
 </div>
 ${viewSettingsPanel()}
-<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 <script>${CLIENT_SCRIPT}</script>
 </body>
 </html>`;
@@ -329,7 +328,7 @@ export function renderHome({ workbookTitle, sidebar, progress }) {
     .map((item) => {
       const mark =
         item.state === "done"
-          ? '<span class="ds-nav-mark ds-nav-mark-done" aria-hidden="true"></span>'
+          ? '<span class="ds-nav-mark ds-nav-mark-done" aria-hidden="true">✓</span>'
           : '<span class="ds-nav-mark ds-nav-mark-dot" aria-hidden="true">·</span>';
       const status =
         item.state === "done"
@@ -542,7 +541,7 @@ export function renderLesson({
 }) {
   const buttonClass = completed ? "ds-mark-done ds-mark-done-complete" : "ds-mark-done";
   const buttonLabel = completed ? "Mark not done" : "Mark as done";
-  const button = `<button type="button" class="${buttonClass}" data-lesson="${escapeHtml(lessonKey)}" data-completed="${completed ? "true" : "false"}" aria-pressed="${completed ? "true" : "false"}"><span class="ds-mark-done-label">${buttonLabel}</span></button>`;
+  const button = `<button type="button" class="${buttonClass}" data-lesson="${escapeHtml(lessonKey)}" data-completed="${completed ? "true" : "false"}" aria-pressed="${completed ? "true" : "false"}"><span class="ds-mark-done-check" aria-hidden="true">✓</span><span class="ds-mark-done-label">${buttonLabel}</span></button>`;
   const footer = `<footer class="ds-lesson-footer">
     ${button}
     <nav class="ds-lesson-footer-nav" aria-label="Lesson navigation" data-lesson-nav>

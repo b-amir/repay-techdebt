@@ -81,39 +81,63 @@ export const CLIENT_SCRIPT = `
     renderMermaid(false);
   }
 
-  function renderMermaid(force) {
-    if (!window.mermaid) return;
-    var theme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "neutral";
-    window.mermaid.initialize({
-      startOnLoad: false,
-      theme: theme,
-      securityLevel: "strict",
-      fontFamily: "system-ui, -apple-system, Segoe UI, sans-serif",
+  var MERMAID_SRC = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js";
+  var mermaidLoad = null;
+
+  function ensureMermaid() {
+    if (window.mermaid) return Promise.resolve(window.mermaid);
+    if (mermaidLoad) return mermaidLoad;
+    mermaidLoad = new Promise(function (resolve, reject) {
+      var s = document.createElement("script");
+      s.src = MERMAID_SRC;
+      s.async = true;
+      s.onload = function () {
+        if (window.mermaid) resolve(window.mermaid);
+        else reject(new Error("mermaid missing after load"));
+      };
+      s.onerror = function () {
+        mermaidLoad = null;
+        reject(new Error("mermaid load failed"));
+      };
+      document.head.appendChild(s);
     });
+    return mermaidLoad;
+  }
+
+  function renderMermaid(force) {
     var selector = force
       ? ".ds-mermaid-wrap .mermaid"
       : ".ds-mermaid-wrap .mermaid:not([data-processed])";
     var nodes = document.querySelectorAll(selector);
     if (!nodes.length) return;
-    if (force) {
-      nodes.forEach(function (node) {
-        if (node.dataset.mermaidSource) {
-          node.removeAttribute("data-processed");
-          node.removeAttribute("data-processed-by");
-          node.innerHTML = node.dataset.mermaidSource;
-        } else if (!node.dataset.mermaidSource) {
-          node.dataset.mermaidSource = node.textContent || "";
+    ensureMermaid()
+      .then(function (mermaid) {
+        var theme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "neutral";
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: theme,
+          securityLevel: "strict",
+          fontFamily: "system-ui, -apple-system, Segoe UI, sans-serif",
+        });
+        if (force) {
+          nodes.forEach(function (node) {
+            if (node.dataset.mermaidSource) {
+              node.removeAttribute("data-processed");
+              node.removeAttribute("data-processed-by");
+              node.innerHTML = node.dataset.mermaidSource;
+            } else if (!node.dataset.mermaidSource) {
+              node.dataset.mermaidSource = node.textContent || "";
+            }
+          });
+        } else {
+          nodes.forEach(function (node) {
+            if (!node.dataset.mermaidSource) node.dataset.mermaidSource = node.textContent || "";
+          });
         }
-      });
-    } else {
-      nodes.forEach(function (node) {
-        if (!node.dataset.mermaidSource) node.dataset.mermaidSource = node.textContent || "";
-      });
-    }
-    window.mermaid.run({ nodes: nodes })
-      .then(function () {
-        nodes.forEach(function (node) {
-          node.setAttribute("data-processed", "true");
+        return mermaid.run({ nodes: nodes }).then(function () {
+          nodes.forEach(function (node) {
+            node.setAttribute("data-processed", "true");
+          });
         });
       })
       .catch(function (err) {
@@ -484,7 +508,7 @@ export const CLIENT_SCRIPT = `
       var mark = nav.querySelector(".ds-nav-mark");
       if (mark) {
         mark.className = completed ? "ds-nav-mark ds-nav-mark-done" : "ds-nav-mark ds-nav-mark-dot";
-        mark.textContent = completed ? "" : "·";
+        mark.textContent = completed ? "✓" : "·";
       }
     }
     if (counts) {
