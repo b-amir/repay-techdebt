@@ -23,6 +23,13 @@ test("CLI prints help for view --help", async () => {
   assert.match(stdout, /skills@1\.5\.22/);
 });
 
+test("bin/repay entry runs main (not silent no-op)", async () => {
+  const binPath = join(process.cwd(), "bin", "repay");
+  const { stdout } = await exec("node", [binPath, "view", "--help"]);
+  assert.match(stdout, /repay view/);
+  assert.match(stdout, /--open/);
+});
+
 test("CLI handles unknown commands", async () => {
   let threw = false;
   try {

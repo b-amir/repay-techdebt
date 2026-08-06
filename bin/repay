@@ -1,2 +1,7 @@
 #!/usr/bin/env node
-import "../scripts/repay-cli.js";
+import { main } from "../scripts/repay-cli.js";
+
+main().catch((error) => {
+  process.stderr.write(`${error?.message ?? error}\n`);
+  process.exitCode = 1;
+});
