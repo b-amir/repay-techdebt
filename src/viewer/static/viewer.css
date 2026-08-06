@@ -1404,9 +1404,10 @@ html[data-theme="dark"] .ds-settings-panel {
   border-radius: calc(var(--radius) + 4px);
   background: var(--surface);
   color: var(--text);
-  max-width: min(96vw, 1200px);
-  max-height: 92vh;
-  width: max-content;
+  /* Large centered panel — not edge-to-edge, not shrink-wrapped to tiny SVG. */
+  width: min(92vw, 1080px);
+  max-width: min(92vw, 1080px);
+  max-height: 88vh;
   box-shadow: 0 24px 64px color-mix(in srgb, #000 28%, transparent);
 }
 
@@ -1420,7 +1421,7 @@ html[data-theme="dark"] .ds-settings-panel {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -1451,23 +1452,34 @@ html[data-theme="dark"] .ds-settings-panel {
 }
 
 .ds-mermaid-dialog-body {
-  padding: 20px;
+  padding: 28px 24px;
   overflow: auto;
-  max-height: calc(92vh - 54px);
+  max-height: calc(88vh - 56px);
+  min-height: min(48vh, 420px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ds-mermaid-dialog-body svg {
   display: block;
   margin: 0 auto;
-  max-width: min(90vw, 1120px);
-  max-height: calc(92vh - 100px);
-  width: auto;
+  width: 100%;
+  max-width: 100%;
   height: auto;
+  max-height: calc(88vh - 120px);
 }
 
 .ds-mermaid-dialog-body .mermaid {
   margin: 0;
+  width: 100%;
   background: transparent;
+}
+
+.ds-mermaid-dialog-body .mermaid svg {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
 }
 
 .ds-plaque-body blockquote {

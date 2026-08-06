@@ -173,7 +173,30 @@ export const CLIENT_SCRIPT = `
     var diagram = wrap.querySelector(".mermaid");
     var svg = diagram && diagram.querySelector("svg");
     if (svg) {
-      body.appendChild(svg.cloneNode(true));
+      var clone = svg.cloneNode(true);
+      // Inline mermaid bakes plaque-sized width/height — drop so CSS can scale large.
+      clone.removeAttribute("width");
+      clone.removeAttribute("height");
+      clone.style.width = "100%";
+      clone.style.maxWidth = "100%";
+      clone.style.height = "auto";
+      clone.style.maxHeight = "calc(88vh - 120px)";
+      if (!clone.getAttribute("viewBox")) {
+        try {
+          var box = svg.viewBox && svg.viewBox.baseVal;
+          if (box && box.width && box.height) {
+            clone.setAttribute("viewBox", box.x + " " + box.y + " " + box.width + " " + box.height);
+          } else {
+            var w = svg.width && svg.width.baseVal ? svg.width.baseVal.value : 0;
+            var h = svg.height && svg.height.baseVal ? svg.height.baseVal.value : 0;
+            if (w && h) clone.setAttribute("viewBox", "0 0 " + w + " " + h);
+          }
+        } catch (err) {
+          /* keep clone as-is */
+        }
+      }
+      clone.setAttribute("preserveAspectRatio", "xMidYMid meet");
+      body.appendChild(clone);
     } else {
       var source =
         (diagram && diagram.dataset.mermaidSource) || (diagram && diagram.textContent) || "";
