@@ -125,13 +125,14 @@ function renderSidebar(sidebar, workbookTitle) {
           if (item.state === "planned") {
             const classes = ["ds-nav", "ds-nav-planned"];
             if (item.current) classes.push("ds-nav-current");
-            return `<a class="${classes.join(" ")}" href="${plannedHref(item.id)}" title="${escapeHtml(item.outcome ?? "Not written yet")}">${NAV_DOT_MARK}<span class="ds-nav-label">${escapeHtml(item.title)}</span></a>`;
+            return `<a class="${classes.join(" ")}" href="${plannedHref(item.id)}" data-nav-state="planned" data-nav-title="${escapeHtml(item.title)}" title="${escapeHtml(item.outcome ?? "Not written yet")}">${NAV_DOT_MARK}<span class="ds-nav-label">${escapeHtml(item.title)}</span></a>`;
           }
           const classes = ["ds-nav"];
           if (item.current) classes.push("ds-nav-current");
           if (item.state === "done") classes.push("ds-nav-done");
           const mark = navMarkFor(item);
-          return `<a class="${classes.join(" ")}" href="${lessonHref(item.lessonKey)}">${mark}<span class="ds-nav-label">${escapeHtml(item.title)}</span></a>`;
+          const state = item.state === "done" ? "done" : "open";
+          return `<a class="${classes.join(" ")}" href="${lessonHref(item.lessonKey)}" data-nav-state="${state}" data-nav-title="${escapeHtml(item.title)}" data-lesson-key="${escapeHtml(item.lessonKey)}">${mark}<span class="ds-nav-label">${escapeHtml(item.title)}</span></a>`;
         })
         .join("\n");
       return `<div class="ds-chapter"><h2 class="ds-chapter-title">${escapeHtml(chapter.title)}</h2><div class="ds-chapter-items">${items}</div></div>`;
@@ -140,20 +141,27 @@ function renderSidebar(sidebar, workbookTitle) {
   const header = workbookTitle
     ? `<div class="ds-rail-header">
     <div class="ds-rail-header-row">${brandLockup(workbookTitle)}${sidebarToggleButton("ds-sidebar-toggle-rail", true)}</div>
+    <button type="button" class="ds-search-trigger" data-open-search aria-label="Search lessons and claims">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <span class="ds-search-trigger-label">Search</span>
+      <kbd class="ds-kbd">/</kbd>
+    </button>
   </div>`
     : "";
   return `<aside class="ds-rail" id="ds-rail">
     ${header}
+    <div class="ds-rail-filter" role="group" aria-label="Filter lessons">
+      <button type="button" class="ds-filter-btn ds-filter-btn-active" data-filter="all" aria-pressed="true">All</button>
+      <button type="button" class="ds-filter-btn" data-filter="open" aria-pressed="false">Open</button>
+      <button type="button" class="ds-filter-btn" data-filter="done" aria-pressed="false">Done</button>
+      <button type="button" class="ds-filter-btn" data-filter="planned" aria-pressed="false">Planned</button>
+    </div>
     <div class="ds-rail-progress">${progressStats(sidebar.counts)}</div>
     <nav class="ds-nav-list" aria-label="Lessons">${chapters || '<p class="ds-empty">No curriculum yet.</p>'}</nav>
   </aside>`;
 }
 
-function fontLinks() {
-  return `<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;500&display=swap">`;
-}
+// system stack only (offline skill). Self-host woff2 under static/fonts/ if brand needs Source*.
 
 function prefsBootstrapScript() {
   return `<script>
@@ -168,6 +176,7 @@ function prefsBootstrapScript() {
     r.setAttribute("data-scale",p.scale||"m");
     r.setAttribute("data-accent",p.accent||"teal");
     r.setAttribute("data-sidebar",p.sidebarCollapsed?"collapsed":"open");
+    r.setAttribute("data-focus",p.focusMode?"on":"off");
     var scheme=theme==="dark"?"dark":"light";
     r.style.colorScheme=scheme;
     var m=document.querySelector('meta[name="color-scheme"]');
@@ -187,16 +196,18 @@ function renderShell({
   const scrollAttr = progress?.lastScroll
     ? ` data-last-scroll="${escapeHtml(String(progress.lastScroll))}"`
     : "";
+  const lastReadAttr = progress?.lastRead
+    ? ` data-last-read="${escapeHtml(String(progress.lastRead))}"`
+    : "";
   const layoutClass = rightRailHtml ? "ds-layout ds-layout-toc" : "ds-layout";
   return `<!doctype html>
-<html lang="en" data-theme="paper" data-scale="m" data-accent="teal" data-sidebar="open"${scrollAttr}>
+<html lang="en" data-theme="paper" data-scale="m" data-accent="teal" data-sidebar="open" data-focus="off"${scrollAttr}${lastReadAttr}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <title>${escapeHtml(documentTitle)}</title>
 ${prefsBootstrapScript()}
-${fontLinks()}
 <link rel="stylesheet" href="/assets/viewer.css">
 </head>
 <body class="ds-shell">
@@ -312,12 +323,16 @@ export function renderHome({ workbookTitle, sidebar, progress }) {
   const writtenCards = written
     .slice(0, 9)
     .map((item) => {
+      const mark =
+        item.state === "done"
+          ? '<span class="ds-nav-mark ds-nav-mark-done" aria-hidden="true"></span>'
+          : '<span class="ds-nav-mark ds-nav-mark-dot" aria-hidden="true">·</span>';
       const status =
         item.state === "done"
           ? '<span class="ds-lesson-card-status ds-lesson-card-done">Done</span>'
           : '<span class="ds-lesson-card-status">Open</span>';
-      return `<a class="ds-lesson-card" href="${lessonHref(item.lessonKey)}">
-    <span class="ds-lesson-card-title">${escapeHtml(item.title)}</span>
+      return `<a class="ds-lesson-card${item.state === "done" ? " ds-lesson-card-is-done" : ""}" href="${lessonHref(item.lessonKey)}">
+    <span class="ds-lesson-card-head">${mark}<span class="ds-lesson-card-title">${escapeHtml(item.title)}</span></span>
     ${status}
   </a>`;
     })
@@ -328,7 +343,7 @@ export function renderHome({ workbookTitle, sidebar, progress }) {
     .map(
       (item) =>
         `<a class="ds-lesson-card ds-lesson-card-planned" href="${plannedHref(item.id)}">
-    <span class="ds-lesson-card-title">${escapeHtml(item.title)}</span>
+    <span class="ds-lesson-card-head"><span class="ds-nav-mark ds-nav-mark-dot" aria-hidden="true">·</span><span class="ds-lesson-card-title">${escapeHtml(item.title)}</span></span>
     <span class="ds-lesson-card-status">Planned</span>
   </a>`,
     )
@@ -526,7 +541,7 @@ export function renderLesson({
   const button = `<button type="button" class="${buttonClass}" data-lesson="${escapeHtml(lessonKey)}" data-completed="${completed ? "true" : "false"}" aria-pressed="${completed ? "true" : "false"}"><span class="ds-mark-done-check" aria-hidden="true"></span><span class="ds-mark-done-label">${buttonLabel}</span></button>`;
   const footer = `<footer class="ds-lesson-footer">
     ${button}
-    <nav class="ds-lesson-footer-nav" aria-label="Lesson navigation">
+    <nav class="ds-lesson-footer-nav" aria-label="Lesson navigation" data-lesson-nav>
       ${lessonNavCell(prev, "prev")}
       ${lessonNavCell(next, "next")}
     </nav>
@@ -630,6 +645,7 @@ export function renderEmpty({ workbookTitle, reason }) {
 export function renderPlanned({ workbookTitle, sidebar, topic, targetRoot }) {
   const createArg = topic.id;
   const chatCmd = `/repay-techdebt --create ${createArg}`;
+  const deepLink = plannedHref(topic.id);
   const evidencePaths = (topic.evidencePaths ?? []).slice(0, 8);
   const evidenceHtml =
     evidencePaths.length > 0
@@ -660,6 +676,13 @@ export function renderPlanned({ workbookTitle, sidebar, topic, targetRoot }) {
     <section class="ds-planned-cta">
       <p class="ds-planned-cta-lead">Ask your agent to write this lesson from project evidence.</p>
       ${renderPlannedCommandRow(chatCmd, "create command")}
+      <div class="ds-planned-deeplink">
+        <span class="ds-planned-deeplink-label">Deep link</span>
+        <div class="ds-cmd-row">
+          <code class="ds-cmd-text">${escapeHtml(deepLink)}</code>
+          <button type="button" class="ds-btn-copy ds-btn-copy-icon" data-copy="${escapeHtml(deepLink)}" aria-label="Copy deep link">${COPY_ICON}</button>
+        </div>
+      </div>
     </section>
     ${evidenceHtml}
   </article>`;

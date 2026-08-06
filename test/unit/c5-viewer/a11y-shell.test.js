@@ -23,13 +23,30 @@ test("home render keeps skip link with covered map", () => {
   const html = renderHome({
     workbookTitle: "Demo workbook",
     sidebar: {
-      chapters: [],
-      counts: { written: 0, done: 0, planned: 0 },
+      chapters: [
+        {
+          title: "Intro",
+          items: [
+            { title: "Open lesson", lessonKey: "lessons/open.md", state: "written" },
+            { title: "Done lesson", lessonKey: "lessons/done.md", state: "done" },
+            { title: "Planned topic", id: "topic-planned", state: "planned" },
+          ],
+        },
+      ],
+      counts: { written: 2, done: 1, planned: 1 },
+      total: 3,
     },
-    progress: null,
+    progress: { lastRead: "lessons/open.md", completed: {} },
   });
   assert.match(html, /ds-skip-link/);
   assert.match(html, /id="ds-main-content"/);
+  assert.match(html, /ds-search-trigger/);
+  assert.match(html, /data-filter="all"/);
+  assert.match(html, /data-last-read="lessons\/open\.md"/);
+  assert.match(html, /data-nav-state="planned"/);
+  assert.match(html, /ds-lesson-card-head/);
+  assert.match(html, /data-focus="off"/);
+  assert.doesNotMatch(html, /fonts\.googleapis\.com/);
 });
 
 test("a11y checklist fixture exists", async () => {

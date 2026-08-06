@@ -4,6 +4,26 @@ End-to-end control flow for the skill: who decides, which scripts run, and every
 condition branch. Agent policy lives in markdown (`SKILL.md` + references); only predicates in
 `scripts/**` and `src/**` are mechanically enforced (import-graph + `node --check`).
 
+## High-level path
+
+1. **Resolve the target.** Skill install and analyzed app stay separate. In-repo skill paths are
+   excluded from every scan.
+2. **Load preferences safely.** First-run wizard can create private memory, project-local memory,
+   team memory, or nothing.
+3. **Take turns.** Bundled scripts inventory, gate, and propose (`nextAsks`); the agent confirms
+   purpose, retrieves with Graphify/Serena when available, verifies live source, and teaches.
+4. **Rank the investigation.** Questions are prioritized by request, focus, program type, graph
+   evidence, and impact—not a universal checklist. Script plans are proposals, not finished truth.
+5. **Approve the book index.** Whole-app runs propose a broad subject inventory; the agent
+   shortlists before save, then writes 1–3 lessons per run.
+6. **Use stronger tools when they matter.** Each phase has an explicit capability ladder and
+   failure gate. See [tools.md](tools.md).
+7. **Qualify and teach.** Mechanical lesson QA plus one agent semantic pass; cite paths and lines;
+   end with gaps and a tool-use ledger.
+
+Maintenance flags, viewer, and CLI: [manual.md](manual.md). Evidence model and modes:
+[concepts.md](concepts.md).
+
 ---
 
 ## Overview flowchart

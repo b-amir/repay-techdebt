@@ -161,3 +161,18 @@ important asks, one blank line between tables, ≤25 words status on routine tur
 **Read lessons in browser**
 
 1. `open-viewer <target-root>` or `view-lessons.js <target-root> --open`
+
+### Viewer keyboard shortcuts
+
+| Key | Action |
+| --- | --- |
+| `/` or `⌘K` / `Ctrl+K` | Command palette (lessons + claims + planned + recent) |
+| `j` / `→` / `]` | Next written lesson |
+| `k` / `←` / `[` | Previous written lesson |
+| `d` | Toggle mark done |
+| `f` | Focus mode (hide rails); `esc` exits focus |
+| `s` | Toggle sidebar |
+| `?` | Shortcuts sheet |
+| `esc` | Close palette / sheet / exit focus |
+
+Sidebar: filter All / Open / Done / Planned. Empty palette shows Continue, Recent, Planned, Jump. Planned topic pages expose create command + deep link copy.
