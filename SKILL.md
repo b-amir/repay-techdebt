@@ -1,6 +1,13 @@
 ---
 name: repay-techdebt
-description: Learn this codebase from its live files — evidence-qualified lessons and a browser workbook for unfamiliar or agent-authored code. Prefer optional tools silently when already available; otherwise use bundled scripts with the same UX (no tool jargon in user chat, no confidence inflation). Ask only before install/config changes. Hard overclaim rule: unsupported → shrink scope or refuse — never “continue weaker?”. Scripts and the agent take turns; follow nextAsks on script output.
+description: >-
+  Learn this codebase from its live files — evidence-qualified lessons and a
+  browser workbook for unfamiliar or agent-authored code. Prefer optional tools
+  silently when already available; otherwise use bundled scripts with the same
+  UX (no tool jargon in user chat, no confidence inflation). Ask only before
+  install/config changes. Hard overclaim rule: unsupported → shrink scope or
+  refuse — never "continue weaker?". Scripts and the agent take turns; follow
+  nextAsks on script output.
 ---
 
 # Repay Tech Debt
