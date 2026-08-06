@@ -356,11 +356,11 @@ export function renderHome({ workbookTitle, sidebar, progress }) {
         <h1 class="ds-home-title">${escapeHtml(project)}</h1>
         <p class="ds-home-sub">${escapeHtml(total)} topics</p>
       </div>
-      ${stats}
     </header>
 
     <div class="ds-home-top">
       ${primaryCard}
+      ${stats}
     </div>
 
     ${

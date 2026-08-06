@@ -69,3 +69,16 @@ test("nav filter CSS forces [hidden] despite display:grid on nav links", async (
   assert.match(css, /\.ds-chapter\[hidden\]/);
   assert.match(css, /display:\s*none\s*!important/);
 });
+
+test("main column stays measure-limited and centered (no TOC expand, zen hides rails)", async () => {
+  const css = await readFile(resolve(root, "src/viewer/static/viewer.css"), "utf8");
+  // plaque pages must not blow main-inner to full width when TOC rail exists
+  assert.doesNotMatch(
+    css,
+    /\.ds-layout-toc\s+\.ds-main-inner:has\(\.ds-plaque\)\s*\{\s*max-width:\s*none/,
+  );
+  assert.match(css, /\.ds-main-inner:has\(\.ds-plaque\)\s*\{[\s\S]*?max-width:\s*var\(--lesson-measure\)/);
+  assert.match(css, /\.ds-main-inner\s*\{[\s\S]*?margin-inline:\s*auto/);
+  // zen must remove rails from flow, not only opacity:0
+  assert.match(css, /html\[data-focus="on"\]\s+\.ds-rail[\s\S]*?display:\s*none/);
+});

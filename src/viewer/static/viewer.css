@@ -751,25 +751,26 @@ html[data-theme="dark"] .ds-settings-panel {
 .ds-main {
   padding: calc(48px * var(--content-scale)) calc(56px * var(--content-scale)) 80px;
   min-width: 0;
+  width: 100%;
   display: flex;
   justify-content: center;
 }
 
+/* Always center the reading column — open sidebar, collapsed, TOC, zen, planned. */
 .ds-main-inner {
-  width: 100%;
+  width: min(100%, var(--measure));
   max-width: var(--measure);
+  margin-inline: auto;
 }
 
 .ds-main-inner:has(.ds-plaque) {
+  width: min(100%, var(--lesson-measure));
   max-width: var(--lesson-measure);
 }
 
 .ds-main-inner:has(.ds-home-dashboard) {
+  width: min(100%, 72rem);
   max-width: min(72rem, 100%);
-}
-
-.ds-layout-toc .ds-main-inner:has(.ds-plaque) {
-  max-width: none;
 }
 
 .ds-plaque {
@@ -782,12 +783,7 @@ html[data-theme="dark"] .ds-settings-panel {
 }
 
 .ds-home-hero {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px 32px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .ds-home-hero-text {
@@ -813,16 +809,18 @@ html[data-theme="dark"] .ds-settings-panel {
 .ds-home-stats {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 8px;
-  min-width: 12rem;
+  min-width: 11rem;
+  flex: 0 1 14rem;
+  padding-top: 4px;
 }
 
 .ds-home-stats-row {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 6px;
   font-size: 0.8125rem;
   color: var(--text-secondary);
@@ -861,11 +859,15 @@ html[data-theme="dark"] .ds-settings-panel {
   margin: 6px 0 0;
   font-size: 0.6875rem;
   color: var(--text-tertiary);
-  text-align: right;
+  text-align: left;
   font-variant-numeric: tabular-nums;
 }
 
 .ds-home-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 16px 24px;
   margin-bottom: 28px;
 }
 
@@ -874,6 +876,7 @@ html[data-theme="dark"] .ds-settings-panel {
   flex-direction: column;
   align-items: flex-start;
   gap: 6px;
+  flex: 1 1 22rem;
   max-width: 40rem;
   padding: 20px 22px;
   border: 1px solid var(--border);
@@ -998,26 +1001,18 @@ html[data-theme="dark"] .ds-settings-panel {
 }
 
 @media (max-width: 640px) {
-  .ds-home-hero {
+  .ds-home-top {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
   }
 
   .ds-home-stats {
-    align-items: flex-start;
     width: 100%;
-  }
-
-  .ds-home-stats-row {
-    justify-content: flex-start;
+    flex-basis: auto;
   }
 
   .ds-home-progress {
     width: 100%;
-  }
-
-  .ds-home-progress-note {
-    text-align: left;
   }
 }
 
@@ -2180,8 +2175,15 @@ html[data-theme="dark"] .ds-settings-panel {
 }
 
 @media (min-width: 901px) {
-  html[data-sidebar="collapsed"] .ds-main-inner {
-    max-width: min(var(--measure), 48rem);
+  /* Collapsed sidebar: still the same centered measure — no left bias. */
+  html[data-sidebar="collapsed"] .ds-main-inner:has(.ds-plaque) {
+    width: min(100%, var(--lesson-measure));
+    max-width: var(--lesson-measure);
+  }
+
+  html[data-sidebar="collapsed"] .ds-main-inner:not(:has(.ds-plaque)) {
+    width: min(100%, var(--measure));
+    max-width: var(--measure);
   }
 }
 
@@ -2503,14 +2505,11 @@ html[data-theme="dark"] .ds-settings-panel {
   opacity: 0.75;
 }
 
-/* ---- Focus mode ---- */
+/* ---- Focus / zen mode ---- */
+/* Drop rails from layout entirely — opacity:0 still leaves grid tracks/rows. */
 html[data-focus="on"] .ds-rail,
 html[data-focus="on"] .ds-rail-toc {
-  opacity: 0;
-  pointer-events: none;
-  width: 0;
-  min-width: 0;
-  border-color: transparent;
+  display: none;
 }
 
 html[data-focus="on"] .ds-layout,
@@ -2519,11 +2518,18 @@ html[data-focus="on"] .ds-layout-toc {
 }
 
 html[data-focus="on"] .ds-sidebar-toggle-float {
-  opacity: 0.35;
+  display: none;
 }
 
-html[data-focus="on"] .ds-main-inner {
-  max-width: min(var(--lesson-measure), 42rem);
+html[data-focus="on"] .ds-main {
+  justify-content: center;
+}
+
+html[data-focus="on"] .ds-main-inner,
+html[data-focus="on"] .ds-main-inner:has(.ds-plaque) {
+  width: min(100%, var(--lesson-measure));
+  max-width: var(--lesson-measure);
+  margin-inline: auto;
 }
 
 .ds-focus-exit {
