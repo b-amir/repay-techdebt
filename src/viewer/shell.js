@@ -200,9 +200,10 @@ ${fontLinks()}
 <link rel="stylesheet" href="/assets/viewer.css">
 </head>
 <body class="ds-shell">
+<a class="ds-skip-link" href="#ds-main-content">Skip to content</a>
 <div class="${layoutClass}">
 ${sidebarHtml}
-<main class="ds-main">${sidebarToggleButton("ds-sidebar-toggle-float", false)}<div class="ds-main-inner">${mainHtml}</div></main>
+<main class="ds-main" id="ds-main-content" tabindex="-1">${sidebarToggleButton("ds-sidebar-toggle-float", false)}<div class="ds-main-inner">${mainHtml}</div></main>
 ${rightRailHtml}
 </div>
 ${viewSettingsPanel()}

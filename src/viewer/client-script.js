@@ -369,7 +369,7 @@ export const CLIENT_SCRIPT = `
       root = document.createElement("div");
       root.id = "ds-search-root";
       root.className = "ds-search-root";
-      root.innerHTML = '<div class="ds-search-backdrop"></div><div class="ds-search-panel" role="dialog" aria-label="Search lessons"><input class="ds-search-input" type="search" placeholder="Search lessons…" aria-label="Search lessons" /><ul class="ds-search-results"></ul></div>';
+      root.innerHTML = '<div class="ds-search-backdrop"></div><div class="ds-search-panel" role="dialog" aria-modal="true" aria-label="Search lessons"><input class="ds-search-input" type="search" placeholder="Search lessons…" aria-label="Search lessons" /><ul class="ds-search-results" role="listbox" aria-label="Search results"></ul></div>';
       document.body.appendChild(root);
     }
     var input = root.querySelector(".ds-search-input");

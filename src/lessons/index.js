@@ -14,6 +14,12 @@ export {
   reverifyWorkbookClaims,
   displayLessonPath,
 } from "./claim-reverify.js";
+export {
+  indexLessonClaims,
+  buildClaimIndex,
+  searchClaims,
+  searchWorkbookClaims,
+} from "./claim-search.js";
 export { evaluateLessonForSave, runTeachFloors } from "./save-lesson.js";
 
 export { lessonPlanSchema, planLesson, composeMermaidBlock } from "./lesson-composition.js";

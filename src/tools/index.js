@@ -20,3 +20,5 @@ export {
 export { collectRuntimeEvidence } from "./runtime-evidence.js";
 
 export { AnalysisCache, checkBudget } from "./analysis-cache.js";
+
+export { listRepayTools, callRepayTool, REPAY_TOOL_NAMES } from "./repay-tools.js";

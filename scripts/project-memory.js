@@ -35,6 +35,8 @@ import {
   reverifyWorkbookClaims,
   displayLessonPath,
 } from "../src/lessons/claim-reverify.js";
+import { searchWorkbookClaims } from "../src/lessons/claim-search.js";
+import { resolveWorkbook } from "../src/viewer/resolve-workbook.js";
 import { checkTrajectoryGate, formatPathIncompleteReason } from "../src/dialogue/trajectory.js";
 import { recordExercise, scheduleReview } from "../src/memory/learning-progress.js";
 import { validateCurriculum } from "../src/curriculum/approve-curriculum.js";
@@ -64,6 +66,7 @@ function printHelp() {
   node project-memory.js doctor <target-root> [--storage private|project-local|team] [--format table|json]
   node project-memory.js recheck-trajectory <target-root> [--storage private|project-local|team] [--format table|json]
   node project-memory.js recheck-claims <target-root> [<lesson.md>] [--storage private|project-local|team] [--format table|json]
+  node project-memory.js search-claims <target-root> --query <text> [--storage private|project-local|team] [--format table|json] [--limit <n>]
   node project-memory.js init <target-root> [--storage private|project-local|team] [--output-location sister|private|custom] [--output-root <path>] [--mode ask|pr|workbook] [--depth concise|balanced|deep] [--save-policy ask|automatic] [--boundary-hints <csv>] [--critical-workflows <csv>] [--max-files <count>] [--max-manifest-files <count>] [--max-relation-files <count>] [--max-relation-bytes <count>] [--allow-non-git] [--yes|--interactive]
   node project-memory.js save-curriculum <target-root> --input <curriculum.json> --yes
 
@@ -89,6 +92,7 @@ Thin resume helpers:
   doctor              same health check, emphasizes what blocks a durable save
   recheck-trajectory  re-read trajectory-gate.json and print plain refuse reasons
   recheck-claims      re-verify saved lesson CLAIMS/citations against live sources
+  search-claims       find saved lessons by claim text, citation, or primary path
   open-workbook       alias for open-viewer
   clear-skill-memory  alias for reset (skill memory only — never app source)
 
@@ -108,8 +112,13 @@ function parseArguments(argv) {
   const options = {};
   // Optional positional (e.g. recheck-claims <target> <lesson.md>) before flags.
   while (rest.length > 0 && !String(rest[0]).startsWith("--")) {
-    if (!options.lessonPath) options.lessonPath = resolve(rest.shift());
-    else throw new Error(`Unexpected argument: ${rest[0]}`);
+    const positional = rest.shift();
+    // search-claims: bare text query; recheck-claims: lesson path
+    if (action === "search-claims" && !options.query && !String(positional).endsWith(".md")) {
+      options.query = positional;
+    } else if (!options.lessonPath) {
+      options.lessonPath = resolve(positional);
+    } else throw new Error(`Unexpected argument: ${positional}`);
   }
   for (let index = 0; index < rest.length; index += 1) {
     const argument = rest[index];
@@ -615,6 +624,50 @@ async function doctor(targetRoot, options) {
     }
   }
   if (!pathComplete) process.exitCode = 2;
+}
+
+/**
+ * Search saved lesson claims / citations / primary paths (substring).
+ */
+async function searchClaimsAction(targetRoot, options) {
+  const format = options.format === "json" ? "json" : options.format === "text" ? "text" : "table";
+  const query = options.query ?? options.q ?? options.lessonPath ?? "";
+  // lessonPath may capture positional query when user passes: search-claims <target> <query>
+  const q =
+    typeof query === "string" && !String(query).endsWith(".md")
+      ? query
+      : (options.query ?? options.q ?? "");
+  const limit = options.limit ? Number(options.limit) : 20;
+  const workbook = await resolveWorkbook(
+    targetRoot,
+    options.storage ? { storage: options.storage } : {},
+  );
+  const result = await searchWorkbookClaims(workbook, q, { limit });
+  const payload = {
+    type: "search-claims",
+    targetRoot,
+    lessonsDir: workbook.lessonsDir,
+    ready: workbook.ready,
+    ...result,
+  };
+  if (format === "json") emit(payload, "json");
+  else {
+    if (result.problems?.length) {
+      process.stdout.write(`Claim search: ${result.problems[0]}\n`);
+    } else if (result.emptyQuery) {
+      process.stdout.write("Claim search: pass --query <text>\n");
+    } else if (result.empty) {
+      process.stdout.write("Claim search: no saved lessons\n");
+    } else {
+      process.stdout.write(
+        `Claim search: ${result.hitCount} hit(s) for "${result.query}" (${result.lessonCount ?? 0} lessons)\n`,
+      );
+      for (const hit of result.hits) {
+        process.stdout.write(`- [${hit.match}] ${hit.title} — ${hit.snippet}\n`);
+      }
+    }
+  }
+  if (!result.ok || result.emptyQuery) process.exitCode = result.emptyQuery ? 2 : result.ok ? 0 : 2;
 }
 
 /**
@@ -2247,6 +2300,7 @@ if (isDirectCliInvocation(import.meta.url)) {
         "doctor",
         "recheck-trajectory",
         "recheck-claims",
+        "search-claims",
         "init",
         "save-lesson",
         "save-curriculum",
@@ -2269,7 +2323,7 @@ if (isDirectCliInvocation(import.meta.url)) {
     ) {
       printHelp();
       throw new Error(
-        "Expected status, doctor, recheck-trajectory, recheck-claims, init, configure-output, save-curriculum, save-lesson, save-artifact, record-decision, migrate, repair-index, record-exercise, schedule-review, clear-output, clear-cache, clear-skill-memory, reset, reconfig, open-viewer, open-workbook, or cleanup-drafts",
+        "Expected status, doctor, recheck-trajectory, recheck-claims, search-claims, init, configure-output, save-curriculum, save-lesson, save-artifact, record-decision, migrate, repair-index, record-exercise, schedule-review, clear-output, clear-cache, clear-skill-memory, reset, reconfig, open-viewer, open-workbook, or cleanup-drafts",
       );
     }
     const { targetRoot } = await resolveTargetRoot(targetInput);
@@ -2277,6 +2331,7 @@ if (isDirectCliInvocation(import.meta.url)) {
     else if (action === "doctor") await doctor(targetRoot, options);
     else if (action === "recheck-trajectory") await recheckTrajectory(targetRoot, options);
     else if (action === "recheck-claims") await recheckClaims(targetRoot, options);
+    else if (action === "search-claims") await searchClaimsAction(targetRoot, options);
     else if (action === "init") await init(targetRoot, options);
     else if (action === "configure-output") await configureOutput(targetRoot, options);
     else if (action === "save-curriculum") await saveCurriculum(targetRoot, options);

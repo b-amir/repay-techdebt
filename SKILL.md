@@ -263,3 +263,22 @@ Full chains, wrappers, and failure prompts: `references/tool-integrations.md`.
 | Large/remote | Repomix stdout | scoped outline                                           |
 
 Always exclude nested skill paths and `.repay-techdebt/` from application evidence.
+
+### Maintainer: optional repay MCP
+
+Thin stdio server: `node scripts/repay-mcp.js`. Wraps existing modules/scripts only — **no silent durable write**. **Never** required for teach/save/resume. Register in agent MCP config only with user consent. Learner chat never mentions installing MCP.
+
+| Tool | Purpose |
+| ---- | ------- |
+| `repay_doctor` | Path health / save blocked |
+| `repay_trajectory_check` | Fail-closed TrajectoryGate |
+| `repay_recheck_claims` | Re-verify CLAIMS vs live sources |
+| `repay_search_claims` | Search claims/citations/paths |
+| `repay_pr_changes` | Local git diff (`get-pr-changes.js`) |
+| `repay_save_evaluate` | Pre-save floors only (`wrote: false`) |
+| `repay_open_workbook` | Paths + view command (no server start) |
+| `repay_capabilities` | Optional tool probe |
+| `repay_status` | Memory/workbook/lesson counts |
+| `repay_list_lessons` / `repay_get_lesson` | Inventory + read |
+| `repay_check_quality` / `_faithfulness` / `_evidence` | Single-lesson floors |
+| `repay_progress` | Read progress.json |

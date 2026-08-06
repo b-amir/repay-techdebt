@@ -13,6 +13,7 @@ import { buildSidebar, buildLessonsSidebar } from "./sidebar.js";
 import { renderHome, renderLesson, renderEmpty, renderPlanned, lessonHref } from "./shell.js";
 import { renderMarkdown, extractTitle } from "./markdown-render.js";
 import { searchLessons } from "./search-lessons.js";
+import { searchWorkbookClaims } from "../lessons/claim-search.js";
 
 const CSS_PATH = resolve(skillRoot, "src", "viewer", "static", "viewer.css");
 let cssCache = null;
@@ -174,8 +175,26 @@ export function createViewerServer({ workbook, now = defaultNow }) {
       }
       if (req.method === "GET" && pathname === "/api/search") {
         const q = url.searchParams.get("q") ?? "";
-        const results = await searchLessons(workbook, q, 20);
-        return sendJson(res, 200, { query: q, results });
+        const [results, claimSearch] = await Promise.all([
+          searchLessons(workbook, q, 20),
+          searchWorkbookClaims(workbook, q, { limit: 20 }),
+        ]);
+        // Merge claim hits not already covered by title/body search keys.
+        const seen = new Set(results.map((r) => r.key));
+        for (const hit of claimSearch.hits ?? []) {
+          if (seen.has(hit.key)) continue;
+          seen.add(hit.key);
+          results.push({
+            key: hit.key,
+            title: hit.title,
+            match: hit.match,
+          });
+        }
+        return sendJson(res, 200, {
+          query: q,
+          results,
+          claimHits: claimSearch.hits ?? [],
+        });
       }
 
       if (req.method === "GET" && pathname === "/api/lesson-mtime") {
