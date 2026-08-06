@@ -115,6 +115,7 @@ Open billing/capture.js and point at the export.
       depth: "concise",
       draftPath: draft,
       trajectoryGate: null,
+      skipCraftFloors: true,
     });
     assert.equal(blocked.ok, false);
     assert.equal(blocked.trajectory.refuse, true);
@@ -125,6 +126,7 @@ Open billing/capture.js and point at the export.
       depth: "concise",
       draftPath: draft,
       trajectoryGate: { gate: completeGate() },
+      skipCraftFloors: true,
     });
     // Trajectory must not refuse when gate complete (other floors may still fail)
     assert.equal(allowed.trajectory.refuse, false);
@@ -149,9 +151,13 @@ test("check-trajectory CLI fails incomplete gate and passes complete", async () 
 
     await assert.rejects(
       () =>
-        execute(process.execPath, [resolve(root, "scripts/check-trajectory.js"), bad, "--format", "json"], {
-          cwd: root,
-        }),
+        execute(
+          process.execPath,
+          [resolve(root, "scripts/check-trajectory.js"), bad, "--format", "json"],
+          {
+            cwd: root,
+          },
+        ),
       (/** @type {any} */ err) => {
         const out = JSON.parse(err.stdout || "{}");
         assert.equal(out.pathComplete, false);

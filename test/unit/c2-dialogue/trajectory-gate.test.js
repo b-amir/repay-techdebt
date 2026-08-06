@@ -95,7 +95,8 @@ test("verifyDone true with purpose done → pathComplete true", () => {
 test("invalid mode → pathComplete false", () => {
   assert.equal(
     derivePathComplete({
-      mode: "workbook",
+      // Intentionally invalid gate mode (not fast|control).
+      mode: /** @type {any} */ ("workbook"),
       purposeDone: true,
       verifyDone: null,
       skipReasons: {},
@@ -141,7 +142,7 @@ test("validateTrajectoryGateShape accepts complete control gate", () => {
 
 test("validateTrajectoryGateShape rejects bad mode", () => {
   const result = validateTrajectoryGateShape({
-    mode: "workbook",
+    mode: /** @type {any} */ ("workbook"),
     purposeDone: true,
     verifyDone: null,
   });

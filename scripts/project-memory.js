@@ -30,10 +30,7 @@ import { computeEvidenceDigests } from "../src/memory/curriculum-refresh.js";
 import { readCurriculum, writeCurriculum } from "../src/memory/curriculum-store.js";
 import { renderCurriculumMarkdown } from "../src/curriculum/curriculum-planning.js";
 import { evaluateLessonForSave } from "../src/lessons/save-lesson.js";
-import {
-  checkTrajectoryGate,
-  formatPathIncompleteReason,
-} from "../src/dialogue/trajectory.js";
+import { checkTrajectoryGate, formatPathIncompleteReason } from "../src/dialogue/trajectory.js";
 import { recordExercise, scheduleReview } from "../src/memory/learning-progress.js";
 import { validateCurriculum } from "../src/curriculum/approve-curriculum.js";
 import {
@@ -59,6 +56,8 @@ const execute = promisify(execFile);
 function printHelp() {
   process.stdout.write(`Usage:
   node project-memory.js status <target-root> [--storage private|project-local|team] [--format table|json]
+  node project-memory.js doctor <target-root> [--storage private|project-local|team] [--format table|json]
+  node project-memory.js recheck-trajectory <target-root> [--storage private|project-local|team] [--format table|json]
   node project-memory.js init <target-root> [--storage private|project-local|team] [--output-location sister|private|custom] [--output-root <path>] [--mode ask|pr|workbook] [--depth concise|balanced|deep] [--save-policy ask|automatic] [--boundary-hints <csv>] [--critical-workflows <csv>] [--max-files <count>] [--max-manifest-files <count>] [--max-relation-files <count>] [--max-relation-bytes <count>] [--allow-non-git] [--yes|--interactive]
   node project-memory.js save-curriculum <target-root> --input <curriculum.json> --yes
 
@@ -73,9 +72,18 @@ corroboratedTopicIds for naming-heuristic topics, acceptedPartialScope when cove
   node project-memory.js repair-index <target-root> --yes
   node project-memory.js clear-output <target-root> [--keep-lessons] [--keep-config] [--revert-target-markers] [--dry-run] --yes
   node project-memory.js clear-cache <target-root> [--dry-run] --yes
+  node project-memory.js clear-skill-memory <target-root> [--keep-lessons] [--keep-config] [--revert-target-markers] [--dry-run] --yes
   node project-memory.js reset <target-root> [--keep-lessons] [--keep-config] [--revert-target-markers] [--dry-run] --yes
   node project-memory.js reconfig <target-root> [--mode ask|pr|workbook] [--depth concise|balanced|deep] [--save-policy ask|automatic] [--interactive] --yes
   node project-memory.js open-viewer <target-root> [--port <n>] [--open] [--lesson <lessons/...>]
+  node project-memory.js open-workbook <target-root> [--port <n>] [--open] [--lesson <lessons/...>]
+
+Thin resume helpers:
+  status              read-only health + plain-language learning path state
+  doctor              same health check, emphasizes what blocks a durable save
+  recheck-trajectory  re-read trajectory-gate.json and print plain refuse reasons
+  open-workbook       alias for open-viewer
+  clear-skill-memory  alias for reset (skill memory only — never app source)
 
 Maintenance removes only repay-techdebt memory, workbook output, and analyzer cache — never application source.
 Private-external machine memory plus a discoverable sister workbook is the default and leaves the
@@ -284,6 +292,7 @@ async function proposedOutputRoot(targetRoot, options, memoryRoot) {
 async function readConfig(paths) {
   await requireSafePath(paths.root, "directory");
   await requireSafePath(paths.config, "file");
+  // validateConfig returns { config, compatibilityWarnings }
   return validateConfig(JSON.parse(await readFile(paths.config, "utf8")));
 }
 
@@ -493,6 +502,7 @@ async function status(targetRoot, options) {
   }
   emit(
     {
+      type: "status",
       status: warnings.length > 0 ? "ready-with-warning" : "ready",
       initialized: true,
       targetRoot,
@@ -511,6 +521,167 @@ async function status(targetRoot, options) {
     },
     format,
   );
+}
+
+/**
+ * Doctor = thin health + plain-language save block. No field dumps.
+ */
+async function doctor(targetRoot, options) {
+  const format = options.format ?? "table";
+  const paths = await resolveMemoryPaths(targetRoot, options);
+  if (!(await pathExists(paths.config))) {
+    const reason = formatPathIncompleteReason({ missing: ["gate"], pathComplete: false });
+    const payload = {
+      type: "doctor",
+      status: "not-initialized",
+      saveBlocked: true,
+      reason,
+      targetRoot,
+      memoryRoot: paths.root,
+    };
+    if (format === "json") emit(payload, "json");
+    else {
+      process.stdout.write(`Doctor: not initialized\nTarget: ${targetRoot}\n${reason}\n`);
+      process.stdout.write("Next: run init, settle purpose, then save lessons.\n");
+    }
+    process.exitCode = 2;
+    return;
+  }
+
+  const { config } = await readConfig(paths);
+  const workbook = workbookPaths(paths, config);
+  let lessonCount = 0;
+  if (await pathExists(workbook.lessons)) {
+    lessonCount = (await readdir(workbook.lessons, { withFileTypes: true })).filter(
+      (entry) => entry.isFile() && entry.name.endsWith(".md") && entry.name !== "index.md",
+    ).length;
+  }
+
+  const gateFile = resolve(paths.root, "trajectory-gate.json");
+  let pathComplete = false;
+  let reason = formatPathIncompleteReason({ missing: ["gate"], pathComplete: false });
+  let missing = ["gate"];
+  if (await pathExists(gateFile)) {
+    try {
+      const gateCheck = checkTrajectoryGate(JSON.parse(await readFile(gateFile, "utf8")));
+      pathComplete = gateCheck.pathComplete;
+      missing = gateCheck.missing;
+      reason = pathComplete ? null : formatPathIncompleteReason(gateCheck);
+    } catch {
+      reason = formatPathIncompleteReason({ missing: ["gate"], pathComplete: false });
+      missing = ["gate"];
+    }
+  }
+
+  const payload = {
+    type: "doctor",
+    status: pathComplete ? "ready" : "save-blocked",
+    saveBlocked: !pathComplete,
+    reason,
+    missing,
+    pathComplete,
+    targetRoot,
+    memoryRoot: paths.root,
+    outputRoot: workbook.root,
+    lessonCount,
+  };
+
+  if (format === "json") emit(payload, "json");
+  else {
+    process.stdout.write(`Doctor: ${payload.status}\n`);
+    process.stdout.write(`Target: ${targetRoot}\n`);
+    process.stdout.write(`Memory: ${paths.root}\n`);
+    process.stdout.write(`Workbook: ${workbook.root}\n`);
+    process.stdout.write(`Saved lessons: ${lessonCount}\n`);
+    if (pathComplete) {
+      process.stdout.write(
+        "Learning path: complete — durable save allowed if lesson craft passes.\n",
+      );
+    } else {
+      process.stdout.write("Learning path: blocked\n");
+      process.stdout.write(`${reason}\n`);
+    }
+  }
+  if (!pathComplete) process.exitCode = 2;
+}
+
+/**
+ * Recheck trajectory-gate.json only; plain refuse reasons.
+ */
+async function recheckTrajectory(targetRoot, options) {
+  const format = options.format ?? "table";
+  const paths = await resolveMemoryPaths(targetRoot, options);
+  const gateFile = resolve(paths.root, "trajectory-gate.json");
+  if (!(await pathExists(paths.config))) {
+    const reason = formatPathIncompleteReason({ missing: ["gate"], pathComplete: false });
+    const payload = {
+      type: "recheck-trajectory",
+      status: "not-initialized",
+      pathComplete: false,
+      reason,
+      targetRoot,
+      memoryRoot: paths.root,
+    };
+    if (format === "json") emit(payload, "json");
+    else process.stdout.write(`Trajectory recheck: not initialized\n${reason}\n`);
+    process.exitCode = 2;
+    return;
+  }
+  if (!(await pathExists(gateFile))) {
+    const reason = formatPathIncompleteReason({ missing: ["gate"], pathComplete: false });
+    const payload = {
+      type: "recheck-trajectory",
+      status: "missing-gate",
+      pathComplete: false,
+      reason,
+      targetRoot,
+      memoryRoot: paths.root,
+      gatePath: gateFile,
+    };
+    if (format === "json") emit(payload, "json");
+    else process.stdout.write(`Trajectory recheck: no gate file yet\n${reason}\n`);
+    process.exitCode = 2;
+    return;
+  }
+  try {
+    const gateRaw = JSON.parse(await readFile(gateFile, "utf8"));
+    const gateCheck = checkTrajectoryGate(gateRaw);
+    const reason = gateCheck.pathComplete ? null : formatPathIncompleteReason(gateCheck);
+    const payload = {
+      type: "recheck-trajectory",
+      status: gateCheck.pathComplete ? "complete" : "incomplete",
+      pathComplete: gateCheck.pathComplete,
+      missing: gateCheck.missing,
+      reason,
+      targetRoot,
+      memoryRoot: paths.root,
+      gatePath: gateFile,
+    };
+    if (format === "json") emit(payload, "json");
+    else {
+      process.stdout.write(
+        `Trajectory recheck: ${gateCheck.pathComplete ? "complete" : "incomplete"}\n`,
+      );
+      if (reason) process.stdout.write(`${reason}\n`);
+      else process.stdout.write("Learning path looks complete.\n");
+    }
+    if (!gateCheck.pathComplete) process.exitCode = 2;
+  } catch (error) {
+    const reason = formatPathIncompleteReason({ missing: ["gate"], pathComplete: false });
+    const payload = {
+      type: "recheck-trajectory",
+      status: "invalid-gate",
+      pathComplete: false,
+      reason,
+      detail: error.message,
+      targetRoot,
+      memoryRoot: paths.root,
+      gatePath: gateFile,
+    };
+    if (format === "json") emit(payload, "json");
+    else process.stdout.write(`Trajectory recheck: invalid gate file\n${reason}\n`);
+    process.exitCode = 2;
+  }
 }
 
 async function askHumanWizard(options) {
@@ -1075,6 +1246,30 @@ async function secretCheck(content, filePath) {
   return engine.executeOnContent({ content, filePath });
 }
 
+/**
+ * Build durable lesson markdown. Frontmatter stays at file start so craft fields parse.
+ * @param {string} title
+ * @param {string} body
+ */
+function assembleLessonMarkdown(title, body) {
+  const trimmed = String(body ?? "").trim();
+  const fm = trimmed.match(/^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/);
+  if (fm) {
+    const rest = trimmed.slice(fm[0].length).replace(/^\r?\n*/, "");
+    // Drop a duplicate H1 that already matches the save title.
+    const withoutDupTitle = rest.replace(
+      new RegExp(`^#\\s+${escapeRegExp(title)}\\s*\\n+`, "i"),
+      "",
+    );
+    return `${fm[0].replace(/\r?\n$/, "\n")}\n# ${title}\n\n${withoutDupTitle}\n`;
+  }
+  return `# ${title}\n\n${trimmed}\n`;
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 async function saveLesson(targetRoot, options) {
   const paths = await resolveMemoryPaths(targetRoot, options);
   const { config } = await readConfig(paths);
@@ -1111,7 +1306,8 @@ async function saveLesson(targetRoot, options) {
   const title = options.title.replace(/\s+/g, " ").trim();
   const inputPath = await realpath(resolve(options.input));
   const body = await readFile(inputPath, "utf8");
-  const content = `# ${title}\n\n${body.trim()}\n`;
+  // Keep YAML frontmatter at file start so craft fields parse; title goes after it.
+  const content = assembleLessonMarkdown(title, body);
   let trajectoryGate = null;
   if (options.trajectory) {
     const trajPath = resolve(options.trajectory);
@@ -1124,6 +1320,9 @@ async function saveLesson(targetRoot, options) {
   const { ok, quality, trajectory } = await evaluateLessonForSave(targetRoot, content, {
     depth: config.defaults.lessonDepth,
     expectedEvidencePaths: topic?.evidencePaths ?? [],
+    inventoryPaths: topic?.evidencePaths ?? [],
+    topicPath: topic?.path ?? topic?.focus,
+    focus: topic?.focus,
     draftPath: inputPath,
     trajectoryGate,
     subject: options.subject ?? topic?.subject ?? topic?.kind,
@@ -1960,6 +2159,8 @@ if (isDirectCliInvocation(import.meta.url)) {
     if (
       !new Set([
         "status",
+        "doctor",
+        "recheck-trajectory",
         "init",
         "save-lesson",
         "save-curriculum",
@@ -1972,19 +2173,23 @@ if (isDirectCliInvocation(import.meta.url)) {
         "schedule-review",
         "clear-output",
         "clear-cache",
+        "clear-skill-memory",
         "reset",
         "reconfig",
         "open-viewer",
+        "open-workbook",
         "cleanup-drafts",
       ]).has(action)
     ) {
       printHelp();
       throw new Error(
-        "Expected status, init, configure-output, save-curriculum, save-lesson, save-artifact, record-decision, migrate, repair-index, record-exercise, schedule-review, clear-output, clear-cache, reset, reconfig, open-viewer, or cleanup-drafts",
+        "Expected status, doctor, recheck-trajectory, init, configure-output, save-curriculum, save-lesson, save-artifact, record-decision, migrate, repair-index, record-exercise, schedule-review, clear-output, clear-cache, clear-skill-memory, reset, reconfig, open-viewer, open-workbook, or cleanup-drafts",
       );
     }
     const { targetRoot } = await resolveTargetRoot(targetInput);
     if (action === "status") await status(targetRoot, options);
+    else if (action === "doctor") await doctor(targetRoot, options);
+    else if (action === "recheck-trajectory") await recheckTrajectory(targetRoot, options);
     else if (action === "init") await init(targetRoot, options);
     else if (action === "configure-output") await configureOutput(targetRoot, options);
     else if (action === "save-curriculum") await saveCurriculum(targetRoot, options);
@@ -1997,9 +2202,11 @@ if (isDirectCliInvocation(import.meta.url)) {
     else if (action === "schedule-review") await scheduleReviewAction(targetRoot, options);
     else if (action === "clear-output") await clearOutput(targetRoot, options);
     else if (action === "clear-cache") await clearCache(targetRoot, options);
-    else if (action === "reset") await resetSkillState(targetRoot, options);
+    else if (action === "clear-skill-memory" || action === "reset")
+      await resetSkillState(targetRoot, options);
     else if (action === "reconfig") await reconfig(targetRoot, options);
-    else if (action === "open-viewer") await openViewer(targetRoot, options);
+    else if (action === "open-viewer" || action === "open-workbook")
+      await openViewer(targetRoot, options);
     else if (action === "cleanup-drafts") await cleanupDraftsCommand(targetRoot, options);
   } catch (error) {
     if (error.code === "NO_MEMORY") {

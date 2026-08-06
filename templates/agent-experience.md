@@ -31,10 +31,10 @@ argv, or raw CLI dumps into chat.
 
 ## Modes
 
-| Mode        | Reply                   | Asks                                                     | Saves                          |
-| ----------- | ----------------------- | -------------------------------------------------------- | ------------------------------ |
-| **Fast**    | `fast`                  | Auto-purpose · inline review · auto-save · ask to refine | **Automatic** — no save yes/no |
-| **Control** | `control`               | Full settings + save/open confirms when policy is `ask`  | As configured                  |
+| Mode        | Reply     | Asks                                                     | Saves                          |
+| ----------- | --------- | -------------------------------------------------------- | ------------------------------ |
+| **Fast**    | `fast`    | Auto-purpose · inline review · auto-save · ask to refine | **Automatic** — no save yes/no |
+| **Control** | `control` | Full settings + save/open confirms when policy is `ask`  | As configured                  |
 
 Fast still teaches and shows progress — it just **doesn’t stop** for setup or save/open rituals.
 

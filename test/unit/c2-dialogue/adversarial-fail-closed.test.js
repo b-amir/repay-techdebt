@@ -40,6 +40,7 @@ test("poisoned citation fixture fails closed (no warn-and-save)", async () => {
       depth: "concise",
       draftPath: draft,
       trajectoryGate: { gate: completeGate() },
+      skipCraftFloors: true,
     });
     assert.equal(result.ok, false);
     assert.ok(
@@ -106,6 +107,7 @@ test("absence/heuristic omnibus curriculum fails closed (approval + omnibus)", a
       depth: "concise",
       draftPath: draft,
       trajectoryGate: { gate: completeGate() },
+      skipCraftFloors: true,
     });
     assert.equal(result.ok, false);
     assert.ok(

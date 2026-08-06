@@ -18,3 +18,39 @@ export { buildEvidencePacket } from "./lesson-evidence.js";
 export { buildLessonSpecification } from "./lesson-specification.js";
 
 export { selectDiagramType } from "./diagram-selection.js";
+
+export { parseLessonFrontmatter, craftFieldsFromFrontmatter } from "./lesson-frontmatter.js";
+
+export {
+  DEFAULT_PATH_SECTIONS,
+  MAP_SUBJECTS,
+  GOLDEN_LESSON_PATHS,
+  GOLDEN_SITTING_SIZE,
+  resolveGoldenPaths,
+  loadGoldenDraftInput,
+  inspectLessonShape,
+  checkMapXor,
+  listLevelTwoHeadings,
+} from "./lesson-shape.js";
+
+export { USEFULNESS_FLOORS, inspectUsefulnessFloors } from "./usefulness-floors.js";
+
+export {
+  extractMermaidBlocks,
+  extractPathishNodes,
+  inventoryPathSet,
+  checkDiagramGate,
+} from "./diagram-gate.js";
+
+export {
+  emitSubjectCandidates,
+  resolveSubjectPath,
+  checkSubjectPathGate,
+  checkAntiClone,
+} from "./subject-path-gate.js";
+
+export {
+  SUPPORTED_RELATION_LANGUAGES,
+  checkPolyglotHonesty,
+  checkAbsenceHonesty,
+} from "./polyglot-honesty.js";

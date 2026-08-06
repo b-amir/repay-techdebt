@@ -57,7 +57,8 @@ try {
   const positional = [];
   for (let i = 0; i < raw.length; i += 1) {
     if (raw[i] === "--format") format = raw[++i];
-    else if (raw[i] === "--mode") ++i; // backward compat with older tests
+    else if (raw[i] === "--mode")
+      ++i; // backward compat with older tests
     else if (raw[i] === "--stub-workbook") stubWorkbook = true;
     else if (raw[i] === "--stub-gate") stubGate = true;
     else if (raw[i].startsWith("--")) throw new Error(`Unknown option: ${raw[i]}`);
@@ -85,7 +86,10 @@ try {
     flow = validateFlow(trajectory);
   } else if (Array.isArray(trajectory?.flowStates)) {
     flow = validateFlow(trajectory.flowStates);
-  } else if (Array.isArray(trajectory?.steps) && trajectory.steps.every((s) => typeof s === "string")) {
+  } else if (
+    Array.isArray(trajectory?.steps) &&
+    trajectory.steps.every((s) => typeof s === "string")
+  ) {
     flow = validateFlow(trajectory.steps);
   }
 

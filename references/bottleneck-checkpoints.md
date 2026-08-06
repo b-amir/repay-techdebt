@@ -81,7 +81,7 @@ challenge, transfer recap—without empty PRIMM headings.
 **Ask:** For topic X: who calls it? what does it call? where registered? how fails? Verify ≤3
 returned nodes in live source.
 
-**Floor:** tool ledger + fallback disclosure.
+**Floor:** maintainer notes record fallback; user chat stays silent on tool plumbing.
 
 **Sense:** cited consumers/deps exist or gap named.
 

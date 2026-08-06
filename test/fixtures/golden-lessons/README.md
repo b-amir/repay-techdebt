@@ -6,12 +6,12 @@ Human-authored craft anchors for repay-techdebt.
 
 ## Index (paths for agents)
 
-| ID | Role | Path |
-| -- | ---- | ---- |
-| **A** | Flow/path lesson **with** structure map | [`a-path-with-map/lesson.md`](./a-path-with-map/lesson.md) |
-| **B** | Single-file/symbol deep dive; map skipped | [`b-deep-dive/lesson.md`](./b-deep-dive/lesson.md) |
-| **Craft pairs** | ≥3 good/bad openers + check-yourself | [`craft-pairs.md`](./craft-pairs.md) |
-| **Target tree** | Citation target for A/B (`billing/*`) | [`target/billing/`](./target/billing/) |
+| ID              | Role                                      | Path                                                       |
+| --------------- | ----------------------------------------- | ---------------------------------------------------------- |
+| **A**           | Flow/path lesson **with** structure map   | [`a-path-with-map/lesson.md`](./a-path-with-map/lesson.md) |
+| **B**           | Single-file/symbol deep dive; map skipped | [`b-deep-dive/lesson.md`](./b-deep-dive/lesson.md)         |
+| **Craft pairs** | ≥3 good/bad openers + check-yourself      | [`craft-pairs.md`](./craft-pairs.md)                       |
+| **Target tree** | Citation target for A/B (`billing/*`)     | [`target/billing/`](./target/billing/)                     |
 
 Related eval mini-lesson (CLAIMS block only; **not** a craft golden):  
 `test/fixtures/evaluation/golden-lesson/lesson.md`
@@ -25,13 +25,13 @@ Related eval mini-lesson (CLAIMS block only; **not** a craft golden):
 
 ## Frontmatter slots used (draft contract preview)
 
-| Field | A | B |
-| ----- | - | - |
-| `subject` | `flow` | `code-mechanics` |
-| `shape` | `end-to-end-flow` | `code-mechanics` |
-| `mapAnswers` | set (structure question answered) | omitted |
-| `skipReasons.map` | omitted | set (why no map) |
-| `primaryPaths` | capture + settlement | settlement |
+| Field             | A                                 | B                |
+| ----------------- | --------------------------------- | ---------------- |
+| `subject`         | `flow`                            | `code-mechanics` |
+| `shape`           | `end-to-end-flow`                 | `code-mechanics` |
+| `mapAnswers`      | set (structure question answered) | omitted          |
+| `skipReasons.map` | omitted                           | set (why no map) |
+| `primaryPaths`    | capture + settlement              | settlement       |
 
 Xor rule (`mapAnswers` **or** `skipReasons.map` on architecture/flow/structure) is enforced in Phase **1.2** — fixtures already model the happy shapes.
 
@@ -39,10 +39,10 @@ Xor rule (`mapAnswers` **or** `skipReasons.map` on architecture/flow/structure) 
 
 Calibrate later floors from these notes — **do not invent abstract caps in 0.0 code.**
 
-| Fixture | Approx words (body) | Level-2 sections | Sitting feel |
-| ------- | ------------------- | ---------------- | ------------ |
-| A path+map | ~450 body words (`depth: balanced`) | 5 | ~6–8 min scan + 2 min check |
-| B deep dive | ~380 body words (`depth: concise`) | 4 | ~4–6 min scan + 1 min check |
+| Fixture     | Approx words (body)                 | Level-2 sections | Sitting feel                |
+| ----------- | ----------------------------------- | ---------------- | --------------------------- |
+| A path+map  | ~450 body words (`depth: balanced`) | 5                | ~6–8 min scan + 2 min check |
+| B deep dive | ~380 body words (`depth: concise`)  | 4                | ~4–6 min scan + 1 min check |
 
 Shared craft density:
 

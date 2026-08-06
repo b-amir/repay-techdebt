@@ -238,8 +238,9 @@ repay view <target-root> --open --lesson <lessons/...>
 Otherwise offer the viewer link. The emit includes `viewer.command`, `viewer.hint`,
 `viewer.deepLinkRel`, and `viewer.openRecommended`. Always show Markdown paths too.
 
-7. **Agent ledger:** every tool, operation, outcome, fallback, limitation; unresolved gaps; next
-   concepts; checkpoint skips (internal codes only — not in user-facing copy).
+7. **Maintainer notes (not user chat):** record tool outcomes, fallbacks, limitations, unresolved
+   gaps, next concepts, and checkpoint skips only in maintainer logs / private notes — never dump a
+   tool ledger, capability menu, or install tour into first-run or learner chat.
 
 ## Enhanced tools (pointers only)
 

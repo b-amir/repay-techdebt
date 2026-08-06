@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "name": "invented-graph-node",
+  "description": "Invented mermaid node paths must fail diagram gate against project inventory.",
+  "topics": [
+    {
+      "id": "invented-graph",
+      "intent": "forbidden",
+      "description": "Invented mermaid node paths must fail diagram gate"
+    }
+  ],
+  "workflows": [],
+  "lessons": {},
+  "allowedSideEffects": []
+}

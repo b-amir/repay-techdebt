@@ -15,7 +15,7 @@ Subjects below use the mini target under `target/billing/` so examples stay conc
 
 > In this lesson, we will explore the billing module and understand how payments work in a robust, scalable way.
 
-**Why bad:** No file, no mechanism, no consequence. “Explore” + puffy adjectives. Reader cannot predict what they will *do*.
+**Why bad:** No file, no mechanism, no consequence. “Explore” + puffy adjectives. Reader cannot predict what they will _do_.
 
 **Good**
 
@@ -23,19 +23,19 @@ Subjects below use the mini target under `target/billing/` so examples stay conc
 
 **Why good:** Names the split, points at a real symbol, states the mistake the lesson prevents. Plain first line.
 
-### Pair 2 — curiosity about *their* code vs textbook throat-clear
+### Pair 2 — curiosity about _their_ code vs textbook throat-clear
 
 **Bad**
 
 > Settlement is an important concept in payment systems. Industry best practice is to separate capture from settlement for compliance and scalability.
 
-**Why bad:** Generic domain lecture. Could be any repo. No path in *this* tree.
+**Why bad:** Generic domain lecture. Could be any repo. No path in _this_ tree.
 
 **Good**
 
 > `settle` looks tiny, but **its return object is the contract capture relies on**. Change the fields without checking callers and capture still “succeeds” while `.status` disappears.
 
-**Why good:** Hook is a landmine in *this* helper; consequence is concrete.
+**Why good:** Hook is a landmine in _this_ helper; consequence is concrete.
 
 ### Pair 3 — outcome first vs restating the title
 
@@ -47,7 +47,7 @@ Subjects below use the mini target under `target/billing/` so examples stay conc
 
 **Good**
 
-> After this lesson you can open `billing/settlement.js` and describe the three fields on the settled object from memory — and name one thing settle does *not* do.
+> After this lesson you can open `billing/settlement.js` and describe the three fields on the settled object from memory — and name one thing settle does _not_ do.
 
 **Why good:** Finish line is a do-thing on a real file.
 

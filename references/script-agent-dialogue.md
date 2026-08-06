@@ -118,7 +118,7 @@ Agent: semantic checklist; ≤1 rewrite (Quality judgment)
 Script: project-memory.js save-curriculum … (Save)
 Script: project-memory.js save-lesson … --topic-id … (Save)
 Script: repay view <target-root> [--open] [--lesson …] (Viewer rendering; implementation: view-lessons.js)
-Agent: tool ledger + gaps + next concepts
+Agent: maintainer-only notes (gaps + next concepts; no user-facing tool ledger)
 ```
 
 Skip whole-repo `find-patterns.js` unless the agent passes explicit `--all` for teaching leads, or
@@ -133,7 +133,7 @@ Agent: re-rank around changed symbols and likely consumers
 Retrieve/verify blast radius (Graphify/Serena)
 Script: plan-analysis.js --mode pr --format summary-json
 Agent: pick 1–3 teaching points (not every hunk)
-Compose → check → semantic → save? → ledger
+Compose → check → semantic → save? → maintainer notes
 ```
 
 Create or append a mini-curriculum (`buildTeachingCurriculum` → `save-curriculum`) before any

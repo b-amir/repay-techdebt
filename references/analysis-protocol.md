@@ -85,4 +85,4 @@ Focused/PR modes skip this phase unless the user asks for a workbook.
 2. Agent drafts from verified anchors (B4b).
 3. `check-lesson-quality.js` + `check-lesson-evidence.js` (+ secrets as needed).
 4. Agent B4b/B6 sense (PRIMM moves + claim decomposition); ≤1 rewrite.
-5. Save per memory policy; end with tool ledger, checkpoint skips, gaps, next concepts.
+5. Save per memory policy; end with maintainer-only notes (gaps, skips, next concepts) — never a first-run tool ledger dump.

@@ -57,9 +57,7 @@ test("renderPlanned CTA is a simple command row", () => {
 });
 
 test("stripClaimsHtml removes CLAIMS blocks from lesson HTML", () => {
-  const html = stripClaimsHtml(
-    '<p>Intro</p><p>CLAIMS:</p><ol><li>claim</li></ol><p>Outro</p>',
-  );
+  const html = stripClaimsHtml("<p>Intro</p><p>CLAIMS:</p><ol><li>claim</li></ol><p>Outro</p>");
   assert.match(html, /Intro/);
   assert.match(html, /Outro/);
   assert.doesNotMatch(html, /CLAIMS/);

@@ -65,22 +65,18 @@ async function run() {
       skipReasons: {},
     });
     await writeFile(gatePath, JSON.stringify({ gate }));
-    await execa(
-      "node",
-      ["scripts/check-trajectory.js", gatePath, "--format", "json"],
-      { cwd: skillRoot },
-    );
+    await execa("node", ["scripts/check-trajectory.js", gatePath, "--format", "json"], {
+      cwd: skillRoot,
+    });
 
     // Legacy step-list alone must fail closed (exit 2).
     const legacyPath = join(trajDir, "legacy.json");
     await writeFile(legacyPath, JSON.stringify(trajectory));
     let legacyFailed = false;
     try {
-      await execa(
-        "node",
-        ["scripts/check-trajectory.js", legacyPath, "--format", "json"],
-        { cwd: skillRoot },
-      );
+      await execa("node", ["scripts/check-trajectory.js", legacyPath, "--format", "json"], {
+        cwd: skillRoot,
+      });
     } catch (err) {
       legacyFailed = (err.exitCode ?? err.code) === 2;
     }

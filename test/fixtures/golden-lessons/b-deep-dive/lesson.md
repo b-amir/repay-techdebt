@@ -57,7 +57,7 @@ Capture still returns successfully, but anything that reads `.status` or `.order
 + return { orderId, amount, status: amount > 0 ? "settled" : "pending" };
 ```
 
-That change invents a second status without updating callers or tests. The lesson is not “never evolve status” — it is “the return object *is* the contract,” so edit it as a contract.
+That change invents a second status without updating callers or tests. The lesson is not “never evolve status” — it is “the return object _is_ the contract,” so edit it as a contract.
 
 ## Check yourself
 

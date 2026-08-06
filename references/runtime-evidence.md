@@ -17,7 +17,7 @@ Before execution:
 3. state which uncertainty the operation will reduce;
 4. prefer a disposable/local target and the narrowest representative scenario;
 5. ask the user unless the exact operation is already authorized;
-6. record the command, outcome, evidence, and limitation in the tool ledger.
+6. record the command, outcome, evidence, and limitation in maintainer notes only (never first-run chat).
 
 ## Data Sources
 

@@ -34,11 +34,7 @@ async function pathExists(p) {
 async function hasCodeSurface(dirPath) {
   const entries = await fs.readdir(dirPath, { withFileTypes: true });
   for (const e of entries) {
-    if (
-      e.name === "expectations.json" ||
-      e.name === "curriculum.json" ||
-      e.name === "lesson.md"
-    ) {
+    if (e.name === "expectations.json" || e.name === "curriculum.json" || e.name === "lesson.md") {
       continue;
     }
     return true;

@@ -21,7 +21,7 @@ When money moves in this billing slice, **one function validates the order and a
 
 Capture is the public entry for an order that already has an id and amount. Settlement is the helper that turns those values into a settled result. The split means you can change settlement policy without rewriting every caller that still needs the same order check.
 
-That boundary is the whole lesson. You are not learning a full payments platform — only this path through *these* files. When a bug report says “capture returned settled but the id was wrong,” you already know which file validated the order and which file stamped status — so you open the right one first.
+That boundary is the whole lesson. You are not learning a full payments platform — only this path through _these_ files. When a bug report says “capture returned settled but the id was wrong,” you already know which file validated the order and which file stamped status — so you open the right one first.
 
 ## Map the two roles
 
@@ -58,7 +58,7 @@ So the ordered path is: **order in → id required → settle(orderId, amount) �
 
 ## The pitfall people miss
 
-A common wrong mental model: “capture owns the whole payment, including status.” That reading fails as soon as you ask where `"settled"` is assigned. It is only in settle. Another trap: treating settle as optional decoration. Capture’s return value *is* settle’s return value, so a change to settle’s shape changes every capture caller.
+A common wrong mental model: “capture owns the whole payment, including status.” That reading fails as soon as you ask where `"settled"` is assigned. It is only in settle. Another trap: treating settle as optional decoration. Capture’s return value _is_ settle’s return value, so a change to settle’s shape changes every capture caller.
 
 What goes wrong if you skip the id guard and call settle with garbage? Settle still returns a settled-shaped object with whatever id you passed — so capture’s guard is the only gate that keeps incomplete orders out of settlement.
 

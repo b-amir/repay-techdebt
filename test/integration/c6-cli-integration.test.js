@@ -188,80 +188,84 @@ test(
   "model, plan, atlas, query, and dependency CLIs honor target-relative scope",
   { timeout: 120_000 },
   async () => {
-  const directory = await mkdtemp(resolve(tmpdir(), "repay-techdebt-scoped-clis-"));
-  try {
-    await mkdir(resolve(directory, "selected"));
-    await mkdir(resolve(directory, "outside"));
-    await writeFile(
-      resolve(directory, "selected", "package.json"),
-      `${JSON.stringify({ dependencies: { express: "5.1.0" } })}\n`,
-    );
-    await writeFile(
-      resolve(directory, "selected", "server.ts"),
-      'import express from "express";\nexport const server = express();\n',
-    );
-    await writeFile(resolve(directory, "outside", "ignored.ts"), "export const ignored = true;\n");
+    const directory = await mkdtemp(resolve(tmpdir(), "repay-techdebt-scoped-clis-"));
+    try {
+      await mkdir(resolve(directory, "selected"));
+      await mkdir(resolve(directory, "outside"));
+      await writeFile(
+        resolve(directory, "selected", "package.json"),
+        `${JSON.stringify({ dependencies: { express: "5.1.0" } })}\n`,
+      );
+      await writeFile(
+        resolve(directory, "selected", "server.ts"),
+        'import express from "express";\nexport const server = express();\n',
+      );
+      await writeFile(
+        resolve(directory, "outside", "ignored.ts"),
+        "export const ignored = true;\n",
+      );
 
-    const model = await runScript("build-program-model.js", [
-      directory,
-      "--scope",
-      "selected",
-      "--max-files",
-      "2",
-    ]);
-    assert.equal(model.code, 0, model.stderr);
-    const parsedModel = JSON.parse(model.stdout);
-    assert.equal(parsedModel.target.scope, "selected");
-    assert.equal(parsedModel.coverage.discoveredFiles, 2);
-    assert.ok(parsedModel.nodes.every((node) => !node.path?.startsWith("outside/")));
+      const model = await runScript("build-program-model.js", [
+        directory,
+        "--scope",
+        "selected",
+        "--max-files",
+        "2",
+      ]);
+      assert.equal(model.code, 0, model.stderr);
+      const parsedModel = JSON.parse(model.stdout);
+      assert.equal(parsedModel.target.scope, "selected");
+      assert.equal(parsedModel.coverage.discoveredFiles, 2);
+      assert.ok(parsedModel.nodes.every((node) => !node.path?.startsWith("outside/")));
 
-    const plan = await runScript("plan-analysis.js", [
-      directory,
-      "--scope",
-      "selected",
-      "--mode",
-      "focused",
-      "--focus",
-      "server dependencies",
-      "--format",
-      "summary-json",
-    ]);
-    assert.equal(plan.code, 0, plan.stderr);
-    const parsedPlan = JSON.parse(plan.stdout);
-    assert.equal(parsedPlan.target.scope, "selected");
-    assert.equal(parsedPlan.coverage.status, "partial");
-    assert.ok(parsedPlan.investigations.length > 0);
+      const plan = await runScript("plan-analysis.js", [
+        directory,
+        "--scope",
+        "selected",
+        "--mode",
+        "focused",
+        "--focus",
+        "server dependencies",
+        "--format",
+        "summary-json",
+      ]);
+      assert.equal(plan.code, 0, plan.stderr);
+      const parsedPlan = JSON.parse(plan.stdout);
+      assert.equal(parsedPlan.target.scope, "selected");
+      assert.equal(parsedPlan.coverage.status, "partial");
+      assert.ok(parsedPlan.investigations.length > 0);
 
-    const atlas = await runScript("render-system-atlas.js", [
-      directory,
-      "--scope",
-      "selected",
-      "--max-files",
-      "2",
-    ]);
-    assert.equal(atlas.code, 0, atlas.stderr);
-    assert.match(atlas.stdout, /\*\*Scope:\*\* `selected`/);
+      const atlas = await runScript("render-system-atlas.js", [
+        directory,
+        "--scope",
+        "selected",
+        "--max-files",
+        "2",
+      ]);
+      assert.equal(atlas.code, 0, atlas.stderr);
+      assert.match(atlas.stdout, /\*\*Scope:\*\* `selected`/);
 
-    const query = await runScript("query-program-model.js", [
-      directory,
-      "server",
-      "--scope",
-      "selected",
-    ]);
-    assert.equal(query.code, 0, query.stderr);
-    assert.equal(JSON.parse(query.stdout).target.scope, "selected");
+      const query = await runScript("query-program-model.js", [
+        directory,
+        "server",
+        "--scope",
+        "selected",
+      ]);
+      assert.equal(query.code, 0, query.stderr);
+      assert.equal(JSON.parse(query.stdout).target.scope, "selected");
 
-    const dependencies = await runScript("scan-dependencies.js", [
-      directory,
-      "--scope",
-      "selected",
-    ]);
-    assert.equal(dependencies.code, 0, dependencies.stderr);
-    assert.equal(JSON.parse(dependencies.stdout).target.scope, "selected");
-  } finally {
-    await rm(directory, { recursive: true, force: true });
-  }
-});
+      const dependencies = await runScript("scan-dependencies.js", [
+        directory,
+        "--scope",
+        "selected",
+      ]);
+      assert.equal(dependencies.code, 0, dependencies.stderr);
+      assert.equal(JSON.parse(dependencies.stdout).target.scope, "selected");
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  },
+);
 
 test("Graphify wrapper keeps installation and artifacts outside the target", async () => {
   const directory = await mkdtemp(resolve(tmpdir(), "repay-techdebt-graphify-target-"));

@@ -2,8 +2,8 @@
  * Checkpoint trajectory validation (ask fidelity).
  * Agents (or stubs) record replies; conformance checks the required order.
  *
- * TrajectoryGate (Phase 0.1): shared contract for check + save path completeness.
- * Field names are internal — never paste into user chat (0.4/0.8 own phrasing).
+ * TrajectoryGate: shared contract for check + save path completeness.
+ * Field names are internal — never paste into user chat.
  */
 
 export const WORKBOOK_TRAJECTORY = ["B0", "B1", "B2", "B5", "B3", "B4a", "B4b", "B6"];
@@ -200,12 +200,7 @@ export function checkTrajectoryGate(input, opts = {}) {
     rawGate = obj;
   }
   // Steps-only object (old checkpoint trajectory) without gate fields.
-  if (
-    !rawGate &&
-    Array.isArray(obj.steps) &&
-    !("purposeDone" in obj) &&
-    !("verifyDone" in obj)
-  ) {
+  if (!rawGate && Array.isArray(obj.steps) && !("purposeDone" in obj) && !("verifyDone" in obj)) {
     return {
       ok: false,
       pathComplete: false,
@@ -244,7 +239,7 @@ export function checkTrajectoryGate(input, opts = {}) {
     (typeof obj.subject === "string" ? obj.subject : undefined) ??
     (typeof rawGate === "object" &&
     rawGate &&
-    typeof /** @type {any} */ (rawGate).subject === "string"
+    typeof (/** @type {any} */ (rawGate).subject) === "string"
       ? /** @type {any} */ (rawGate).subject
       : undefined);
   const hasMapAnswers =
@@ -252,7 +247,7 @@ export function checkTrajectoryGate(input, opts = {}) {
     (typeof obj.mapAnswers === "string" && obj.mapAnswers.trim().length > 0) ||
     (typeof rawGate === "object" &&
       rawGate &&
-      typeof /** @type {any} */ (rawGate).mapAnswers === "string" &&
+      typeof (/** @type {any} */ (rawGate).mapAnswers) === "string" &&
       /** @type {any} */ (rawGate).mapAnswers.trim().length > 0);
 
   const missing = listPathMissing(gate, { subject, hasMapAnswers });
@@ -324,6 +319,33 @@ export function refuseSaveIfPathIncomplete(gateInput, opts = {}) {
     check,
     reason: formatPathIncompleteReason(check),
     code: "path-incomplete",
+  };
+}
+
+/**
+ * Session 2+: do not re-ask purpose/study-list when already settled on the gate/ledger.
+ * @param {unknown} gateInput
+ * @param {{ hasStudyList?: boolean, curriculumTopicCount?: number }} [opts]
+ * @returns {{ reaskPurpose: boolean, reaskStudyList: boolean, reason: string | null }}
+ */
+export function shouldReaskSessionSetup(gateInput, opts = {}) {
+  const check = checkTrajectoryGate(gateInput ?? {});
+  const gate = check.gate ?? buildTrajectoryGate(gateInput ?? {});
+  const purposeSettled =
+    gate.purposeDone === true ||
+    (typeof gate.skipReasons?.purpose === "string" && gate.skipReasons.purpose.trim().length > 0);
+  const studyListSettled =
+    opts.hasStudyList === true ||
+    (typeof opts.curriculumTopicCount === "number" && opts.curriculumTopicCount > 0);
+
+  return {
+    reaskPurpose: !purposeSettled,
+    reaskStudyList: !studyListSettled,
+    reason: purposeSettled
+      ? studyListSettled
+        ? "Purpose and study list already on ledger — continue without re-setup."
+        : null
+      : "Purpose not settled yet.",
   };
 }
 

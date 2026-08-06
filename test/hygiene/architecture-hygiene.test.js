@@ -125,6 +125,7 @@ CLAIMS:
     const padded = `${content}\n\n${"The capture path matters because funds move only after settle. ".repeat(30)}`;
     const result = await evaluateLessonForSave(directory, padded, {
       depth: "concise",
+      skipCraftFloors: true,
       trajectoryGate: {
         mode: "fast",
         purposeDone: true,

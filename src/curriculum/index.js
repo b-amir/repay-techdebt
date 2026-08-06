@@ -21,3 +21,10 @@ export { runTopicWorkflow } from "./topic-workflow.js";
 export { buildTeachingCurriculum, TEACHING_CHAPTER } from "./mini-curriculum.js";
 
 export { resolveTopicSelector } from "./topic-resolve.js";
+
+export {
+  emitSubjectCandidates,
+  resolveSubjectPath,
+  checkSubjectPathGate,
+  checkAntiClone,
+} from "../lessons/subject-path-gate.js";

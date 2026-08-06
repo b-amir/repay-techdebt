@@ -177,7 +177,13 @@ function prefsBootstrapScript() {
 </script>`;
 }
 
-function renderShell({ documentTitle, sidebarHtml, mainHtml, rightRailHtml = "", progress = null }) {
+function renderShell({
+  documentTitle,
+  sidebarHtml,
+  mainHtml,
+  rightRailHtml = "",
+  progress = null,
+}) {
   const scrollAttr = progress?.lastScroll
     ? ` data-last-scroll="${escapeHtml(String(progress.lastScroll))}"`
     : "";
@@ -206,9 +212,52 @@ ${viewSettingsPanel()}
 </html>`;
 }
 
+/**
+ * Thin covered-map chips for home: done / next why / evidence — not an LMS.
+ * @param {object} sidebar
+ * @param {object | null} progress
+ * @param {{ written: any[], planned: any[] }} items
+ */
+export function buildCoveredMapChips(sidebar, progress, items) {
+  const { written, planned } = items;
+  const doneTitles = written.filter((item) => item.state === "done").map((item) => item.title);
+  const nextPlanned = planned[0] ?? null;
+  const nextWritten = written.find((item) => item.state === "written") ?? null;
+  const next = nextWritten ?? nextPlanned;
+  const nextWhy =
+    next?.learnerOutcome ||
+    next?.why ||
+    next?.reason ||
+    (next?.state === "planned"
+      ? "Next planned topic"
+      : next
+        ? "Continue this lesson"
+        : "No next topic yet");
+  const evidenceState =
+    written.length === 0
+      ? "No written evidence yet"
+      : `${written.filter((i) => i.state === "done").length}/${written.length} written marked done`;
+
+  return {
+    done: doneTitles.slice(0, 6),
+    nextTitle: next?.title ?? null,
+    nextWhy,
+    nextHref: next
+      ? next.lessonKey
+        ? lessonHref(next.lessonKey)
+        : next.id
+          ? plannedHref(next.id)
+          : null
+      : null,
+    evidenceState,
+    continueKey: progress?.lastRead ?? null,
+  };
+}
+
 export function renderHome({ workbookTitle, sidebar, progress }) {
   const { written, planned } = collectSidebarItems(sidebar);
   const continueItem = findContinueLesson(sidebar, progress);
+  const chips = buildCoveredMapChips(sidebar, progress, { written, planned });
   const { project } = parseWorkbookBrand(workbookTitle);
   const { counts, total } = sidebar;
   const readPct = counts.written > 0 ? Math.round((counts.done / counts.written) * 100) : 0;
@@ -228,6 +277,35 @@ export function renderHome({ workbookTitle, sidebar, progress }) {
       : `<div class="ds-home-continue ds-home-continue-empty">
     <span class="ds-home-continue-label">No lessons yet</span>
     <span class="ds-home-continue-title">Pick a planned topic to create your first lesson</span>
+  </div>`;
+
+  const nextCard = chips.nextTitle
+    ? `<a class="ds-home-next" href="${chips.nextHref ?? "#"}">
+    <span class="ds-home-next-label">Next</span>
+    <span class="ds-home-next-title">${escapeHtml(chips.nextTitle)}</span>
+    <span class="ds-home-next-why">${escapeHtml(chips.nextWhy)}</span>
+  </a>`
+    : `<div class="ds-home-next ds-home-next-empty">
+    <span class="ds-home-next-label">Next</span>
+    <span class="ds-home-next-title">Nothing queued</span>
+    <span class="ds-home-next-why">Add a planned topic or write a lesson</span>
+  </div>`;
+
+  const coveredChips = `<div class="ds-covered-map" aria-label="Covered map">
+    <div class="ds-covered-chip ds-covered-done">
+      <span class="ds-covered-chip-label">Done</span>
+      <span class="ds-covered-chip-value">${
+        chips.done.length ? escapeHtml(chips.done.join(" · ")) : "None marked done yet"
+      }</span>
+    </div>
+    <div class="ds-covered-chip ds-covered-next">
+      <span class="ds-covered-chip-label">Next why</span>
+      <span class="ds-covered-chip-value">${escapeHtml(chips.nextWhy)}</span>
+    </div>
+    <div class="ds-covered-chip ds-covered-evidence">
+      <span class="ds-covered-chip-label">Evidence</span>
+      <span class="ds-covered-chip-value">${escapeHtml(chips.evidenceState)}</span>
+    </div>
   </div>`;
 
   const writtenCards = written
@@ -263,6 +341,7 @@ export function renderHome({ workbookTitle, sidebar, progress }) {
 
     <div class="ds-home-top">
       ${continueCard}
+      ${nextCard}
       <div class="ds-home-metrics">
         <div class="ds-home-metric">
           <span class="ds-home-metric-value">${counts.done}</span>
@@ -288,6 +367,8 @@ export function renderHome({ workbookTitle, sidebar, progress }) {
         </div>
       </div>
     </div>
+
+    ${coveredChips}
 
     ${
       written.length
@@ -424,16 +505,6 @@ function renderPlannedCommandRow(command, label = "command") {
     <div class="ds-cmd-row">
       <code class="ds-cmd-text">${escapeHtml(command)}</code>
       <button type="button" class="ds-btn-copy ds-btn-copy-icon" aria-label="Copy ${escapeHtml(label)}">${COPY_ICON}</button>
-    </div>
-  </div>`;
-}
-
-function renderCopyBlock(label, command) {
-  return `<div class="ds-create-block">
-    <p class="ds-create-label">${escapeHtml(label)}</p>
-    <div class="ds-create-row">
-      <pre class="ds-create-cmd"><code>${escapeHtml(command)}</code></pre>
-      <button type="button" class="ds-btn-copy" aria-label="Copy ${escapeHtml(label)} command">Copy</button>
     </div>
   </div>`;
 }

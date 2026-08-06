@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "name": "hollow-overview",
+  "description": "Hollow overview lesson must fail usefulness/shape floors on save and craft checks.",
+  "topics": [
+    {
+      "id": "hollow-overview",
+      "intent": "forbidden",
+      "description": "Hollow overview lesson must fail usefulness/shape floors"
+    }
+  ],
+  "workflows": [],
+  "lessons": {},
+  "allowedSideEffects": []
+}
