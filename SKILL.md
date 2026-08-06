@@ -36,9 +36,9 @@ source ranking, mode paths, and B0–B6 checkpoint asks. Scripts return proposal
 - Never expose secrets, credentials, env values, or customer data.
 - Never create image files or HTML `<img>`. Use Markdown, ASCII, tables, or Mermaid.
 
-## Trust surfaces (store scanners)
+## Trust surfaces
 
-Full model: `<skill-root>/docs/security.md`. Dual-use surfaces stay gated; features stay.
+Full model: `<skill-root>/docs/security.md`.
 
 | Surface | What runs | Gate |
 | ------- | --------- | ---- |

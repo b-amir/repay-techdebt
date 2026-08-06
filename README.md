@@ -78,13 +78,13 @@ Step-by-step control flow: **[docs/how-it-works.md](docs/how-it-works.md)**.
 | [docs/how-it-works.md](docs/how-it-works.md) | Control flow, exit codes, turn map                      |
 | [docs/concepts.md](docs/concepts.md)         | Evidence states, zoom levels, modes, limits, principles |
 | [docs/tools.md](docs/tools.md)               | Optional tools, fallbacks, no silent downgrade          |
-| [docs/security.md](docs/security.md)         | Trust boundaries, consent gates, store-scanner notes    |
+| [docs/security.md](docs/security.md)         | Trust boundaries and consent gates                      |
 | [docs/develop.md](docs/develop.md)           | Repo map, `vp test`, local install                      |
 
-## Security (no feature loss)
+## Security
 
 Analysis skill: reads target, may install **its own** deps under skill root, optional loopback
-viewer. Scanners flag those dual-use surfaces as MEDIUM — expected. Mitigations:
+viewer.
 
 | Surface | Default |
 | ------- | ------- |

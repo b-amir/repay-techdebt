@@ -75,7 +75,7 @@ async function recordRuntimeConsent(skillRoot, details) {
  * `install` is false. Records consent in user state or fallback dir.
  *
  * PATH shim (`~/.local/bin/repay`) is OFF by default — set `linkCli: true` or
- * `REPAY_LINK_CLI=1` to opt in (avoids silent global env mutation for store scanners).
+ * `REPAY_LINK_CLI=1` to opt in (avoids silent global env mutation).
  *
  * @param {{ skillRoot: string, install?: boolean, prune?: boolean, linkCli?: boolean }} options
  */

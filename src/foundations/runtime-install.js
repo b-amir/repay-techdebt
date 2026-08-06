@@ -72,7 +72,7 @@ confirmModulesPurge=false
     "--prefer-offline",
     "--ignore-scripts",
   ];
-  // Pin deps to committed lockfile when present (supply-chain / store scanners).
+  // Pin deps to committed lockfile when present (supply-chain hygiene).
   if (hasLockfile) args.push("--frozen-lockfile");
 
   // Strip parent Node debug flags (NODE_OPTIONS) that break spawned pnpm.
@@ -122,7 +122,7 @@ export async function bootstrapSkillRuntime(skillRoot, { install = true } = {}) 
   }
   if (!install) return { report, installed: false };
 
-  // Transparency for store scanners / operators: skill-root only, no lifecycle scripts.
+  // Skill-root only; no package lifecycle scripts.
   process.stderr.write(
     "repay-techdebt: installing skill-root dependencies (pnpm --ignore-scripts; frozen lockfile when present). Never touches the target app.\n",
   );

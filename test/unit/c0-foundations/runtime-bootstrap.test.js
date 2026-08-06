@@ -66,7 +66,7 @@ test("ensureSkillRuntime seals consent when runtime already ready", async () => 
     assert.ok(result.consent && typeof result.consent === "object");
     assert.ok(
       result.consent.bundledDeps === true || Array.isArray(result.consent.bundledDeps),
-      "bundledDeps recorded for store-scanner audit trail",
+      "bundledDeps recorded in consent audit trail",
     );
   } finally {
     if (previous === undefined) delete process.env.REPAY_LINK_CLI;
