@@ -115,9 +115,12 @@ node <skill-root>/scripts/check-runtime.js --format table
 ```
 
 Bundled skill CLIs (`project-memory.js`, `view-lessons.js`, `teach-topic.js`) call
-`ensure-runtime` on start — they run `pnpm install` inside `<skill-root>` when `node_modules` is
-missing (e.g. after skills.sh sync). Consent is recorded in `<skill-root>/.repay-skill-runtime/`.
-Manual repair: `node <skill-root>/scripts/ensure-runtime.js`.
+`ensure-runtime` on start — they run `pnpm install` **inside `<skill-root>` only** when
+`node_modules` is missing (e.g. after skills.sh sync): `--ignore-scripts`, and
+`--frozen-lockfile` when `pnpm-lock.yaml` is present. Never installs into the target app.
+Consent is recorded in user state or `<skill-root>/.repay-skill-runtime/`. Manual repair:
+`node <skill-root>/scripts/ensure-runtime.js`. Optional PATH shim for `repay` is **off**
+unless `REPAY_LINK_CLI=1` or `--link-cli`. Full model: `<skill-root>/docs/security.md`.
 
 **Agent:** confirm roots; if `first-run`, run the wizard from
 `templates/introduction-wizard.md`:
@@ -275,17 +278,17 @@ Always exclude nested skill paths and `.repay-techdebt/` from application eviden
 
 Thin stdio server: `node scripts/repay-mcp.js`. Wraps existing modules/scripts only — **no silent durable write**. **Never** required for teach/save/resume. Register in agent MCP config only with user consent. Learner chat never mentions installing MCP.
 
-| Tool | Purpose |
-| ---- | ------- |
-| `repay_doctor` | Path health / save blocked |
-| `repay_trajectory_check` | Fail-closed TrajectoryGate |
-| `repay_recheck_claims` | Re-verify CLAIMS vs live sources |
-| `repay_search_claims` | Search claims/citations/paths |
-| `repay_pr_changes` | Local git diff (`get-pr-changes.js`) |
-| `repay_save_evaluate` | Pre-save floors only (`wrote: false`) |
-| `repay_open_workbook` | Paths + view command (no server start) |
-| `repay_capabilities` | Optional tool probe |
-| `repay_status` | Memory/workbook/lesson counts |
-| `repay_list_lessons` / `repay_get_lesson` | Inventory + read |
-| `repay_check_quality` / `_faithfulness` / `_evidence` | Single-lesson floors |
-| `repay_progress` | Read progress.json |
+| Tool                                                  | Purpose                                |
+| ----------------------------------------------------- | -------------------------------------- |
+| `repay_doctor`                                        | Path health / save blocked             |
+| `repay_trajectory_check`                              | Fail-closed TrajectoryGate             |
+| `repay_recheck_claims`                                | Re-verify CLAIMS vs live sources       |
+| `repay_search_claims`                                 | Search claims/citations/paths          |
+| `repay_pr_changes`                                    | Local git diff (`get-pr-changes.js`)   |
+| `repay_save_evaluate`                                 | Pre-save floors only (`wrote: false`)  |
+| `repay_open_workbook`                                 | Paths + view command (no server start) |
+| `repay_capabilities`                                  | Optional tool probe                    |
+| `repay_status`                                        | Memory/workbook/lesson counts          |
+| `repay_list_lessons` / `repay_get_lesson`             | Inventory + read                       |
+| `repay_check_quality` / `_faithfulness` / `_evidence` | Single-lesson floors                   |
+| `repay_progress`                                      | Read progress.json                     |

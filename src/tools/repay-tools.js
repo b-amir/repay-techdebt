@@ -165,7 +165,8 @@ export function listRepayTools() {
     },
     {
       name: "repay_capabilities",
-      description: "Probe optional CLIs/MCP availability (check-capabilities). Maintainer/host use.",
+      description:
+        "Probe optional CLIs/MCP availability (check-capabilities). Maintainer/host use.",
       inputSchema: {
         type: "object",
         properties: { targetRoot: targetRootProp },
@@ -260,11 +261,15 @@ export function listRepayTools() {
  */
 async function runSkillScript(script, args) {
   try {
-    const result = await execute(process.execPath, [resolve(skillRoot, "scripts", script), ...args], {
-      cwd: skillRoot,
-      maxBuffer: 30 * 1024 * 1024,
-      timeout: 120_000,
-    });
+    const result = await execute(
+      process.execPath,
+      [resolve(skillRoot, "scripts", script), ...args],
+      {
+        cwd: skillRoot,
+        maxBuffer: 30 * 1024 * 1024,
+        timeout: 120_000,
+      },
+    );
     return { code: 0, stdout: result.stdout ?? "", stderr: result.stderr ?? "" };
   } catch (error) {
     return {
@@ -280,7 +285,10 @@ async function runSkillScript(script, args) {
  */
 async function loadMarkdown(args) {
   if (args.markdown != null && String(args.markdown).length > 0) {
-    return { markdown: String(args.markdown), lessonPath: args.lessonPath ? String(args.lessonPath) : null };
+    return {
+      markdown: String(args.markdown),
+      lessonPath: args.lessonPath ? String(args.lessonPath) : null,
+    };
   }
   if (args.lessonPath) {
     const lessonPath = String(args.lessonPath);
@@ -374,9 +382,7 @@ export async function callRepayTool(name, args = {}) {
         pathComplete,
         saveBlocked: !pathComplete,
         missing: check.missing ?? [],
-        reason: pathComplete
-          ? "Learning path complete."
-          : formatPathIncompleteReason(check),
+        reason: pathComplete ? "Learning path complete." : formatPathIncompleteReason(check),
         gatePath: gateFile,
       };
     } catch {
@@ -497,13 +503,7 @@ export async function callRepayTool(name, args = {}) {
     const workbook = await resolveWorkbook(targetRoot, storageOpts);
     const port = args.port != null ? Number(args.port) : 8765;
     const lesson = args.lesson ? String(args.lesson) : null;
-    const cmdParts = [
-      "node",
-      "scripts/view-lessons.js",
-      targetRoot,
-      "--port",
-      String(port),
-    ];
+    const cmdParts = ["node", "scripts/view-lessons.js", targetRoot, "--port", String(port)];
     if (lesson) cmdParts.push("--lesson", lesson);
     return {
       ok: true,
@@ -601,8 +601,7 @@ export async function callRepayTool(name, args = {}) {
     const loaded = await loadMarkdown(args);
     if (loaded.error) return { ok: false, tool: name, error: loaded.error };
     const result = await assessClaimFaithfulness(targetRoot, loaded.markdown);
-    const blocking =
-      result.mode === "explicit-claims" ? result.problems : result.problems;
+    const blocking = result.mode === "explicit-claims" ? result.problems : result.problems;
     return {
       ok: blocking.length === 0,
       tool: name,

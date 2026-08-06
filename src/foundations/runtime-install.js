@@ -1,5 +1,7 @@
 // Zero-dependency skill runtime install (spawn only). Used before node_modules exists.
+// Install is skill-root only, --ignore-scripts, and --frozen-lockfile when lockfile present.
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import { auditSkillRuntime } from "./runtime-audit.js";
 import { getCacheDir } from "./user-dirs.js";
 import { mkdir, writeFile, readFile, readdir } from "node:fs/promises";
@@ -62,6 +64,7 @@ confirmModulesPurge=false
   await writeFile(npmrcPath, npmrcContent, "utf8");
 
   const version = await getPinnedPnpmVersion(skillRoot);
+  const hasLockfile = existsSync(resolve(skillRoot, "pnpm-lock.yaml"));
 
   const args = [
     "install",
@@ -69,6 +72,8 @@ confirmModulesPurge=false
     "--prefer-offline",
     "--ignore-scripts",
   ];
+  // Pin deps to committed lockfile when present (supply-chain / store scanners).
+  if (hasLockfile) args.push("--frozen-lockfile");
 
   // Strip parent Node debug flags (NODE_OPTIONS) that break spawned pnpm.
   const env = /** @type {Record<string, string | undefined>} */ ({

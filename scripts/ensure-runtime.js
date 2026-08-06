@@ -16,13 +16,14 @@ async function main() {
     options: {
       "dry-run": { type: "boolean" },
       "prune-runtime": { type: "boolean" },
+      "link-cli": { type: "boolean" },
       format: { type: "string", default: "json" },
       help: { type: "boolean", short: "h" },
     },
   });
   if (values.help) {
     process.stdout.write(
-      "Usage: node scripts/ensure-runtime.js [--dry-run] [--prune-runtime] [--format json]\n\nInstalls skill-root node_modules when missing.\n",
+      "Usage: node scripts/ensure-runtime.js [--dry-run] [--prune-runtime] [--link-cli] [--format json]\n\nInstalls skill-root node_modules when missing (ignore-scripts, frozen-lockfile).\n--link-cli or REPAY_LINK_CLI=1 also symlinks repay onto ~/.local/bin.\n",
     );
     process.exit(0);
   }
@@ -30,6 +31,7 @@ async function main() {
     skillRoot,
     install: !values["dry-run"],
     prune: values["prune-runtime"] || false,
+    linkCli: values["link-cli"] || false,
   });
   if (values.format === "json") {
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);

@@ -74,20 +74,28 @@ async function recordRuntimeConsent(skillRoot, details) {
  * Ensure bundled runtime packages exist under skillRoot. Installs on missing-deps unless
  * `install` is false. Records consent in user state or fallback dir.
  *
- * @param {object} options
- * @param {string} options.skillRoot
- * @param {boolean} [options.install]
- * @param {boolean} [options.prune]
+ * PATH shim (`~/.local/bin/repay`) is OFF by default — set `linkCli: true` or
+ * `REPAY_LINK_CLI=1` to opt in (avoids silent global env mutation for store scanners).
+ *
+ * @param {{ skillRoot: string, install?: boolean, prune?: boolean, linkCli?: boolean }} options
  */
-export async function ensureSkillRuntime({ skillRoot, install = true, prune = false }) {
+export async function ensureSkillRuntime(options) {
+  const { skillRoot, install = true, prune = false, linkCli = false } = options;
   const hashes = await getSkillHashes(skillRoot);
   const manifest = await readManifest();
   const hashMatches = manifest && manifest.packageJsonHash === hashes.packageJsonHash;
+  const shouldLink = linkCli === true || process.env.REPAY_LINK_CLI === "1";
 
   let report = await auditSkillRuntime(skillRoot);
 
   if (report.status === "ready") {
-    const shim = await ensureRepayPathShim(skillRoot);
+    const shim = shouldLink
+      ? await ensureRepayPathShim(skillRoot)
+      : {
+          linked: false,
+          path: resolve(skillRoot, "bin", "repay"),
+          hint: "CLI available via node <skill-root>/bin/repay (set REPAY_LINK_CLI=1 to symlink onto PATH)",
+        };
     if (prune) {
       await pruneLinkedRuntimes(hashes.packageJsonHash);
     }
@@ -137,7 +145,13 @@ export async function ensureSkillRuntime({ skillRoot, install = true, prune = fa
     throw new RuntimeBootstrapError("Installation completed but runtime audit still fails", report);
   }
 
-  const shim = await ensureRepayPathShim(skillRoot);
+  const shim = shouldLink
+    ? await ensureRepayPathShim(skillRoot)
+    : {
+        linked: false,
+        path: resolve(skillRoot, "bin", "repay"),
+        hint: "CLI available via node <skill-root>/bin/repay (set REPAY_LINK_CLI=1 to symlink onto PATH)",
+      };
 
   return {
     report,

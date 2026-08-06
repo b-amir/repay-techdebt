@@ -127,7 +127,9 @@ node <skill-root>/scripts/teach-topic.js <target-root> <topic-id-or-slug> [--dra
 ### Skill runtime
 
 After skills.sh sync, `node_modules` may be missing. CLIs auto-run `ensure-runtime` (installs into
-`<skill-root>` only). Manual: `node <skill-root>/scripts/ensure-runtime.js`.
+`<skill-root>` only: `--ignore-scripts`, `--frozen-lockfile` when lockfile present). Manual:
+`node <skill-root>/scripts/ensure-runtime.js`. Optional `repay` PATH symlink:
+`REPAY_LINK_CLI=1` or `--link-cli`. Security model: `docs/security.md`.
 
 ### Session stepper
 
@@ -164,15 +166,15 @@ important asks, one blank line between tables, ≤25 words status on routine tur
 
 ### Viewer keyboard shortcuts
 
-| Key | Action |
-| --- | --- |
+| Key                    | Action                                                |
+| ---------------------- | ----------------------------------------------------- |
 | `/` or `⌘K` / `Ctrl+K` | Command palette (lessons + claims + planned + recent) |
-| `j` / `→` / `]` | Next written lesson |
-| `k` / `←` / `[` | Previous written lesson |
-| `d` | Toggle mark done |
-| `f` | Focus mode (hide rails); `esc` exits focus |
-| `s` | Toggle sidebar |
-| `?` | Shortcuts sheet |
-| `esc` | Close palette / sheet / exit focus |
+| `j` / `→` / `]`        | Next written lesson                                   |
+| `k` / `←` / `[`        | Previous written lesson                               |
+| `d`                    | Toggle mark done                                      |
+| `f`                    | Focus mode (hide rails); `esc` exits focus            |
+| `s`                    | Toggle sidebar                                        |
+| `?`                    | Shortcuts sheet                                       |
+| `esc`                  | Close palette / sheet / exit focus                    |
 
 Sidebar: click Done / Written / Planned counts to filter nav; Show all clears. Empty palette shows Continue, Recent, Planned, Jump. Planned topic pages show the create command to paste in chat.

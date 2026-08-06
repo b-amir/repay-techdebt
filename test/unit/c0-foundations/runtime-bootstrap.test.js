@@ -40,3 +40,18 @@ test("bootstrapSkillRuntime is ready when node_modules exists", async () => {
   assert.equal(result.report.status, "ready");
   assert.equal(result.installed, false);
 });
+
+test("ensureSkillRuntime skips PATH shim by default", async () => {
+  const previous = process.env.REPAY_LINK_CLI;
+  delete process.env.REPAY_LINK_CLI;
+  try {
+    const { ensureSkillRuntime } = await import("../../../src/foundations/ensure-runtime.js");
+    const result = await ensureSkillRuntime({ skillRoot, install: false });
+    assert.equal(result.report.status, "ready");
+    assert.equal(result.repayShim.linked, false);
+    assert.match(result.repayShim.hint ?? "", /REPAY_LINK_CLI/);
+  } finally {
+    if (previous === undefined) delete process.env.REPAY_LINK_CLI;
+    else process.env.REPAY_LINK_CLI = previous;
+  }
+});

@@ -20,7 +20,7 @@ npx skills add b-amir/repay-techdebt
 ```
 
 Open Agent Skill for code you ship but don’t fully own in your head—AI-generated apps, inherited
-systems, dense PRs. Builds an evidence-qualified model of *this* project and teaches from verified
+systems, dense PRs. Builds an evidence-qualified model of _this_ project and teaches from verified
 examples. Analysis-only by default: no silent refactors, no target pollution, no fake confidence.
 
 ## One prompt
@@ -53,11 +53,11 @@ script-owned browser viewer—agents never hand-build HTML.
 
 ## Modes
 
-| Mode | Best for |
-| ---- | -------- |
-| **PR Mentor** | Review a PR, branch, or recent change |
-| **Whole-App Workbook** | Learn an unfamiliar or AI-generated app |
-| **Focused Deep Dive** | One module, failure, or engineering question |
+| Mode                   | Best for                                     |
+| ---------------------- | -------------------------------------------- |
+| **PR Mentor**          | Review a PR, branch, or recent change        |
+| **Whole-App Workbook** | Learn an unfamiliar or AI-generated app      |
+| **Focused Deep Dive**  | One module, failure, or engineering question |
 
 ## How it works
 
@@ -72,13 +72,13 @@ Step-by-step control flow: **[docs/how-it-works.md](docs/how-it-works.md)**.
 
 ## Docs
 
-| Doc | What’s inside |
-| --- | ------------- |
-| [docs/manual.md](docs/manual.md) | Flags, CLI, workbook viewer shortcuts |
-| [docs/how-it-works.md](docs/how-it-works.md) | Control flow, exit codes, turn map |
-| [docs/concepts.md](docs/concepts.md) | Evidence states, zoom levels, modes, limits, principles |
-| [docs/tools.md](docs/tools.md) | Optional tools, fallbacks, no silent downgrade |
-| [docs/develop.md](docs/develop.md) | Repo map, `vp test`, local install |
+| Doc                                          | What’s inside                                           |
+| -------------------------------------------- | ------------------------------------------------------- |
+| [docs/manual.md](docs/manual.md)             | Flags, CLI, workbook viewer shortcuts                   |
+| [docs/how-it-works.md](docs/how-it-works.md) | Control flow, exit codes, turn map                      |
+| [docs/concepts.md](docs/concepts.md)         | Evidence states, zoom levels, modes, limits, principles |
+| [docs/tools.md](docs/tools.md)               | Optional tools, fallbacks, no silent downgrade          |
+| [docs/develop.md](docs/develop.md)           | Repo map, `vp test`, local install                      |
 
 ## Agent notes
 
