@@ -100,7 +100,8 @@ Agent:        ACCEPT|UNRESOLVED purpose; phrase retrieve questions (Purpose / Qu
 Script:       plan-analysis.js … --format summary-json (Inventory / Propose)
 Agent:        mark investigations needed|not-needed; NEED|SKIP tools (Selection)
 Script gate:  check-capabilities.js … --format table (Mechanical QA)
-Agent/user:   setup | fallback | skip per tool-integrations.md (Selection)
+Agent:        silent bundled fallback on tool miss; ask only install/config (Selection)
+Agent:        hard overclaim — unsupported → shrink or refuse; never “continue weaker?”
 ```
 
 CLI details: `tool-integrations.md`. Memory: `project-memory.md`.

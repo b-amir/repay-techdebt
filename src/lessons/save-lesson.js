@@ -1,19 +1,41 @@
+import { refuseSaveIfPathIncomplete } from "../dialogue/trajectory.js";
 import { assessClaimFaithfulness } from "./claim-faithfulness.js";
 import { verifyLessonCitations } from "./lesson-citation-check.js";
 import { inspectLesson } from "./lesson-quality.js";
 import { hasPassingJudgment } from "./lesson-judgment.js";
 
 /**
- * Mechanical floors for saving a lesson (quality + citation validity + faithfulness).
+ * Mechanical floors for saving a lesson (trajectory gate + quality + citations + faithfulness).
  * Does not write files or run Secretlint — callers own persistence and secrets.
+ * Incomplete path → refuse (ok false); no soft "continue weaker?" escape.
  *
- * @returns {Promise<{ ok: boolean, quality: object, faithfulness: object }>}
+ * @returns {Promise<{ ok: boolean, quality: object, faithfulness: object, trajectory?: object }>}
  */
 export async function evaluateLessonForSave(targetRoot, content, options = {}) {
   const quality = inspectLesson(content, {
     depth: options.depth ?? "balanced",
     expectedEvidencePaths: options.expectedEvidencePaths ?? [],
   });
+
+  // Fail-closed trajectory. Require gate input; missing gate = incomplete path.
+  const gateInput =
+    options.trajectoryGate ?? options.gate ?? options.trajectory ?? null;
+  const pathRefuse = refuseSaveIfPathIncomplete(gateInput, {
+    subject: options.subject,
+    hasMapAnswers: options.hasMapAnswers,
+  });
+  const trajectory = {
+    pathComplete: pathRefuse.check.pathComplete,
+    missing: pathRefuse.check.missing,
+    refuse: pathRefuse.refuse,
+    reason: pathRefuse.reason,
+    code: pathRefuse.code,
+  };
+  if (pathRefuse.refuse) {
+    quality.ok = false;
+    quality.errors.push(pathRefuse.reason ?? "Learning path incomplete; durable save blocked.");
+  }
+
   quality.evidenceProblems = (await verifyLessonCitations(targetRoot, quality.citations)).problems;
   if (quality.evidenceProblems.length > 0) {
     quality.ok = false;
@@ -43,7 +65,7 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
     quality.errors.push("AI Judgment missing (no draftPath provided to evaluateLessonForSave).");
   }
 
-  return { ok: quality.ok, quality, faithfulness };
+  return { ok: quality.ok, quality, faithfulness, trajectory };
 }
 
 /**

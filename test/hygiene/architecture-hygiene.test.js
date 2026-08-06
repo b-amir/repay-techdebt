@@ -125,6 +125,12 @@ CLAIMS:
     const padded = `${content}\n\n${"The capture path matters because funds move only after settle. ".repeat(30)}`;
     const result = await evaluateLessonForSave(directory, padded, {
       depth: "concise",
+      trajectoryGate: {
+        mode: "fast",
+        purposeDone: true,
+        verifyDone: null,
+        skipReasons: {},
+      },
     });
     assert.equal(result.ok, false);
     assert.ok(result.quality.errors.some((item) => /support:yes/i.test(item)));

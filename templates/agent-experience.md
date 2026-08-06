@@ -26,6 +26,8 @@ argv, or raw CLI dumps into chat.
 | Ask save / open in **Fast** mode    | Auto-save + auto-open viewer                |
 | “I’ll now…”, filler                 | Run work; show oriented tables              |
 | Bullets for progress                | Progress table from `session-status.md`     |
+| “Continue weaker?” / soft half-save | Unsupported → shrink scope or refuse        |
+| Tool jargon / ask-every-fallback    | Silent bundled fallback; ask only install   |
 
 ## Modes
 

@@ -8,6 +8,7 @@ import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { execa } from "execa";
 import { test } from "vite-plus/test";
+import { completeTrajectoryGatePayload } from "../helpers/complete-trajectory-gate.js";
 
 const root = resolve(import.meta.dirname, "..", "..");
 const script = resolve(root, "scripts", "project-memory.js");
@@ -30,6 +31,11 @@ async function initLocal(target) {
   // --sharing local keeps all state inside the temp target; no write to the user Library.
   const init = await run(["init", target, "--sharing", "local", "--yes"]);
   assert.equal(init.code, 0, init.stderr);
+  const memoryRoot = JSON.parse(init.stdout).memoryRoot;
+  await writeFile(
+    resolve(memoryRoot, "trajectory-gate.json"),
+    `${JSON.stringify(completeTrajectoryGatePayload(), null, 2)}\n`,
+  );
 }
 
 test("save-curriculum without --yes exits 2 consent-required and writes nothing", async () => {

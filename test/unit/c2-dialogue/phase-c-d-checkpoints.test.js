@@ -116,17 +116,17 @@ test("workbook trajectory stub validates ask fidelity order", () => {
   assert.ok(failed.errors.some((item) => /Invalid transition/.test(item)));
 });
 
-test("check-trajectory CLI accepts stub workbook", async () => {
-  const { stdout } = await execute(
+test("check-trajectory CLI accepts stub gate; legacy stub-workbook is not pathComplete", async () => {
+  const { stdout: gateStdout } = await execute(
     process.execPath,
-    [resolve(root, "scripts/check-trajectory.js"), "--stub-workbook"],
+    [resolve(root, "scripts/check-trajectory.js"), "--stub-gate"],
     { cwd: root },
   );
-  const trajectory = JSON.parse(stdout);
+  const gateDoc = JSON.parse(gateStdout);
   const directory = await mkdtemp(resolve(tmpdir(), "repay-traj-cli-"));
   try {
     const path = resolve(directory, "t.json");
-    await writeFile(path, JSON.stringify(trajectory));
+    await writeFile(path, JSON.stringify(gateDoc));
     const check = await execute(
       process.execPath,
       [
@@ -140,6 +140,29 @@ test("check-trajectory CLI accepts stub workbook", async () => {
       { cwd: root },
     );
     assert.equal(JSON.parse(check.stdout).ok, true);
+    assert.equal(JSON.parse(check.stdout).pathComplete, true);
+
+    // Legacy flow-state list alone must fail closed (demoted step-list success).
+    const { stdout: legacyStdout } = await execute(
+      process.execPath,
+      [resolve(root, "scripts/check-trajectory.js"), "--stub-workbook"],
+      { cwd: root },
+    );
+    const legacyPath = resolve(directory, "legacy.json");
+    await writeFile(legacyPath, legacyStdout);
+    await assert.rejects(
+      () =>
+        execute(
+          process.execPath,
+          [resolve(root, "scripts/check-trajectory.js"), legacyPath, "--format", "json"],
+          { cwd: root },
+        ),
+      (/** @type {any} */ error) => {
+        const payload = JSON.parse(error.stdout || "{}");
+        assert.equal(payload.pathComplete, false);
+        return error.exitCode === 2 || error.code === 2;
+      },
+    );
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

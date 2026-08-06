@@ -18,9 +18,20 @@ test("dialogue envelope marks partial coverage as must-not-claim whole-app absen
   assert.equal(envelope.coverageStatus, "partial");
   assert.ok(envelope.mustNotClaim.includes("whole-application-absence"));
   assert.ok(envelope.mustNotClaim.includes("approved-workbook-index"));
+  assert.ok(envelope.mustNotClaim.includes("soft-escape-continue-weaker"));
+  assert.equal(envelope.overclaimPolicy, "unsupported-shrink-or-refuse");
   assert.ok(envelope.nextAsks.some((item) => item.do === "confirm-purpose"));
   assert.ok(envelope.nextAsks.some((item) => item.do === "approve-curriculum-shortlist"));
   assert.ok(envelope.nextAsks.some((item) => item.do === "accept-partial-scope-or-narrow"));
+  assert.ok(envelope.nextAsks.some((item) => item.do === "unsupported-shrink-or-refuse"));
+});
+
+test("dialogue emission always teaches hard overclaim (no soft escape)", () => {
+  const envelope = buildDialogueEnvelope({ role: "check" });
+  assert.equal(envelope.overclaimPolicy, "unsupported-shrink-or-refuse");
+  assert.ok(envelope.mustNotClaim.includes("soft-escape-continue-weaker"));
+  assert.ok(envelope.nextAsks.some((a) => a.do === "unsupported-shrink-or-refuse"));
+  assert.doesNotMatch(JSON.stringify(envelope), /continue weaker/i);
 });
 
 test("topicSignalClass distinguishes user workflows from naming heuristics", () => {

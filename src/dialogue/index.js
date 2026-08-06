@@ -8,4 +8,11 @@ export {
   PR_TRAJECTORY,
   validateTrajectory,
   stubWorkbookTrajectory,
+  derivePathComplete,
+  buildTrajectoryGate,
+  validateTrajectoryGateShape,
+  listPathMissing,
+  checkTrajectoryGate,
+  formatPathIncompleteReason,
+  refuseSaveIfPathIncomplete,
 } from "./trajectory.js";

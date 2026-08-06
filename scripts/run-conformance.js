@@ -5,6 +5,7 @@ import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { FLOW_STATES, validateFlow } from "../src/dialogue/flow-machine.js";
+import { buildTrajectoryGate } from "../src/dialogue/trajectory.js";
 
 const { values, positionals } = parseArgs({
   options: {
@@ -38,7 +39,7 @@ async function run() {
     cwd: skillRoot,
   });
 
-  process.stdout.write("\\n[Step 4] Trajectory ask-fidelity (workbook stub)...\n");
+  process.stdout.write("\n[Step 4] Trajectory ask-fidelity (gate + legacy demotion)...\n");
   const trajectory = [
     FLOW_STATES.SETUP,
     FLOW_STATES.PURPOSE,
@@ -56,13 +57,36 @@ async function run() {
   }
   const trajDir = await mkdtemp(join(tmpdir(), "repay-traj-"));
   try {
-    const trajPath = join(trajDir, "trajectory.json");
-    await writeFile(trajPath, JSON.stringify(trajectory));
+    const gatePath = join(trajDir, "gate.json");
+    const gate = buildTrajectoryGate({
+      mode: "fast",
+      purposeDone: true,
+      verifyDone: null,
+      skipReasons: {},
+    });
+    await writeFile(gatePath, JSON.stringify({ gate }));
     await execa(
       "node",
-      ["scripts/check-trajectory.js", trajPath, "--mode", "workbook", "--format", "json"],
+      ["scripts/check-trajectory.js", gatePath, "--format", "json"],
       { cwd: skillRoot },
     );
+
+    // Legacy step-list alone must fail closed (exit 2).
+    const legacyPath = join(trajDir, "legacy.json");
+    await writeFile(legacyPath, JSON.stringify(trajectory));
+    let legacyFailed = false;
+    try {
+      await execa(
+        "node",
+        ["scripts/check-trajectory.js", legacyPath, "--format", "json"],
+        { cwd: skillRoot },
+      );
+    } catch (err) {
+      legacyFailed = (err.exitCode ?? err.code) === 2;
+    }
+    if (!legacyFailed) {
+      throw new Error("Legacy step-list trajectory must fail closed (pathComplete false)");
+    }
   } finally {
     await rm(trajDir, { recursive: true, force: true });
   }

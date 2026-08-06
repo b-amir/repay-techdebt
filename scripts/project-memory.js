@@ -30,6 +30,10 @@ import { computeEvidenceDigests } from "../src/memory/curriculum-refresh.js";
 import { readCurriculum, writeCurriculum } from "../src/memory/curriculum-store.js";
 import { renderCurriculumMarkdown } from "../src/curriculum/curriculum-planning.js";
 import { evaluateLessonForSave } from "../src/lessons/save-lesson.js";
+import {
+  checkTrajectoryGate,
+  formatPathIncompleteReason,
+} from "../src/dialogue/trajectory.js";
 import { recordExercise, scheduleReview } from "../src/memory/learning-progress.js";
 import { validateCurriculum } from "../src/curriculum/approve-curriculum.js";
 import {
@@ -61,7 +65,7 @@ function printHelp() {
 Curriculum JSON must include agentApproval (approvedAt, purposeStatus accepted|unresolved,
 corroboratedTopicIds for naming-heuristic topics, acceptedPartialScope when coverage is partial).
 --yes alone is not an agent shortlist.
-  node project-memory.js save-lesson <target-root> --topic-id <id> --title <title> --input <markdown-file> --yes
+  node project-memory.js save-lesson <target-root> --topic-id <id> --title <title> --input <markdown-file> [--trajectory <gate.json>] [--subject <kind>] --yes
   node project-memory.js configure-output <target-root> --output-location sister|custom [--output-root <path>] --yes
   node project-memory.js record-decision <target-root> --decision <text> [--reason <text>] [--scope <text>] --yes
   node project-memory.js save-artifact <target-root> --type atlas|snapshot|notebook --title <title> --input <file> [--verified] --yes
@@ -464,6 +468,29 @@ async function status(targetRoot, options) {
     warnings.push("Team sharing is configured, but the target is not a Git repository.");
   if (config.sharing === "team" && git.memoryIgnored)
     warnings.push("Team sharing is configured, but Git ignore rules exclude project memory.");
+  let pathStatus = {
+    pathComplete: false,
+    reason: formatPathIncompleteReason({ missing: ["gate"], pathComplete: false }),
+  };
+  const gateFile = resolve(paths.root, "trajectory-gate.json");
+  if (await pathExists(gateFile)) {
+    try {
+      const gateRaw = JSON.parse(await readFile(gateFile, "utf8"));
+      const gateCheck = checkTrajectoryGate(gateRaw);
+      pathStatus = {
+        pathComplete: gateCheck.pathComplete,
+        missing: gateCheck.missing,
+        reason: gateCheck.pathComplete ? null : formatPathIncompleteReason(gateCheck),
+      };
+      if (!gateCheck.pathComplete && pathStatus.reason) warnings.push(pathStatus.reason);
+    } catch {
+      pathStatus = {
+        pathComplete: false,
+        reason: formatPathIncompleteReason({ missing: ["gate"], pathComplete: false }),
+      };
+      warnings.push(pathStatus.reason);
+    }
+  }
   emit(
     {
       status: warnings.length > 0 ? "ready-with-warning" : "ready",
@@ -479,6 +506,7 @@ async function status(targetRoot, options) {
       curriculumTopicCount,
       pendingTopicCount,
       artifactCount,
+      path: pathStatus,
       warnings,
     },
     format,
@@ -1084,19 +1112,36 @@ async function saveLesson(targetRoot, options) {
   const inputPath = await realpath(resolve(options.input));
   const body = await readFile(inputPath, "utf8");
   const content = `# ${title}\n\n${body.trim()}\n`;
-  const { ok, quality } = await evaluateLessonForSave(targetRoot, content, {
+  let trajectoryGate = null;
+  if (options.trajectory) {
+    const trajPath = resolve(options.trajectory);
+    trajectoryGate = JSON.parse(await readFile(trajPath, "utf8"));
+  } else if (await pathExists(resolve(paths.root, "trajectory-gate.json"))) {
+    trajectoryGate = JSON.parse(
+      await readFile(resolve(paths.root, "trajectory-gate.json"), "utf8"),
+    );
+  }
+  const { ok, quality, trajectory } = await evaluateLessonForSave(targetRoot, content, {
     depth: config.defaults.lessonDepth,
     expectedEvidencePaths: topic?.evidencePaths ?? [],
     draftPath: inputPath,
+    trajectoryGate,
+    subject: options.subject ?? topic?.subject ?? topic?.kind,
   });
   if (!ok) {
+    const pathBlocked = trajectory?.refuse === true;
     emit({
-      type: "lesson-quality-failed",
+      type: pathBlocked ? "path-incomplete" : "lesson-quality-failed",
       status: "not-saved",
       targetRoot,
       quality,
-      requiredAction:
-        "Keep one topic, strengthen its project evidence, and fix every error before saving.",
+      trajectory,
+      reason: pathBlocked
+        ? trajectory.reason
+        : "Keep one topic, strengthen its project evidence, and fix every error before saving.",
+      requiredAction: pathBlocked
+        ? trajectory.reason
+        : "Keep one topic, strengthen its project evidence, and fix every error before saving.",
     });
     process.exitCode = 2;
     return;

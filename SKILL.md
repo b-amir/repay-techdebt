@@ -1,6 +1,6 @@
 ---
 name: repay-techdebt
-description: Analyze a codebase, pull request, branch, commit, or whole application and teach programming concepts, architecture, syntax, algorithms, performance, security, and robustness from real project evidence. Use when a developer wants to understand AI-generated or unfamiliar code, learn from a change, repay technical debt of understanding, review code educationally, or generate a project workbook. Transparently attempts agent-native code intelligence tools and asks before using any fallback when a tool is missing, unconfigured, or fails. Scripts and the agent take turns; follow nextAsks on script output.
+description: Learn this codebase from its live files — evidence-qualified lessons and a browser workbook for unfamiliar or agent-authored code. Prefer optional tools silently when already available; otherwise use bundled scripts with the same UX (no tool jargon in user chat, no confidence inflation). Ask only before install/config changes. Hard overclaim rule: unsupported → shrink scope or refuse — never “continue weaker?”. Scripts and the agent take turns; follow nextAsks on script output.
 ---
 
 # Repay Tech Debt
@@ -145,9 +145,13 @@ Follow `nextAsks`. Emit ≤5 retrieve questions (B2). Mark toolChain steps neede
 node <skill-root>/scripts/check-capabilities.js <target-root> --format table
 ```
 
-Read `references/tool-integrations.md`. Attempt preferred MCP/CLI functionally; on failure ask
-setup / named fallback / skip. Never claim a tool ran because it exists. Bundled profiler success
-does not prove Graphify, Serena, Semgrep, or Context7 succeeded.
+Read `references/tool-integrations.md`. Prefer available tools silently; on failure use the
+named bundled fallback with the same user-facing UX — no tool menus, no ask-before-every-fallback
+in chat. Ask only for install/config consent. Never claim a tool ran because it exists. Bundled
+profiler success does not prove Graphify, Serena, Semgrep, or Context7 succeeded.
+
+**Hard overclaim:** if evidence is missing, mark `unsupported`, shrink the claim/scope, or refuse
+the durable save. Never offer “continue weaker?” or soft-escape half-lessons.
 
 ## Pick mode and continue
 
@@ -241,7 +245,7 @@ Otherwise offer the viewer link. The emit includes `viewer.command`, `viewer.hin
 
 Full chains, wrappers, and failure prompts: `references/tool-integrations.md`.
 
-| Phase        | Prefer         | Portable fallback (ask first)                            |
+| Phase        | Prefer         | Bundled fallback (silent; ask only install/config)       |
 | ------------ | -------------- | -------------------------------------------------------- |
 | PR/CI        | GitHub MCP     | `get-pr-changes.js`                                      |
 | Architecture | Graphify       | `query-program-model.js` / scoped `scan-architecture.js` |

@@ -18,10 +18,19 @@ import { test } from "vite-plus/test";
 import { buildTeachingCurriculum } from "../../src/curriculum/index.js";
 import { recordJudgment } from "../../src/lessons/lesson-judgment.js";
 import { PASSING_JUDGMENT } from "../helpers/passing-judgment.js";
+import { completeTrajectoryGatePayload } from "../helpers/complete-trajectory-gate.js";
 
 const execute = promisify(execFile);
 const root = resolve(import.meta.dirname, "../..");
 const script = resolve(root, "scripts", "project-memory.js");
+
+/** Write complete TrajectoryGate so save-lesson happy paths pass path floor. */
+async function writeCompleteGate(memoryRoot) {
+  await writeFile(
+    resolve(memoryRoot, "trajectory-gate.json"),
+    `${JSON.stringify(completeTrajectoryGatePayload(), null, 2)}\n`,
+  );
+}
 
 function validConciseLesson() {
   return `## What you will learn
@@ -198,6 +207,7 @@ test("initializes memory, saves a checked Markdown lesson, and records a decisio
     assert.equal(initializedResult.status, "ready");
     assert.equal(initializedResult.graphifyIgnoreUpdated, true);
     assert.match(await readFile(resolve(target, ".graphifyignore"), "utf8"), /\.repay-techdebt\//);
+    await writeCompleteGate(initializedResult.memoryRoot);
 
     const curriculum = await saveTeachingCurriculum(target, [
       {
@@ -500,6 +510,7 @@ test("lesson lock prevents concurrent index rewrites", async () => {
     ]);
     await writeFile(draft, validConciseLesson());
     await recordJudgment(draft, PASSING_JUDGMENT);
+    await writeCompleteGate(resolve(target, ".repay-techdebt"));
     await mkdir(lock);
     const status = await run(["status", target, "--format", "json"]);
     assert.equal(status.code, 2);
@@ -579,7 +590,9 @@ test("discoverable workbook saves a curriculum first and links each lesson from 
       environment,
     );
     assert.equal(initialized.code, 0, initialized.stderr);
-    assert.equal(JSON.parse(initialized.stdout).outputRoot, output);
+    const initWorkbook = JSON.parse(initialized.stdout);
+    assert.equal(initWorkbook.outputRoot, output);
+    await writeCompleteGate(initWorkbook.memoryRoot);
 
     const curriculumPath = resolve(base, "curriculum.json");
     await writeFile(
@@ -696,6 +709,7 @@ test("existing private lessons can be exported to a visible workbook without del
       environment,
     );
     const memoryRoot = JSON.parse(initialized.stdout).memoryRoot;
+    await writeCompleteGate(memoryRoot);
     const draft = resolve(base, "lesson.md");
     await writeFile(draft, validConciseLesson());
     await recordJudgment(draft, PASSING_JUDGMENT);

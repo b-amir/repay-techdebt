@@ -96,6 +96,14 @@ export function buildDialogueEnvelope({
   // Deduplicate by who+do+why
   const dedupe = (items, keyFn) => [...new Map(items.map((item) => [keyFn(item), item])).values()];
 
+  // Hard overclaim rule: always on default path — no soft “continue weaker?”.
+  mustNotClaim.push("soft-escape-continue-weaker");
+  nextAsks.push({
+    who: "agent",
+    do: "unsupported-shrink-or-refuse",
+    why: "hard-overclaim",
+  });
+
   return {
     role,
     flowState,
@@ -103,6 +111,7 @@ export function buildDialogueEnvelope({
     blindSpots: dedupe(blindSpots, (item) => item),
     mustNotClaim: dedupe(mustNotClaim, (item) => item),
     nextAsks: dedupe(nextAsks, (item) => `${item.who}:${item.do}:${item.why ?? ""}`),
+    overclaimPolicy: "unsupported-shrink-or-refuse",
   };
 }
 

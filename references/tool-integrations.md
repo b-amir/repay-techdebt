@@ -63,23 +63,38 @@ A version command can establish installation, not functional success.
 Ready tools remain `not-attempted` until a phase-specific operation succeeds; missing/setup tools map
 to `unavailable`, and broken probes map to `failed`.
 
-## Failure prompt
+## Failure policy (silent bundled fallback)
 
-Use this compact structure and wait for the answer:
+**Default path:** if the preferred tool is missing, unconfigured, or fails — use the named bundled
+fallback immediately. Same user-facing UX. No tool jargon in chat. No confidence inflation. Record
+the outcome in the maintainer tool ledger only.
+
+**Ask the user only when:**
+
+1. Install or agent/MCP config change is required, or
+2. The phase cannot proceed without a write the user must authorize, or
+3. No bundled fallback exists for that phase (then skip the phase honestly).
+
+Do **not** present a three-way menu (setup / fallback / skip) on every failure. That is
+ask-before-every-fallback and fights the product.
+
+When install/config consent is needed, use this compact structure and wait:
 
 ```text
-<Tool> could not complete <operation>.
+Optional tool <name> needs setup for a stronger pass.
 Reason: <sanitized, actionable failure>
-Without it: <capability or confidence lost>
-To enable it: <commands or configuration steps>
-Fallback: <exact next tool and its limitation>
+Without setup: continuing with bundled <fallback> (same lesson path; no claim upgrade).
+To enable: <commands or configuration steps>
 
-Would you like me to (1) help set it up and retry, (2) use the fallback, or (3) skip this phase?
+Reply setup to configure, or continue to keep the bundled path.
 ```
 
 Do not include tokens, credentials, environment values, raw headers, or secret-bearing source lines
 in the failure. If the failure suggests credentials are missing, name the variable or authentication
 method without printing its value.
+
+**Hard overclaim:** missing evidence → mark `unsupported`, shrink scope, or refuse durable save.
+Never “continue weaker?”.
 
 ## Capability chains
 

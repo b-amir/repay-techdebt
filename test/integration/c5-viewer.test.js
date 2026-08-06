@@ -10,9 +10,17 @@ import { buildTeachingCurriculum } from "../../src/curriculum/index.js";
 import { createViewerServer } from "../../src/viewer/index.js";
 import { recordJudgment } from "../../src/lessons/lesson-judgment.js";
 import { PASSING_JUDGMENT } from "../helpers/passing-judgment.js";
+import { completeTrajectoryGatePayload } from "../helpers/complete-trajectory-gate.js";
 
 const root = resolve(import.meta.dirname, "..", "..");
 const memoryScript = resolve(root, "scripts", "project-memory.js");
+
+async function writeCompleteGate(memoryRoot) {
+  await writeFile(
+    resolve(memoryRoot, "trajectory-gate.json"),
+    `${JSON.stringify(completeTrajectoryGatePayload(), null, 2)}\n`,
+  );
+}
 
 function validConciseLesson() {
   return `## What you will learn
@@ -86,6 +94,8 @@ test("save-lesson without curriculum exits workbook-linkage-required", async () 
       "--yes",
     ]);
     assert.equal(init.code, 0, init.stderr);
+    const orphanInit = JSON.parse(init.stdout);
+    await writeCompleteGate(orphanInit.memoryRoot);
     await writeFile(draft, validConciseLesson());
     await recordJudgment(draft, PASSING_JUDGMENT);
     const saved = await runMemory([
@@ -119,7 +129,9 @@ test("mini-curriculum save-lesson exposes viewer hint and server lists the lesso
       environment,
     );
     assert.equal(init.code, 0, init.stderr);
-    const outputRoot = JSON.parse(init.stdout).outputRoot;
+    const viewerInit = JSON.parse(init.stdout);
+    const outputRoot = viewerInit.outputRoot;
+    await writeCompleteGate(viewerInit.memoryRoot);
 
     const canonicalTarget = await realpath(target);
     const curriculum = buildTeachingCurriculum({
@@ -229,7 +241,9 @@ test("planned topic page is clickable and shows --create instruction", async () 
       environment,
     );
     assert.equal(init.code, 0, init.stderr);
-    const outputRoot = JSON.parse(init.stdout).outputRoot;
+    const plannedInit = JSON.parse(init.stdout);
+    const outputRoot = plannedInit.outputRoot;
+    await writeCompleteGate(plannedInit.memoryRoot);
     const canonicalTarget = await realpath(target);
 
     const curriculum = buildTeachingCurriculum({
