@@ -74,9 +74,9 @@ header `| Step | {current}/{total} |` where **current is the 1-based index of th
 Never expose B0–B6, RETRIEVEQs, SHORTLIST, or checkpoint codes in user chat.
 
 First-run: paste `templates/introduction-wizard.md` Message 1 **verbatim** (what this is ·
-progress · ready to start). **Fast:** `yes` or `fast` → `init` immediately with defaults (private + sister + workbook + balanced + automatic).
-**Control:** `control` → full settings. Mid-session: exact blocks in `agent-experience.md`. Alias: `express` →
-`fast`. No skill symlink paths unless asked.
+progress · Fast vs Control). **Fast:** `fast` → `init` immediately with defaults (private + sister +
+workbook + balanced + automatic). **Control:** `control` → full settings. Mid-session: exact blocks
+in `agent-experience.md`. Alias: `express` → `fast`. No skill symlink paths unless asked.
 
 ## Script ↔ agent contract
 
@@ -115,8 +115,8 @@ Manual repair: `node <skill-root>/scripts/ensure-runtime.js`.
 **Agent:** confirm roots; if `first-run`, run the wizard from
 `templates/introduction-wizard.md`:
 
-1. **Message 1:** what this is + progress + **Start?**.
-2. **Fast** → `yes` → `init` immediately with private + sister + workbook +
+1. **Message 1:** what this is + progress + **Fast vs Control**.
+2. **Fast** → `fast` → `init` immediately with private + sister + workbook +
    balanced + **automatic**.
 3. **Control** → `control` → full option tables → map replies → `init` with chosen flags.
 
