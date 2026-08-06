@@ -55,3 +55,21 @@ test("ensureSkillRuntime skips PATH shim by default", async () => {
     else process.env.REPAY_LINK_CLI = previous;
   }
 });
+
+test("ensureSkillRuntime seals consent when runtime already ready", async () => {
+  const previous = process.env.REPAY_LINK_CLI;
+  delete process.env.REPAY_LINK_CLI;
+  try {
+    const { ensureSkillRuntime } = await import("../../../src/foundations/ensure-runtime.js");
+    const result = await ensureSkillRuntime({ skillRoot, install: false });
+    assert.equal(result.report.status, "ready");
+    assert.ok(result.consent && typeof result.consent === "object");
+    assert.ok(
+      result.consent.bundledDeps === true || Array.isArray(result.consent.bundledDeps),
+      "bundledDeps recorded for store-scanner audit trail",
+    );
+  } finally {
+    if (previous === undefined) delete process.env.REPAY_LINK_CLI;
+    else process.env.REPAY_LINK_CLI = previous;
+  }
+});

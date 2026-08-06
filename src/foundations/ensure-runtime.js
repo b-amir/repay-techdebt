@@ -89,6 +89,20 @@ export async function ensureSkillRuntime(options) {
   let report = await auditSkillRuntime(skillRoot);
 
   if (report.status === "ready") {
+    // Seal audit trail when deps already present (e.g. bootstrapSkillRuntime installed first,
+    // or node_modules shipped with the skill). Does not re-install.
+    let consent = await readRuntimeConsent(skillRoot);
+    if (!consent) {
+      const pkg = JSON.parse(
+        await readFile(resolve(skillRoot, "package.json"), "utf8").catch(() => "{}"),
+      );
+      await recordRuntimeConsent(skillRoot, {
+        bundledDeps: Object.keys(pkg.dependencies || {}),
+        installCommand: "preinstalled",
+        at: new Date().toISOString(),
+      });
+      consent = await readRuntimeConsent(skillRoot);
+    }
     const shim = shouldLink
       ? await ensureRepayPathShim(skillRoot)
       : {
@@ -103,7 +117,7 @@ export async function ensureSkillRuntime(options) {
       report,
       installed: false,
       installSource: hashMatches ? "skipped-manifest-match" : "already-installed",
-      consent: await readRuntimeConsent(skillRoot),
+      consent,
       repayShim: shim,
     };
   }

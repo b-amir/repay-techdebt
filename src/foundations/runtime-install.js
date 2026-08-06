@@ -122,6 +122,10 @@ export async function bootstrapSkillRuntime(skillRoot, { install = true } = {}) 
   }
   if (!install) return { report, installed: false };
 
+  // Transparency for store scanners / operators: skill-root only, no lifecycle scripts.
+  process.stderr.write(
+    "repay-techdebt: installing skill-root dependencies (pnpm --ignore-scripts; frozen lockfile when present). Never touches the target app.\n",
+  );
   await runPackageInstall(skillRoot);
   report = await auditSkillRuntime(skillRoot);
   if (report.status !== "ready") {

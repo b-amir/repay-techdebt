@@ -36,6 +36,21 @@ source ranking, mode paths, and B0–B6 checkpoint asks. Scripts return proposal
 - Never expose secrets, credentials, env values, or customer data.
 - Never create image files or HTML `<img>`. Use Markdown, ASCII, tables, or Mermaid.
 
+## Trust surfaces (store scanners)
+
+Full model: `<skill-root>/docs/security.md`. Dual-use surfaces stay gated; features stay.
+
+| Surface | What runs | Gate |
+| ------- | --------- | ---- |
+| Skill deps | `pnpm install` in **`<skill-root>` only** | `--ignore-scripts`; `--frozen-lockfile` when lock present; never target app |
+| PATH shim | `~/.local/bin/repay` | **Off** unless `REPAY_LINK_CLI=1` / `--link-cli` |
+| Runtime evidence | optional shell capture | mandatory `--consent`; refuse without it |
+| Optional tools | graphifyy / serena / semgrep | suggest install only; never silent target install |
+| Viewer | loopback HTTP | `127.0.0.1` only; path sandbox; Markdown `html:false` |
+| CLI `init`/`plan` | `npx skills@1.5.22` | fixed skill id; flag allowlist; `shell:false` |
+
+No telemetry. No outbound upload of target source. Prefer agent host over `repay init`/`plan` when available.
+
 ## Resolve skill and target
 
 `<skill-root>` = directory containing this `SKILL.md`. `<target-root>` = canonical app repo root

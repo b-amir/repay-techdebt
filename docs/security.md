@@ -92,3 +92,21 @@ Manual: `node <skill-root>/scripts/ensure-runtime.js [--dry-run]`.
 2. Prefer agent skill activation over `repay init`/`plan` when the host supports it.
 3. Only set `REPAY_LINK_CLI=1` if you want a global `repay` command.
 4. Never pass secrets as CLI flags; keep them out of lesson Markdown.
+
+## Store / scanner notes (skills.sh and similar)
+
+Automated audits report **MEDIUM** for command execution, skill-root dependency install, optional
+PATH shim, loopback viewer, and pinned `npx skills@…`. That classifies **capability**, not a missing
+gate. This skill keeps those features and documents the gates above.
+
+What remediates without product cuts:
+
+- Trust table in `SKILL.md` + this file (scanner-readable intent).
+- Install scoped to skill root with `--ignore-scripts` / frozen lockfile.
+- PATH shim off by default; runtime evidence requires `--consent`.
+- Consent/manifest recorded under user state or `.repay-skill-runtime/` after bootstrap (including
+  when deps were already present so the audit trail is complete).
+- No telemetry; no upload of target source.
+
+Residual MEDIUM on dual-use analysis skills is expected. Goal: honest LOW anomaly + explicit
+mitigations, not green-by-deleting-features.

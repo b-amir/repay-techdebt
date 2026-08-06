@@ -78,7 +78,25 @@ Step-by-step control flow: **[docs/how-it-works.md](docs/how-it-works.md)**.
 | [docs/how-it-works.md](docs/how-it-works.md) | Control flow, exit codes, turn map                      |
 | [docs/concepts.md](docs/concepts.md)         | Evidence states, zoom levels, modes, limits, principles |
 | [docs/tools.md](docs/tools.md)               | Optional tools, fallbacks, no silent downgrade          |
+| [docs/security.md](docs/security.md)         | Trust boundaries, consent gates, store-scanner notes    |
 | [docs/develop.md](docs/develop.md)           | Repo map, `vp test`, local install                      |
+
+## Security (no feature loss)
+
+Analysis skill: reads target, may install **its own** deps under skill root, optional loopback
+viewer. Scanners flag those dual-use surfaces as MEDIUM — expected. Mitigations:
+
+| Surface | Default |
+| ------- | ------- |
+| Target repo | Read-only; writes only under consented workbook / memory |
+| Skill `pnpm install` | Skill root only; `--ignore-scripts`; frozen lockfile when present |
+| `repay` on PATH | Off unless `REPAY_LINK_CLI=1` |
+| Runtime shell evidence | Requires `--consent` |
+| Optional analyzers | Printed install hints only; never auto into target |
+| Workbook viewer | `127.0.0.1` only; sanitized Markdown; path sandbox |
+| `repay init`/`plan` | Pinned `skills@1.5.22`, fixed skill id, flag allowlist |
+
+Details: **[docs/security.md](docs/security.md)**.
 
 ## Agent notes
 
