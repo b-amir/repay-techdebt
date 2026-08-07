@@ -1,6 +1,10 @@
 // Dialogue & checkpoints (C2) public API.
 // When you make a function public, add it to this barrel.
-export { buildDialogueEnvelope, topicSignalClass } from "./dialogue-envelope.js";
+export {
+  buildDialogueEnvelope,
+  CLOSED_NEXT_ASK_DOS,
+  topicSignalClass,
+} from "./dialogue-envelope.js";
 
 export {
   WORKBOOK_TRAJECTORY,

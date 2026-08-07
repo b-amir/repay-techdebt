@@ -128,8 +128,9 @@ Every major script return is a **proposal**, not finished truth:
 ### Entry
 
 1. Agent loads `SKILL.md`.
-2. Immediately reads `references/script-agent-dialogue.md` and `references/bottleneck-checkpoints.md`.
-3. Sets `<skill-root>` = directory containing `SKILL.md`.
+2. Immediately reads `references/agent-machine-contract.md` (invokes, formats, exits, install),
+   then `references/script-agent-dialogue.md` and `references/bottleneck-checkpoints.md`.
+3. Sets `<skill-root>` = directory containing this `SKILL.md`.
 4. Sets `<target-root>` = application repo (usually the workspace active before entering the skill).
 
 ### Root branches
@@ -202,7 +203,7 @@ Stored preference `choices.mode`: `ask` \| `pr` \| `workbook` (not `focused`).
 ### 2.3 Runtime gate
 
 ```text
-node <skill-root>/scripts/check-runtime.js --format table
+node <skill-root>/scripts/check-runtime.js --format json
 ```
 
 | Condition             | Branch                                       |
@@ -235,6 +236,10 @@ node <skill-root>/scripts/plan-analysis.js <target-root> \
   [--focus <q>] [--scope <path>] --format summary-json
 ```
 
+Agent turns use this script + `summary-json` (or full `json`). Do not use human CLI `repay plan`
+for machine parsing — TTY pretty table drops `nextAsks` / `toolChain`. Piped `repay plan` falls
+back to `summary-json`; script path remains the contract.
+
 | Condition                             | Branch                                                                                                                    |
 | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `--mode focused` and no `--focus`     | Throw → **exit 1**                                                                                                        |
@@ -250,7 +255,7 @@ node <skill-root>/scripts/plan-analysis.js <target-root> \
 ### 2.6 Capabilities gate
 
 ```text
-node <skill-root>/scripts/check-capabilities.js <target-root> --format table
+node <skill-root>/scripts/check-capabilities.js <target-root> --format json
 ```
 
 | Condition                            | Branch                                                                                    |
@@ -647,6 +652,7 @@ Also present (ops / deeper retrieve): `plan-runtime-evidence.js`, `collect-runti
 | Path                                      | Owns                                                         |
 | ----------------------------------------- | ------------------------------------------------------------ |
 | `SKILL.md`                                | Activation, shared head, mode pointers, teach handshake      |
+| `references/agent-machine-contract.md`    | Exact invokes, formats, exit→action, install, anti-improvise |
 | `references/script-agent-dialogue.md`     | Turn map, caps, mode paths, semantic checklist               |
 | `references/bottleneck-checkpoints.md`    | B0–B6 cards + CLAIMS format                                  |
 | `references/analysis-protocol.md`         | Phases 1–8 execution detail                                  |

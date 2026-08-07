@@ -4,7 +4,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { join } from "node:path";
 import { locateSkillRoot } from "../../src/foundations/skill-locator.js";
-import { sanitizeArgs, sanitizeInvokeArgs } from "../../scripts/repay-cli.js";
+import { defaultCliFormat, sanitizeArgs, sanitizeInvokeArgs } from "../../scripts/repay-cli.js";
 
 const exec = promisify(execFile);
 const CLI_PATH = join(process.cwd(), "scripts", "repay-cli.js");
@@ -80,4 +80,12 @@ test("CLI plan --help stays local (no npx skills invoke)", async () => {
   assert.match(stdout, /repay plan/);
   assert.doesNotMatch(stdout + stderr, /Unknown command: invoke/);
   assert.doesNotMatch(stdout + stderr, /npx skills/);
+});
+
+test("defaultCliFormat: TTY table, non-TTY summary-json", () => {
+  assert.equal(defaultCliFormat({ isTTY: true }, "table", "summary-json"), "table");
+  assert.equal(defaultCliFormat({ isTTY: false }, "table", "summary-json"), "summary-json");
+  assert.equal(defaultCliFormat({}, "table", "summary-json"), "summary-json");
+  assert.equal(defaultCliFormat({ isTTY: true }, "table", "json"), "table");
+  assert.equal(defaultCliFormat({ isTTY: false }, "table", "json"), "json");
 });

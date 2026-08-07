@@ -1,9 +1,27 @@
 /**
  * Shared script → agent handoff fields for repay-techdebt dialogue turns.
- * Scripts propose; agents take nextAsks. See references/script-agent-dialogue.md.
+ * Scripts propose; agents take nextAsks. See references/script-agent-dialogue.md
+ * + references/agent-machine-contract.md (closed `do` vocabulary).
  */
 
 const ROLES = new Set(["gate", "inventory", "retrieve", "propose", "check"]);
+
+/**
+ * Closed nextAsks[].do vocabulary. Agents map these only — no free invention.
+ * Keep in sync with references/agent-machine-contract.md.
+ * `graphify-or-serena-retrieve` is emitted from plan-analysis-core toolChain.
+ */
+export const CLOSED_NEXT_ASK_DOS = Object.freeze([
+  "confirm-purpose",
+  "plan-analysis",
+  "pick-retrieve-questions",
+  "approve-curriculum-shortlist",
+  "accept-partial-scope-or-narrow",
+  "graphify-or-serena-retrieve",
+  "unsupported-shrink-or-refuse",
+]);
+
+const CLOSED_NEXT_ASK_DO_SET = new Set(CLOSED_NEXT_ASK_DOS);
 
 function coverageStatus(coverage) {
   if (!coverage) return "unknown";
@@ -104,13 +122,22 @@ export function buildDialogueEnvelope({
     why: "hard-overclaim",
   });
 
+  const closedNextAsks = dedupe(nextAsks, (item) => `${item.who}:${item.do}:${item.why ?? ""}`);
+  for (const item of closedNextAsks) {
+    if (!CLOSED_NEXT_ASK_DO_SET.has(item.do)) {
+      throw new Error(
+        `nextAsks.do "${item.do}" not in CLOSED_NEXT_ASK_DOS — update contract + constant first`,
+      );
+    }
+  }
+
   return {
     role,
     flowState,
     coverageStatus: coverageStatus(coverage),
     blindSpots: dedupe(blindSpots, (item) => item),
     mustNotClaim: dedupe(mustNotClaim, (item) => item),
-    nextAsks: dedupe(nextAsks, (item) => `${item.who}:${item.do}:${item.why ?? ""}`),
+    nextAsks: closedNextAsks,
     overclaimPolicy: "unsupported-shrink-or-refuse",
   };
 }

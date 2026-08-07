@@ -1,7 +1,11 @@
 # Script ↔ Agent Dialogue
 
-Read this when the skill activates. Scripts and the agent take turns from 0→100. Neither finishes
-discovery or teaching alone.
+Read this when the skill activates (after `agent-machine-contract.md`). Scripts and the agent take
+turns from 0→100. Neither finishes discovery or teaching alone.
+
+**Machine predictability:** exact commands, formats, exit codes, install outcomes, and closed
+`nextAsks` live in `agent-machine-contract.md`. This file is the turn map and mode paths. If an
+agent would “try something else,” stop and re-read the machine contract.
 
 ## Contract
 
@@ -17,7 +21,14 @@ Every major script return includes:
 - `role`: `gate` | `inventory` | `retrieve` | `propose` | `check`
 - `blindSpots[]`, `mustNotClaim[]`, `nextAsks[]` (`who` + `do` + optional `why`/`when`/`question`)
 
-Prefer `--format summary-json` / compact tables on agent turns.
+**Formats:** always explicit on agent turns — see format matrix in `agent-machine-contract.md`
+(`plan-analysis` → `summary-json`; gates/inventory/saves → `json`). Compact tables only in
+**user chat**, never as the script parse path.
+
+**Human CLI vs agent scripts:** `repay plan|init|status|view` is for terminals. Agent machine
+turns call `node <skill-root>/scripts/…` with the matrix formats. Do not rely on `repay plan` for
+`nextAsks` / `toolChain` — TTY pretty table drops those fields. Piped `repay plan` falls back to
+`summary-json`, but the script path is the contract.
 
 **User chat:** tables over prose. Follow `templates/agent-experience.md` — ≤10 words outside tables on routine turns.
 
@@ -84,27 +95,28 @@ Use the **exact** ask blocks in `templates/agent-experience.md` (`###` + why + t
 | Wrap up          | Done                             |
 
 After **three** saved lessons in a workbook batch (or when the batch finishes with fewer than three),
-run `repay view --open`. In **Fast** mode do not ask — open, then **Wrap up**. In Control with
-save-policy `ask`, you may confirm open. Explain: we start with 3 lessons so tokens stay sane; the
-rest of the curriculum stays planned and is easy to continue with guidance.
+run `node <skill-root>/scripts/view-lessons.js <target-root> --open` (or `repay view --open`).
+In **Fast** mode do not ask — open, then **Wrap up**. In Control with save-policy `ask`, you may
+confirm open. Explain: we start with 3 lessons so tokens stay sane; the rest of the curriculum
+stays planned and is easy to continue with guidance.
 
 Omnibus topics (“understand the whole app”) must be split/demoted; save rejects them.
 
 ## Shared head (all modes)
 
 ```text
-Script gate:  project-memory.js status → check-runtime.js (Mechanical QA)
+Script gate:  project-memory.js status --format json → check-runtime.js --format json
 Agent:        confirm skill vs target roots; Fast/Control wizard if first-run; pick mode (Chat flow)
 Script:       profile-project.js … --format json (Inventory)
 Agent:        ACCEPT|UNRESOLVED purpose; phrase retrieve questions (Purpose / Quality judgment)
 Script:       plan-analysis.js … --format summary-json (Inventory / Propose)
-Agent:        mark investigations needed|not-needed; NEED|SKIP tools (Selection)
-Script gate:  check-capabilities.js … --format table (Mechanical QA)
+Agent:        TAKE nextAsks; mark investigations needed|not-needed; NEED|SKIP tools (Selection)
+Script gate:  check-capabilities.js … --format json (Mechanical QA)
 Agent:        silent bundled fallback on tool miss; ask only install/config (Selection)
 Agent:        hard overclaim — unsupported → shrink or refuse; never “continue weaker?”
 ```
 
-CLI details: `tool-integrations.md`. Memory: `project-memory.md`.
+Outcomes / exits: `agent-machine-contract.md`. Tools: `tool-integrations.md`. Memory: `project-memory.md`.
 
 ## Mode: focused
 
@@ -117,7 +129,7 @@ Script: check-lesson-quality.js <draft.md> (Mechanical QA)
 Agent: semantic checklist; ≤1 rewrite (Quality judgment)
 Script: project-memory.js save-curriculum … (Save)
 Script: project-memory.js save-lesson … --topic-id … (Save)
-Script: repay view <target-root> [--open] [--lesson …] (Viewer rendering; implementation: view-lessons.js)
+Script: node …/view-lessons.js <target-root> [--open] [--lesson …] (Viewer; or repay view — same)
 Agent: maintainer-only notes (gaps + next concepts; no user-facing tool ledger)
 ```
 

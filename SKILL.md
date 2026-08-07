@@ -16,11 +16,16 @@ Act as a senior engineering mentor. Teach from verified project evidence. Do not
 into a generic review or programming course. **In chat:** tables + emojis — ≤10 words outside tables on
 routine turns (`templates/agent-experience.md`).
 
-Scripts and the agent take turns from 0→100. Read
-`<skill-root>/references/script-agent-dialogue.md` and
-`<skill-root>/references/bottleneck-checkpoints.md` at activation. Follow the turn map, caps,
-source ranking, mode paths, and B0–B6 checkpoint asks. Scripts return proposals with `role`,
-`blindSpots`, `mustNotClaim`, and `nextAsks` — never treat them as finished truth.
+Scripts and the agent take turns from 0→100. At activation read, in order:
+
+1. `<skill-root>/references/agent-machine-contract.md` — **exact invokes, formats, exit→action,
+   install outcomes, closed nextAsks, anti-improvise** (machine predictability)
+2. `<skill-root>/references/script-agent-dialogue.md` — turn map, mode paths, caps
+3. `<skill-root>/references/bottleneck-checkpoints.md` — B0–B6
+
+Follow those. Scripts return proposals with `role`, `blindSpots`, `mustNotClaim`, and
+`nextAsks` — never treat them as finished truth. Prefer the machine contract over chat habit
+when they conflict.
 
 ## Preserve the project
 
@@ -126,7 +131,7 @@ The skill enforces a clean contract: **scripts verify, the agent judges, the use
 
 ```text
 node <skill-root>/scripts/project-memory.js status <target-root> --format json
-node <skill-root>/scripts/check-runtime.js --format table
+node <skill-root>/scripts/check-runtime.js --format json
 ```
 
 Bundled skill CLIs (`project-memory.js`, `view-lessons.js`, `teach-topic.js`) call
@@ -162,18 +167,24 @@ Complete checkpoint B0 (purpose ACCEPT|UNRESOLVED) and B1 (stack confirm/correct
 node <skill-root>/scripts/plan-analysis.js <target-root> --mode <pr|workbook|focused> --depth <concise|balanced|deep> [--focus <q>] [--scope <path>] --format summary-json
 ```
 
+**Agent rule:** call `plan-analysis.js` with `--format summary-json` (or `json`). Do **not** use human
+CLI `repay plan` for machine turns — TTY pretty table drops fields agents must read
+(`nextAsks`, `toolChain`, `mustNotClaim`, `blindSpots`). Piped `repay plan` falls back to
+`summary-json`, but the script path above is the contract.
+
 Follow `nextAsks`. Emit ≤5 retrieve questions (B2). Mark toolChain steps needed or not needed.
 
 **Script gate → Agent/user on failure**
 
 ```text
-node <skill-root>/scripts/check-capabilities.js <target-root> --format table
+node <skill-root>/scripts/check-capabilities.js <target-root> --format json
 ```
 
-Read `references/tool-integrations.md`. Prefer available tools silently; on failure use the
-named bundled fallback with the same user-facing UX — no tool menus, no ask-before-every-fallback
-in chat. Ask only for install/config consent. Never claim a tool ran because it exists. Bundled
-profiler success does not prove Graphify, Serena, Semgrep, or Context7 succeeded.
+Read `references/tool-integrations.md` + `references/agent-machine-contract.md`. Prefer available
+tools silently; on failure use the named bundled fallback with the same user-facing UX — no tool
+menus, no ask-before-every-fallback in chat. Ask only for install/config consent. Never claim a
+tool ran because it exists. Bundled profiler success does not prove Graphify, Serena, Semgrep, or
+Context7 succeeded. Handle every documented exit/type branch; do not invent alternate products.
 
 **Hard overclaim:** if evidence is missing, mark `unsupported`, shrink the claim/scope, or refuse
 the durable save. Never offer “continue weaker?” or soft-escape half-lessons.
@@ -223,7 +234,9 @@ node <skill-root>/scripts/project-memory.js save-curriculum <target-root> --inpu
 Write 1–3 lessons per run; resume from `INDEX.md`. Explain to first-timers: **3 lessons this
 session** keeps token use sane; the rest of the curriculum stays planned and is easy to continue.
 After the **third** saved lesson in a batch, or when the batch is complete with fewer than three
-topics, **must** open the viewer with `repay view <target-root> --open --lesson <rel-path>`. In
+topics, **must** open the viewer with
+`node <skill-root>/scripts/view-lessons.js <target-root> --open --lesson <rel-path>`
+(or equivalent `repay view … --open`). In
 **Fast** mode do that without asking. Tell the user the workbook folder path and how to reopen with
 `repay view`. Never paste raw CLI JSON. Partial coverage forbids whole-app absence claims unless
 `acceptedPartialScope` is set.
@@ -264,7 +277,8 @@ node <skill-root>/scripts/evaluate-lesson.js <target-root> <draft.md> --depth <c
    save. On `lesson-saved`, when `viewer.openRecommended` is true, **must** run:
 
 ```text
-repay view <target-root> --open --lesson <lessons/...>
+node <skill-root>/scripts/view-lessons.js <target-root> --open --lesson <lessons/...>
+# equivalent: repay view <target-root> --open --lesson <lessons/...>
 ```
 
 Otherwise offer the viewer link. The emit includes `viewer.command`, `viewer.hint`,

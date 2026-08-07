@@ -250,7 +250,8 @@ function parseArguments(argv) {
     printHelp();
     process.exit(0);
   }
-  let format = "table";
+  // Agent/CI non-TTY → json; human TTY → table. Explicit --format always wins.
+  let format = process.stdout.isTTY ? "table" : "json";
   const positional = [];
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === "--format") {

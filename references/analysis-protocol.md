@@ -18,7 +18,8 @@ node <skill-root>/scripts/plan-analysis.js <target-root> --mode <pr|workbook|foc
 These are read-only baseline inventory/propose turns, not fallbacks for a failed enhanced tool.
 Inspect `role`, `coverage` / `coverageStatus`, `blindSpots`, `mustNotClaim`, `nextAsks`, packs,
 entry points, lenses, and uncertainties. **Agent turn:** follow `nextAsks` (purpose, retrieve
-questions, need/skip tools). Prefer `summary-json` on agent turns; full JSON when provenance is
+questions, need/skip tools). Agent turns: always explicit `--format` per
+`agent-machine-contract.md` (`summary-json` for plan-analysis; `json` for gates/inventory). Full JSON when provenance is
 required.
 
 Apply `--scope` before raising budgets when the component is known. Partial/scoped models remain
@@ -33,7 +34,7 @@ wait for setup / fallback / skip.
 Bundled relationship query (after approval when Graphify/Serena fail):
 
 ```text
-node <skill-root>/scripts/query-program-model.js <target-root> <path-or-name> --depth 1 --format table
+node <skill-root>/scripts/query-program-model.js <target-root> <path-or-name> --depth 1 --format json
 ```
 
 Conservative and incomplete for dynamic behavior — state that limitation in the ledger.

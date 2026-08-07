@@ -12,6 +12,21 @@ import { bold, cyan, dim, green, paint, red } from "../src/foundations/term.js";
 const entryPath = fileURLToPath(import.meta.url);
 const skillRoot = resolveSkillRoot(entryPath);
 
+/**
+ * Human TTY → pretty table. Piped / non-TTY (agents, CI) → machine JSON.
+ * Explicit --format always wins.
+ * @param {{ isTTY?: boolean } | null | undefined} [stream]
+ * @param {"table" | "summary-json" | "json"} [ttyFormat]
+ * @param {"table" | "summary-json" | "json"} [pipeFormat]
+ */
+export function defaultCliFormat(
+  stream = stdout,
+  ttyFormat = "table",
+  pipeFormat = "summary-json",
+) {
+  return stream?.isTTY ? ttyFormat : pipeFormat;
+}
+
 /** Flags humans may pass through to local scripts. Unknown flags rejected. */
 const ALLOWED_INIT_FLAGS = new Set([
   "--yes",
@@ -183,6 +198,9 @@ function printHelp() {
   stdout.write(`${pipe}   ${cyan("status")}  Read-only memory health\n`);
   stdout.write(`${pipe}\n`);
   stdout.write(`${pipe} ${dim("init needs --yes (or --interactive). plan is read-only.")}\n`);
+  stdout.write(
+    `${pipe} ${dim("TTY → pretty table; piped → JSON. Agents: plan-analysis.js --format summary-json.")}\n`,
+  );
   stdout.write(`${pipe}\n`);
   stdout.write(`${pipe} ${bold("Examples")}\n`);
   stdout.write(`${pipe}   ${dim("repay init --yes")}\n`);
@@ -276,7 +294,8 @@ async function initCommand(argv) {
   const script = resolve(skillRoot, "scripts", "project-memory.js");
   const args = [script, "init", targetRoot, ...flagArgs];
   if (!flagArgs.some((t) => t === "--format" || t.startsWith("--format="))) {
-    args.push("--format", "table");
+    // TTY humans get panel; agents/CI (no TTY) get JSON machine envelope.
+    args.push("--format", defaultCliFormat(stdout, "table", "json"));
   }
   await run(process.execPath, args, {
     label: `init ${targetRoot}`,
@@ -326,7 +345,8 @@ async function planCommand(argv) {
   // Avoid duplicate --focus if already present
   if (focus && !focusFromFlags) args.push("--focus", focus);
   if (!flagArgs.some((t) => t === "--format" || t.startsWith("--format="))) {
-    args.push("--format", "table");
+    // TTY humans → table; piped/agent/CI → summary-json (full machine fields).
+    args.push("--format", defaultCliFormat(stdout, "table", "summary-json"));
   }
   await run(process.execPath, args, { label: `plan ${targetRoot}` });
 }
@@ -334,7 +354,9 @@ async function planCommand(argv) {
 async function statusCommand(argv) {
   const targetRoot = resolve(argv.find((t) => !t.startsWith("-")) ?? cwd());
   const script = resolve(skillRoot, "scripts", "project-memory.js");
-  await run(process.execPath, [script, "status", targetRoot, "--format", "table"], {
+  // TTY humans → table; piped/agent/CI → json machine envelope.
+  const format = defaultCliFormat(stdout, "table", "json");
+  await run(process.execPath, [script, "status", targetRoot, "--format", format], {
     label: `status ${targetRoot}`,
   });
 }
