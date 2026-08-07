@@ -16,10 +16,10 @@ condition branch. Agent policy lives in markdown (`SKILL.md` + references); only
    evidence, and impact—not a universal checklist. Script plans are proposals, not finished truth.
 5. **Approve the book index.** Whole-app runs propose a broad subject inventory; the agent
    shortlists before save, then writes 1–3 lessons per run.
-6. **Use stronger tools when they matter.** Each phase has an explicit capability ladder and
-   failure gate. See [tools.md](tools.md).
+6. **Use stronger tools when they matter.** Prefer available optional tools silently; on miss use
+   the named bundled fallback with the same UX. Ask only for install/config. See [tools.md](tools.md).
 7. **Qualify and teach.** Mechanical lesson QA plus one agent semantic pass; cite paths and lines;
-   end with gaps and a tool-use ledger.
+   end with honest gaps. Tool outcomes stay in maintainer notes, not learner chat.
 
 Maintenance flags, viewer, and CLI: [manual.md](manual.md). Evidence model and modes:
 [concepts.md](concepts.md).
@@ -58,10 +58,11 @@ flowchart TD
   M -->|no| N[Mode branch]
   M -->|yes| O[Functional attempt preferred tool]
   O -->|success| N
-  O -->|fail/unavailable| P{User chooses}
-  P -->|setup| O
-  P -->|named fallback| Q[Run portable fallback]
-  P -->|skip| R[Ledger: relation class untrusted]
+  O -->|fail/unavailable| P{Install/config needed?}
+  P -->|yes| PASK[Ask user only for install/config]
+  PASK -->|approved retry| O
+  P -->|no / has bundled fallback| Q[Silent named bundled fallback]
+  P -->|no fallback| R[Skip phase honestly]
   Q --> N
   R --> N
 
@@ -69,8 +70,9 @@ flowchart TD
   N -->|pr| PR[PR Mentor path]
   N -->|workbook| WB[Workbook path]
 
-  FOC --> T[Teach handshake]
-  PR --> T
+  FOC --> MC[Mini-curriculum before durable save]
+  PR --> MC
+  MC --> T[Teach handshake]
   WB --> W1[plan-curriculum propose]
   W1 --> W2[Agent B3/B4a SHORTLIST + agentApproval]
   W2 --> W3{validateAgentApproval}
@@ -90,7 +92,7 @@ flowchart TD
   T7 -->|no| TASK([Ask / pause])
   T7 -->|yes| T8{save-lesson gates}
   T8 -->|fail| T3
-  T8 -->|ok| T9[Agent ledger + optional check-trajectory]
+  T8 -->|ok| T9[Maintainer notes + optional check-trajectory]
   T5 --> T9
   T9 --> Z([Done / resume later])
 ```
@@ -102,7 +104,7 @@ flowchart TD
 | Partner     | Owns                                                                                                               | Must not own                                                                       |
 | ----------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
 | **Scripts** | Consent/runtime/capability gates; inventories; wrappers; coverage math; proposal JSON; mechanical QA; atomic saves | Final “what to teach”; unverified absence claims; lesson taste                     |
-| **Agent**   | Purpose; retrieve questions; live-source verify; shortlist; draft; semantic qualify; tool ledger                   | Skipping consent/secrets/capability prompts; dressing model prior as observed fact |
+| **Agent**   | Purpose; retrieve questions; live-source verify; shortlist; draft; semantic qualify; maintainer tool notes         | Skipping consent/secrets/capability prompts; dressing model prior as observed fact |
 
 Every major script return is a **proposal**, not finished truth:
 
@@ -179,7 +181,12 @@ node <skill-root>/scripts/project-memory.js status <target-root> --format json
 
 ### 2.2 Init consent (first-run)
 
-Recommended defaults: private memory, sister workbook, mode preference `ask`, depth `balanced`, save policy `ask`.
+First-run paths (see `templates/introduction-wizard.md`):
+
+| Path        | User reply        | Init defaults                                                                 |
+| ----------- | ----------------- | ----------------------------------------------------------------------------- |
+| **Fast**    | `fast` (`express`) | private memory, sister workbook, `--mode workbook`, depth `balanced`, `--save-policy automatic` |
+| **Control** | `control`         | Full option tables; defaults often mode `ask`, save-policy `ask` unless chosen |
 
 | Condition                                        | Branch                              |
 | ------------------------------------------------ | ----------------------------------- |
@@ -246,14 +253,14 @@ node <skill-root>/scripts/plan-analysis.js <target-root> \
 node <skill-root>/scripts/check-capabilities.js <target-root> --format table
 ```
 
-| Condition                            | Branch                                                 |
-| ------------------------------------ | ------------------------------------------------------ |
-| Tool `ready`                         | May attempt functionally                               |
-| `missing` / `needs-setup` / `broken` | Do **not** claim it ran; ask setup \| fallback \| skip |
-| Checker itself throws                | **exit 1**                                             |
-| Missing tools alone                  | Does **not** exit 2 — report only                      |
+| Condition                            | Branch                                                                                          |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| Tool `ready`                         | May attempt functionally                                                                        |
+| `missing` / `needs-setup` / `broken` | Do **not** claim it ran; use named bundled fallback silently; ask only for install/config      |
+| Checker itself throws                | **exit 1**                                                                                      |
+| Missing tools alone                  | Does **not** exit 2 — report only                                                               |
 
-Bundled profiler success ≠ Graphify / Serena / Semgrep / Context7 success.
+Bundled profiler success ≠ Graphify / Serena / Semgrep / Context7 success. See [tools.md](tools.md).
 
 ---
 
@@ -263,26 +270,26 @@ Bundled profiler success ≠ Graphify / Serena / Semgrep / Context7 success.
 flowchart TD
   M{Runtime mode} -->|focused| F1[Ask → retrieve → verify]
   F1 --> F2[Optional scoped gap-fill]
-  F2 --> F3[Skip plan-curriculum]
-  F3 --> T[Teach handshake]
+  F2 --> F3[Skip plan-curriculum.js]
+  F3 --> F4[Mini-curriculum before durable save]
+  F4 --> T[Teach handshake]
 
   M -->|pr| P1[Diff via GitHub MCP or get-pr-changes]
   P1 --> P2[Re-rank around changed symbols]
   P2 --> P3[Blast radius retrieve]
   P3 --> P4[Teach 1–3 points]
-  P4 --> P5{User asks workbook?}
-  P5 -->|no| T
-  P5 -->|yes| W
+  P4 --> P5[Mini-curriculum before durable save]
+  P5 --> T
 
-  M -->|workbook| W[Curriculum proposal path]
+  M -->|workbook| W[Full curriculum proposal path]
   W --> T
 ```
 
 ### 3.1 Focused
 
 1. Agent phrases the question.
-2. Prefer Graphify / Serena (ask before install/extract).
-3. Fallback only after user accepts: `query-program-model.js` / scoped scans.
+2. Prefer Graphify / Serena when available (ask only before install/extract).
+3. On miss: silent bundled fallback — `query-program-model.js` / scoped scans.
 4. Verify 2–3 anchors in live source (B5).
 5. Optional gap-fill:
    - `find-patterns.js --scope <path>` OK
@@ -290,8 +297,9 @@ flowchart TD
    - neither flag → **exit 1**
    - both flags → **exit 1**
    - zero files in scope → tool-failure **exit 2**
-6. Skip `plan-curriculum.js`.
-7. Enter teach handshake.
+6. Skip `plan-curriculum.js` (full workbook inventory).
+7. Before durable save: mini-curriculum (`buildTeachingCurriculum` → `save-curriculum`) so lessons link from `INDEX.md`.
+8. Enter teach handshake.
 
 ### 3.2 PR Mentor
 
@@ -300,8 +308,9 @@ flowchart TD
 3. Retrieve/verify blast radius.
 4. `plan-analysis.js --mode pr`.
 5. Pick **1–3** teaching points (not every hunk).
-6. Skip curriculum unless the user asks for a workbook from the PR.
-7. Teach handshake.
+6. Skip full `plan-curriculum.js` unless the user asks for a whole-app workbook from the PR.
+7. Before durable save: mini-curriculum (`buildTeachingCurriculum` → `save-curriculum`) so every lesson links from `INDEX.md` — same workbook shape as whole-app mode.
+8. Teach handshake.
 
 ### 3.3 Whole-app workbook
 
@@ -420,13 +429,14 @@ flowchart TD
   P -->|yes| R[Functional run]
   P -->|no| U[unavailable / needs-setup]
   R -->|successful| V[Verify ≤3 anchors in source]
-  R -->|failed / partial / stale| F[Failure prompt]
+  R -->|failed / partial / stale| F{Install/config needed?}
   U --> F
-  F --> C{User}
-  C -->|setup| R
-  C -->|fallback| FB[Named portable fallback]
-  C -->|skip| SK[Ledger: untrusted relation class]
+  F -->|yes| ASK[Ask user only for install/config]
+  ASK -->|retry| R
+  F -->|no + bundled fallback| FB[Silent named bundled fallback]
+  F -->|no fallback| SK[Skip phase honestly]
   FB --> V
+  SK --> G
   V --> G{Blind spot blocks teaching?}
   G -->|yes and investigate budget left| GF[One gap-fill turn]
   G -->|no| DONE[Continue to lenses / teach]
@@ -435,12 +445,12 @@ flowchart TD
 
 Analyzer outcome vocabulary: `successful` \| `failed` \| `unavailable` \| `unconfigured` \| `partial` \| `stale` \| `refused`.
 
-| Phase             | Prefer             | Fallback (ask first)                                     | Hard fail without fallback                                  |
+| Phase             | Prefer             | Bundled fallback (silent; ask only install/config)       | Hard fail without fallback                                  |
 | ----------------- | ------------------ | -------------------------------------------------------- | ----------------------------------------------------------- |
 | Architecture      | Graphify           | `query-program-model.js` / scoped `scan-architecture.js` | Graphify extract/query fail → exit 2; extract needs `--yes` |
 | Symbols           | Serena             | Bundled AST + source verify                              | —                                                           |
 | Security          | Semgrep            | Secretlint + manual                                      | Semgrep fail without `--fallback secretlint` → exit 2       |
-| Architecture scan | dependency-cruiser | `--fallback tree` after accept                           | Without fallback → exit 2                                   |
+| Architecture scan | dependency-cruiser | `--fallback tree`                                        | Without fallback → exit 2                                   |
 | PR/CI             | GitHub MCP         | `get-pr-changes.js`                                      | —                                                           |
 | Docs              | Context7           | Official primary docs                                    | —                                                           |
 | Large/remote      | Repomix stdout     | Scoped outline                                           | —                                                           |
@@ -565,7 +575,7 @@ flowchart LR
 | **B0** Purpose       | ACCEPT \| UNRESOLVED                        | `purposeStatus` on approval       | Concrete anchor or unresolved    |
 | **B1** Stack         | Confirm/correct languages/frameworks        | Packs ⊆ registry                  | Corrections in ledger            |
 | **B2** Inventory     | ≤5 retrieve questions from blindSpots       | Envelope fields present           | Questions tool-ready             |
-| **B5** Relations     | Who calls / calls what / registered / fails | Tool ledger + fallback disclosure | ≤3 anchors verified or gap named |
+| **B5** Relations     | Who calls / calls what / registered / fails | Anchors verified; gaps named      | ≤3 anchors verified or gap named |
 | **B3** Subjects      | SHORTLIST + corroborate heuristics          | `agentApproval` gate              | Shortlist ≠ scanner top-N        |
 | **B4a** Curriculum   | Order + split omnibus                       | Topic floors + omnibus reject     | One outcome per topic            |
 | **B4b** Lesson craft | PRIMM without empty headings                | `check-lesson-quality`            | Semantic checklist               |
@@ -593,7 +603,7 @@ Conformance (`run-conformance.js`) also validates a workbook trajectory stub aft
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **0** | Success (or help / stub printed)                                                                                                                  |
 | **1** | Usage / target / unexpected throw                                                                                                                 |
-| **2** | Expected control-flow gate: consent, quality/evidence/faithfulness fail, tool-failure needing user decision, incomplete memory, runtime not ready |
+| **2** | Expected control-flow gate: consent, quality/evidence/faithfulness fail, hard tool-failure, incomplete memory, runtime not ready |
 
 ---
 
@@ -615,6 +625,9 @@ Evidence language: `references/evidence-contract.md`.
 
 ## 11. Script catalog by role
 
+Role sample only — not full inventory. Full list: `scripts/*.js`. Agent chains and failure UX:
+[tools.md](tools.md), `references/tool-integrations.md`.
+
 | Role          | Scripts                                                                                                                                                                                     |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **gate**      | `project-memory.js`, `check-runtime.js`, `check-capabilities.js`                                                                                                                            |
@@ -622,6 +635,10 @@ Evidence language: `references/evidence-contract.md`.
 | **retrieve**  | `run-graphify.js`, `get-pr-changes.js`, `query-program-model.js`, `scan-*`, `find-patterns.js` (leads only)                                                                                 |
 | **propose**   | `plan-analysis.js`, `plan-curriculum.js`, `plan-lesson.js`                                                                                                                                  |
 | **check**     | `check-lesson-quality.js`, `check-lesson-evidence.js`, `check-lesson-faithfulness.js`, `check-snippet-secrets.js`, `check-trajectory.js`, `evaluate-lesson.js` (report), `review-lesson.js` |
+
+Also present (ops / deeper retrieve): `plan-runtime-evidence.js`, `collect-runtime-evidence.js`,
+`render-system-atlas.js`, `refresh-curriculum.js`, `repay-cli.js`, `repay-mcp.js`,
+`evaluate-skill.js`, `run-conformance.js`, `validate-release.js`, …
 
 ---
 
@@ -672,8 +689,9 @@ Evidence language: `references/evidence-contract.md`.
 | ------------------------------------------ | -------------------------------- |
 | Read dialogue/checkpoints at activation    | Agent                            |
 | ≤1 investigate / ≤1 rewrite caps           | Agent                            |
-| Failure prompt wait (setup/fallback/skip)  | Agent                            |
+| Silent bundled fallback; ask only install  | Agent                            |
 | Honor `savePolicy=ask` before `--yes`      | Agent                            |
+| Mini-curriculum before PR/focused save     | Agent (script links via topic-id)|
 | Pick focused vs workbook from user intent  | Agent                            |
 | `agentApproval` fields                     | Script on `save-curriculum`      |
 | Citation / quality / explicit faithfulness | Script on checks + `save-lesson` |

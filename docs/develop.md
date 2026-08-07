@@ -9,15 +9,16 @@ repay-techdebt/
 │   ├── manual.md            # maintenance flags, viewer, CLI quick reference
 │   ├── how-it-works.md      # control-flow contracts and exit codes
 │   ├── concepts.md          # evidence model, modes, limits, principles
-│   ├── tools.md             # optional tools and fallbacks
+│   ├── tools.md             # optional tools and silent bundled fallbacks
+│   ├── security.md          # trust surfaces and consent gates
 │   └── develop.md           # this file
 ├── agents/openai.yaml       # optional product metadata
 ├── packs/                   # languages, frameworks, capabilities, lenses
-├── references/              # evidence, analysis, memory, tools, runtime contracts
+├── references/              # agent contracts (not public product docs)
 ├── templates/               # first-run and dynamic lesson composition
 ├── scripts/
-│   ├── lib/                 # program graph, relationships, manifests, storage, tooling
-│   └── *.js                 # read-only analyzers, planners, wrappers, memory CLI
+│   └── *.js                 # analyzers, planners, wrappers, memory + CLI
+├── src/                     # shared libraries (memory, program model, viewer, …)
 └── test/                    # integration and contract tests
 ```
 
@@ -46,6 +47,7 @@ failure behavior, and CLI integration.
 pnpm dlx skills add . --skill repay-techdebt
 ```
 
-Bundled scripts require Node.js 22 or newer. On first use, the agent runs the dependency-free
-runtime preflight and must disclose missing packages before asking whether to install or continue
-manually.
+Bundled scripts require Node.js 22 or newer. Missing `node_modules` after skill sync: CLIs call
+`ensure-runtime` and install **into `<skill-root>` only** (`--ignore-scripts`; `--frozen-lockfile`
+when lockfile present). Never installs into the target app. Manual: `node scripts/ensure-runtime.js`.
+Trust model: [security.md](security.md).

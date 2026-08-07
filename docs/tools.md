@@ -1,28 +1,38 @@
-# Transparent tool integration
+# Optional tools and fallbacks
 
-The bundled model is always the baseline. Optional AI-native and specialized tools add fidelity;
-their presence alone is never reported as success.
+Bundled model is always the baseline. Optional AI-native tools add fidelity when already
+available. Presence alone is never reported as success.
 
-| Capability                    | Preferred path                               | Explicit fallback                                                              |
-| ----------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------ |
-| PR and CI context             | GitHub MCP read-only tools                   | Bundled local Git extractor                                                    |
-| Architecture and blast radius | Graphify MCP or target-pure Graphify wrapper | Bundled relationship model; scoped dependency-cruiser/tree only after approval |
-| Symbols and references        | Serena MCP or a language-aware compiler/LSP  | Bundled ts-morph, ast-grep, Acorn, then direct source verification             |
-| Security                      | Semgrep MCP or CLI                           | Secretlint plus manual control/data-flow verification                          |
-| Current library documentation | Context7 MCP or CLI                          | Authoritative official documentation search                                    |
-| Very large or remote context  | Repomix MCP or CLI                           | Scoped discovery and prioritized module outline                                |
-| Duplication                   | Bundled jscpd                                | Manual representative search                                                   |
+| Capability                    | Prefer when available                    | Bundled fallback (same UX; silent)                                             |
+| ----------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------ |
+| PR and CI context             | GitHub MCP read-only tools               | Local Git extractor (`get-pr-changes.js`)                                      |
+| Architecture and blast radius | Graphify MCP or target-pure Graphify     | Program model query / scoped architecture scan                                 |
+| Symbols and references        | Serena MCP or language-aware LSP         | Bundled AST scanners, then live source verify                                  |
+| Security                      | Semgrep MCP or CLI                       | Secretlint + manual control/data-flow verify                                   |
+| Current library documentation | Context7 MCP or CLI                      | Authoritative official docs                                                    |
+| Very large or remote context  | Repomix MCP or CLI                       | Scoped discovery + prioritized outline                                         |
+| Duplication                   | Bundled jscpd                            | Manual representative search                                                   |
 
-When a needed tool fails, the skill stops before downgrading and explains:
+## Failure policy
 
-```text
-what failed -> capability lost -> setup or repair -> exact fallback and limitation
-```
+**Default:** preferred tool missing, unconfigured, or fails → run the **named bundled fallback**
+immediately. Same user-facing UX. No tool menus. No tool jargon in learner chat. No confidence
+inflation.
 
-The user chooses whether to set it up and retry, accept the named fallback, or skip that phase. The
-final Tool Use Ledger records every attempted operation and downgrade.
+**Ask the user only when:**
 
-Optional MCP tools are discovered from the active agent at runtime; the skill does not assume every
-agent exposes the same integrations.
+1. Install or agent/MCP config change is required, or
+2. The phase needs a write the user must authorize, or
+3. No bundled fallback exists for that phase (skip that phase honestly).
 
-Control-flow and exit-code detail: [how-it-works.md](how-it-works.md).
+Do **not** present setup / fallback / skip on every failure.
+
+Record attempts and downgrades in **maintainer notes only** — not first-run or learner chat.
+Never claim a tool ran because it exists. Bundled profiler success does not prove Graphify,
+Serena, Semgrep, or Context7 succeeded.
+
+Hard overclaim: missing evidence → mark unsupported, shrink scope, or refuse durable save. Never
+“continue weaker?”
+
+Agent-facing chains and status vocabulary: `references/tool-integrations.md`. Control flow and
+exit codes: [how-it-works.md](how-it-works.md). Trust surfaces: [security.md](security.md).

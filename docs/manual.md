@@ -80,8 +80,12 @@ node <skill-root>/scripts/project-memory.js reconfig <target-root> --interactive
 Prints a human-readable summary of the current workbook, configuration, and curriculum state.
 
 ```text
+repay status [<target-root>]
 node <skill-root>/scripts/project-memory.js status <target-root>
 ```
+
+Human CLI also: `repay init`, `repay plan […]`, `repay view [--open]`. All map to local scripts only
+(see [security.md](security.md)).
 
 ### Configure Output
 
@@ -110,8 +114,9 @@ node <skill-root>/scripts/project-memory.js open-viewer <target-root>
 node <skill-root>/scripts/view-lessons.js <target-root> [--port 8765] [--open] [--lesson lessons/...]
 ```
 
-After `save-lesson`, the emit includes `viewer.script`, `viewer.deepLinkRel`, and
-`viewer.openRecommended` (open browser when true — after 3rd lesson or batch complete).
+After `save-lesson`, the emit includes `viewer.command`, `viewer.hint`, `viewer.deepLinkRel`,
+`viewer.openFlags`, and `viewer.openRecommended` (open browser when true — after 3rd lesson or
+batch complete).
 
 ### Teach one planned topic (`--create`)
 
@@ -135,7 +140,14 @@ After skills.sh sync, `node_modules` may be missing. CLIs auto-run `ensure-runti
 
 Agents follow `templates/agent-experience.md`: **progress table** at top, **`###` headings** on
 important asks, one blank line between tables, ≤25 words status on routine turns, ≤60 on asks,
-`👉 Reply` when needed. Fast mode auto-saves and auto-opens the viewer. See `SKILL.md`.
+`👉 Reply` when needed. See `SKILL.md`.
+
+| Path        | Reply              | Defaults / behavior                                                                 |
+| ----------- | ------------------ | ----------------------------------------------------------------------------------- |
+| **Fast**    | `fast` (`express`) | private + sister workbook + mode `workbook` + depth `balanced` + save `automatic`   |
+| **Control** | `control`          | Full settings tables; save-policy often `ask` unless user chooses automatic         |
+
+Fast auto-saves and auto-opens the viewer after the batch rule (`openRecommended`).
 
 ## What maintenance never touches
 

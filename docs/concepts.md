@@ -64,6 +64,11 @@ Session-only operation creates no durable memory.
 | **Whole-App Workbook** | An unfamiliar or AI-generated application             | Critical workflows, architecture, representative flows, progressive lessons, and a curriculum |
 | **Focused Deep Dive**  | One module, concept, failure, or engineering question | A scoped evidence graph and the most relevant lesson shape                                    |
 
+**Stored preference vs runtime mode:** `config.choices.mode` is `ask` \| `pr` \| `workbook` only
+(`ask` = pick each session). Runtime `plan-analysis` / teach path also accepts `focused` for a
+scoped deep dive — Focused is not a durable config enum; pass `--mode focused` (or agent intent)
+per run.
+
 If PR context is requested without a ref, the local Git extractor intentionally compares
 `HEAD~1` with `HEAD`. GitHub-hosted work prefers read-only GitHub MCP context when the active agent
 exposes it and the repository identity is confirmed.
@@ -72,8 +77,8 @@ exposes it and the repository identity is confirmed.
 
 - Polyglot repository and monorepo profiling with explicit coverage budgets.
 - Structured manifest and lockfile intelligence across common ecosystems.
-- AST-derived JavaScript, TypeScript, Python, Gleam, and Elixir relationships, with unsupported
-  relationship languages reported rather than guessed.
+- Relationship extractors for registered languages (deepest for JavaScript/TypeScript/Python;
+  import/alias graphs for Gleam and Elixir; other ecosystems report unsupported rather than guess).
 - Components, conventional and learned boundaries, entry points, test relations, dependency use,
   critical-workflow hints, and ranked analysis lenses.
 - Pattern discovery, architecture scans, dependency intelligence, duplication, secret scanning,
@@ -107,7 +112,8 @@ privacy, accessibility, cost, reproducibility, memory safety, offline behavior, 
 2. **Relationships before isolated snippets.** A function matters because something calls it and
    something changes afterward.
 3. **Complex analysis, simple lessons.** Internal rigor should reduce reader effort.
-4. **No silent downgrade.** Missing capability is a user decision, not a hidden implementation
-   detail.
+4. **No silent confidence inflation.** Prefer available tools quietly; on miss, use the named
+   bundled fallback with the same UX. Never claim a tool ran because it exists. Ask only before
+   install/config or unauthorized writes.
 5. **Private and target-pure by default.** Learning the system should not modify the system.
 6. **Uncertainty is useful output.** Naming the missing evidence is better than confident fiction.

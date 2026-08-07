@@ -30,8 +30,8 @@ Use $repay-techdebt to trace authentication from the request boundary to data ac
 Teach me what protects the flow, who consumes it, how it fails, and how I can change it safely.
 ```
 
-Focused run plans subjects from live evidence, then writes lessons with path/line citations, gaps,
-and a tool-use ledger.
+Focused run plans subjects from live evidence, then writes lessons with path/line citations and
+honest gaps.
 
 ## Start
 
@@ -41,9 +41,10 @@ Inside the repo you want to understand:
 repay init --yes
 repay plan "Start with the flows I need before changing production code."
 repay view --open
+repay status   # workbook + config + curriculum summary
 ```
 
-`init` / `plan` / `view` run **local** skill scripts (no remote skills CLI).
+`init` / `plan` / `view` / `status` run **local** skill scripts (no remote skills CLI).
 
 First run: Fast (recommended defaults) or Control (step through choices). Workbook opens in a
 script-owned browser viewer—agents never hand-build HTML.
@@ -74,7 +75,7 @@ Step-by-step control flow: **[docs/how-it-works.md](docs/how-it-works.md)**.
 | [docs/manual.md](docs/manual.md)             | Flags, CLI, workbook viewer shortcuts                   |
 | [docs/how-it-works.md](docs/how-it-works.md) | Control flow, exit codes, turn map                      |
 | [docs/concepts.md](docs/concepts.md)         | Evidence states, zoom levels, modes, limits, principles |
-| [docs/tools.md](docs/tools.md)               | Optional tools, fallbacks, no silent downgrade          |
+| [docs/tools.md](docs/tools.md)               | Optional tools, silent bundled fallbacks                |
 | [docs/security.md](docs/security.md)         | Trust boundaries and consent gates                      |
 | [docs/develop.md](docs/develop.md)           | Repo map, `vp test`, local install                      |
 
