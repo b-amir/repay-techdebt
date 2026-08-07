@@ -73,11 +73,21 @@ async function main() {
   const port = await listenWithFallback(server, requestedPort);
   const deepPath = values.lesson ? `/lesson/${encodeURI(values.lesson)}` : "/";
   const url = `http://127.0.0.1:${port}${deepPath}`;
-  process.stdout.write(`Workbook viewer for ${targetRoot}\n  ${url}\n`);
+  const { formatKvPanel, green, yellow } = await import("../src/foundations/term.js");
   process.stdout.write(
-    workbook.ready ? "  Workbook ready.\n" : "  No workbook yet — initialize the target first.\n",
+    formatKvPanel("repay view", [
+      ["target", targetRoot],
+      ["url", url],
+      [
+        "workbook",
+        workbook.ready
+          ? green(String(workbook.location ?? "ready"))
+          : yellow("missing — init target first"),
+      ],
+      ["bind", "127.0.0.1"],
+      ["stop", "Ctrl-C"],
+    ]),
   );
-  process.stdout.write("  Ctrl-C to stop.\n");
   if (values.open) openInBrowser(url);
 }
 

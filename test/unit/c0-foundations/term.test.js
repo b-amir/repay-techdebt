@@ -70,3 +70,28 @@ test("createSpinner succeed writes check on non-TTY", async () => {
     else process.env.NO_COLOR = prev;
   }
 });
+
+test("formatKvPanel title + rows for init-like payload", () => {
+  const stream = new PassThrough();
+  // @ts-expect-error test double
+  stream.isTTY = false;
+  const prev = process.env.NO_COLOR;
+  process.env.NO_COLOR = "1";
+  try {
+    const out = formatKvPanel(
+      "repay init",
+      [
+        ["type", "already-exists"],
+        ["status", "not-created"],
+        ["target", "/tmp/app"],
+      ],
+      { stream },
+    );
+    assert.match(out, /repay init/);
+    assert.match(out, /already-exists/);
+    assert.match(out, /not-created/);
+  } finally {
+    if (prev === undefined) delete process.env.NO_COLOR;
+    else process.env.NO_COLOR = prev;
+  }
+});

@@ -325,29 +325,73 @@ function paintStatus(status) {
   const s = String(status ?? "");
   if (/ready|ok|complete|initialized/i.test(s)) return green(s);
   if (/broken|error|fail|unsafe/i.test(s)) return red(s);
-  if (/not-initialized|first-run|pending|partial|blocked/i.test(s)) return yellow(s);
+  if (
+    /not-initialized|not-created|not-configured|first-run|pending|partial|blocked|consent/i.test(s)
+  )
+    return yellow(s);
   return s;
 }
 
+/**
+ * Human panel title from emit payload type.
+ * @param {Record<string, unknown>} value
+ */
+function panelTitle(value) {
+  const type = String(value.type ?? "status");
+  if (type === "status" || type === "first-run" || type === "incomplete-memory")
+    return "repay status";
+  if (type === "initialized") return "repay init";
+  if (type === "already-exists" || type === "unsafe-symlink") return "repay init";
+  if (type === "consent-required") return "repay consent";
+  if (type === "memory-location-conflict") return "repay init";
+  if (type === "team-sharing-unavailable" || type === "team-memory-ignored") return "repay init";
+  if (type === "output-configured" || type === "output-configuration-not-needed")
+    return "repay output";
+  if (type.startsWith("recheck") || type === "search-claims" || type === "doctor")
+    return `repay ${type}`;
+  return `repay ${type}`;
+}
+
+/**
+ * @param {Record<string, any>} value
+ * @param {"json"|"table"} [format]
+ */
 function emit(value, format = "json") {
   if (format === "json") process.stdout.write(`${JSON.stringify(value, null, 2)}\n`);
   else {
     /** @type {Array<[string, string]>} */
     const rows = [
+      ["type", String(value.type ?? "")],
       ["status", paintStatus(value.status)],
       ["target", String(value.targetRoot ?? "")],
-      ["memory", String(value.memoryRoot ?? "")],
     ];
+    if (value.memoryRoot) rows.push(["memory", String(value.memoryRoot)]);
     if (value.outputRoot) rows.push(["workbook", String(value.outputRoot)]);
-    if (value.config) {
+    if (value.currentOutputRoot) rows.push(["workbook", String(value.currentOutputRoot)]);
+    if (value.proposedOutputRoot) rows.push(["proposed", String(value.proposedOutputRoot)]);
+    if (value.privateCacheRoot) rows.push(["cache", String(value.privateCacheRoot)]);
+    if (value.suggestedOutputRoot)
+      rows.push(["suggested workbook", String(value.suggestedOutputRoot)]);
+    if (value.config || value.proposedConfig) {
+      const cfg = value.config ?? value.proposedConfig;
       rows.push(
-        ["sharing", String(value.config.sharing)],
-        ["mode", String(value.config.defaults.mode)],
-        ["depth", String(value.config.defaults.lessonDepth)],
-        ["save", String(value.config.output.savePolicy)],
+        ["sharing", String(cfg.sharing)],
+        ["mode", String(cfg.defaults?.mode ?? "")],
+        ["depth", String(cfg.defaults?.lessonDepth ?? "")],
+        ["save", String(cfg.output?.savePolicy ?? "")],
       );
     }
+    if (Array.isArray(value.writes) && value.writes.length > 0) {
+      rows.push([
+        "writes",
+        value.writes.slice(0, 6).join(", ") + (value.writes.length > 6 ? "…" : ""),
+      ]);
+    }
+    if (Array.isArray(value.targetWrites) && value.targetWrites.length > 0) {
+      rows.push(["target writes", value.targetWrites.join(", ")]);
+    }
     if (typeof value.lessonCount === "number") rows.push(["lessons", String(value.lessonCount)]);
+    if (typeof value.copiedLessons === "number") rows.push(["copied", String(value.copiedLessons)]);
     if (typeof value.curriculumTopicCount === "number") {
       rows.push([
         "curriculum",
@@ -356,7 +400,7 @@ function emit(value, format = "json") {
     }
     for (const warning of value.warnings ?? []) rows.push(["warning", yellow(String(warning))]);
     if (value.requiredAction) rows.push(["next", String(value.requiredAction)]);
-    process.stdout.write(formatKvPanel("repay status", rows));
+    process.stdout.write(formatKvPanel(panelTitle(value), rows));
   }
 }
 
@@ -985,6 +1029,7 @@ async function init(targetRoot, initialOptions) {
   const options = initialOptions.interactive
     ? await askHumanWizard({ ...initialOptions })
     : initialOptions;
+  const format = options.format === "table" ? "table" : "json";
   const storageMode = storageModeFor(options);
   const paths = await resolveMemoryPaths(targetRoot, { storage: storageMode });
   const output = await proposedOutputRoot(targetRoot, options, paths.root);
@@ -993,77 +1038,98 @@ async function init(targetRoot, initialOptions) {
   const config = configFor(options, targetRoot, output);
   const git = await gitRepositoryStatus(targetRoot);
   if (paths.location.competingReady) {
-    emit({
-      type: "memory-location-conflict",
-      status: "not-created",
-      targetRoot,
-      memoryRoot: paths.root,
-      outputRoot: output.root,
-      requiredAction:
-        "Choose the authoritative existing memory location; do not create a second store.",
-    });
+    emit(
+      {
+        type: "memory-location-conflict",
+        status: "not-created",
+        targetRoot,
+        memoryRoot: paths.root,
+        outputRoot: output.root,
+        requiredAction:
+          "Choose the authoritative existing memory location; do not create a second store.",
+      },
+      format,
+    );
     process.exitCode = 2;
     return;
   }
   if (await pathExists(paths.root)) {
     const details = await lstat(paths.root);
     const type = details.isSymbolicLink() ? "unsafe-symlink" : "already-exists";
-    emit({ type, status: "not-created", targetRoot, memoryRoot: paths.root });
+    emit(
+      {
+        type,
+        status: "not-created",
+        targetRoot,
+        memoryRoot: paths.root,
+        requiredAction: "Memory already present. Use `repay status` or reconfig — not re-init.",
+      },
+      format,
+    );
     process.exitCode = 2;
     return;
   }
   if (config.sharing === "team" && !git.isRepository && !options["allow-non-git"]) {
-    emit({
-      type: "team-sharing-unavailable",
-      status: "not-created",
-      targetRoot,
-      git,
-      requiredAction:
-        "Choose private storage, initialize Git, or explicitly accept non-Git portability with --allow-non-git.",
-    });
+    emit(
+      {
+        type: "team-sharing-unavailable",
+        status: "not-created",
+        targetRoot,
+        git,
+        requiredAction:
+          "Choose private storage, initialize Git, or explicitly accept non-Git portability with --allow-non-git.",
+      },
+      format,
+    );
     process.exitCode = 2;
     return;
   }
   if (config.sharing === "team" && git.memoryIgnored) {
-    emit({
-      type: "team-memory-ignored",
-      status: "not-created",
-      targetRoot,
-      git,
-      requiredAction:
-        "Remove the applicable Git ignore rule or choose private storage before initializing.",
-    });
+    emit(
+      {
+        type: "team-memory-ignored",
+        status: "not-created",
+        targetRoot,
+        git,
+        requiredAction:
+          "Remove the applicable Git ignore rule or choose private storage before initializing.",
+      },
+      format,
+    );
     process.exitCode = 2;
     return;
   }
   if (!options.yes) {
-    emit({
-      type: "consent-required",
-      status: "not-created",
-      targetRoot,
-      memoryRoot: paths.root,
-      proposedConfig: config,
-      writes:
-        storageMode === "private"
-          ? [paths.root, ...(output.root === paths.root ? [] : [output.root])]
-          : [
-              `${MEMORY_DIRECTORY}/${CONFIG_FILE}`,
-              `${MEMORY_DIRECTORY}/decisions.md`,
-              `${MEMORY_DIRECTORY}/curriculum.md`,
-              `${MEMORY_DIRECTORY}/curriculum.json`,
-              `${MEMORY_DIRECTORY}/lessons/index.md`,
-              `${MEMORY_DIRECTORY}/artifacts/index.json`,
-              `.graphifyignore: add ${MEMORY_DIRECTORY}/`,
-              ...(config.sharing === "local" ? [`.gitignore: add ${MEMORY_DIRECTORY}/`] : []),
-              ...(output.root === paths.root ? [] : [output.root]),
-            ],
-      targetWrites: [
-        ...(storageMode === "private" ? [] : [MEMORY_DIRECTORY]),
-        ...(outputInsideTarget ? [relative(targetRoot, output.root).replaceAll("\\", "/")] : []),
-      ],
-      futureToolArtifactRoot: storageMode === "private" ? paths.location.cacheRoot : undefined,
-      requiredAction: "Obtain user approval, then rerun with the selected options and --yes.",
-    });
+    emit(
+      {
+        type: "consent-required",
+        status: "not-created",
+        targetRoot,
+        memoryRoot: paths.root,
+        proposedConfig: config,
+        writes:
+          storageMode === "private"
+            ? [paths.root, ...(output.root === paths.root ? [] : [output.root])]
+            : [
+                `${MEMORY_DIRECTORY}/${CONFIG_FILE}`,
+                `${MEMORY_DIRECTORY}/decisions.md`,
+                `${MEMORY_DIRECTORY}/curriculum.md`,
+                `${MEMORY_DIRECTORY}/curriculum.json`,
+                `${MEMORY_DIRECTORY}/lessons/index.md`,
+                `${MEMORY_DIRECTORY}/artifacts/index.json`,
+                `.graphifyignore: add ${MEMORY_DIRECTORY}/`,
+                ...(config.sharing === "local" ? [`.gitignore: add ${MEMORY_DIRECTORY}/`] : []),
+                ...(output.root === paths.root ? [] : [output.root]),
+              ],
+        targetWrites: [
+          ...(storageMode === "private" ? [] : [MEMORY_DIRECTORY]),
+          ...(outputInsideTarget ? [relative(targetRoot, output.root).replaceAll("\\", "/")] : []),
+        ],
+        futureToolArtifactRoot: storageMode === "private" ? paths.location.cacheRoot : undefined,
+        requiredAction: "Obtain user approval, then rerun with the selected options and --yes.",
+      },
+      format,
+    );
     process.exitCode = 2;
     return;
   }
@@ -1148,22 +1214,25 @@ async function init(targetRoot, initialOptions) {
     throw error;
   }
 
-  emit({
-    type: "initialized",
-    status: "ready",
-    targetRoot,
-    memoryRoot: paths.root,
-    outputRoot: output.root,
-    privateCacheRoot: paths.location.cacheRoot,
-    targetWrites: [
-      ...(storageMode === "private" ? [] : [MEMORY_DIRECTORY]),
-      ...(outputInsideTarget ? [relative(targetRoot, output.root).replaceAll("\\", "/")] : []),
-    ],
-    config,
-    git,
-    graphifyIgnoreUpdated,
-    gitignoreUpdated,
-  });
+  emit(
+    {
+      type: "initialized",
+      status: "ready",
+      targetRoot,
+      memoryRoot: paths.root,
+      outputRoot: output.root,
+      privateCacheRoot: paths.location.cacheRoot,
+      targetWrites: [
+        ...(storageMode === "private" ? [] : [MEMORY_DIRECTORY]),
+        ...(outputInsideTarget ? [relative(targetRoot, output.root).replaceAll("\\", "/")] : []),
+      ],
+      config,
+      git,
+      graphifyIgnoreUpdated,
+      gitignoreUpdated,
+    },
+    format,
+  );
 }
 
 function slugify(value) {

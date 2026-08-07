@@ -1,9 +1,10 @@
 import { formatTargetError, resolveTargetRoot } from "../src/foundations/targeting.js";
+import { formatKvPanel, green, yellow } from "../src/foundations/term.js";
 import { buildProgramModel, planAnalysis } from "../src/program/program-intelligence.js";
 
 function help() {
   process.stdout.write(`Usage:
-  node plan-analysis.js <target-root> [--mode pr|workbook|focused] [--focus <question-or-area>] [--scope <relative-path>] [--depth concise|balanced|deep] [--format json|summary-json|markdown] [--max-files <count>] [--max-manifest-files <count>] [--max-relation-files <count>] [--max-relation-bytes <count>]
+  node plan-analysis.js <target-root> [--mode pr|workbook|focused] [--focus <question-or-area>] [--scope <relative-path>] [--depth concise|balanced|deep] [--format json|summary-json|markdown|table] [--max-files <count>] [--max-manifest-files <count>] [--max-relation-files <count>] [--max-relation-bytes <count>]
 
 Profile the explicit target and emit an evidence-ranked, multi-zoom investigation plan. Tool
 fallbacks remain permission-gated; emitting a plan does not claim any enhanced tool succeeded.
@@ -50,8 +51,8 @@ function parse(argv) {
   if (positional.length > 1) throw new Error("Expected exactly one target root");
   if (!new Set(["pr", "workbook", "focused"]).has(options.mode))
     throw new Error("--mode must be pr, workbook, or focused");
-  if (!new Set(["json", "summary-json", "markdown"]).has(options.format))
-    throw new Error("--format must be json, summary-json, or markdown");
+  if (!new Set(["json", "summary-json", "markdown", "table"]).has(options.format))
+    throw new Error("--format must be json, summary-json, markdown, or table");
   if (!new Set(["concise", "balanced", "deep"]).has(options.depth))
     throw new Error("--depth must be concise, balanced, or deep");
   if (options.mode === "focused" && !options.focus)
@@ -140,6 +141,63 @@ function summaryJson(plan) {
   };
 }
 
+/**
+ * Compact human panel for repay plan default.
+ * @param {ReturnType<typeof summaryJson>} summary
+ */
+function table(summary) {
+  const cov = summary.coverage?.status ?? summary.coverageStatus ?? "unknown";
+  const covPaint = /ready|ok|full|complete/i.test(String(cov))
+    ? green(String(cov))
+    : yellow(String(cov));
+  /** @type {Array<[string, string]>} */
+  const rows = [
+    ["target", String(summary.target?.root ?? "")],
+    ["scope", String(summary.target?.scope ?? ".")],
+    ["mode", String(summary.request?.mode ?? "")],
+    ["depth", String(summary.request?.depth ?? "")],
+  ];
+  if (summary.request?.focus) rows.push(["focus", String(summary.request.focus)]);
+  rows.push(
+    ["coverage", covPaint],
+    [
+      "profile",
+      `${summary.profileSummary?.primaryArchetype ?? "?"} · ${(summary.profileSummary?.languages ?? []).join(", ") || "lang?"}`,
+    ],
+    ["investigations", String(summary.investigations?.length ?? 0)],
+  );
+  const top = (summary.investigations ?? []).slice(0, 5);
+  for (const item of top) {
+    const q = String(item.question ?? "").replace(/\s+/g, " ");
+    const short = q.length > 72 ? `${q.slice(0, 69)}…` : q;
+    rows.push([`#${item.priority} ${item.zoom}`, short]);
+  }
+  if ((summary.investigations?.length ?? 0) > top.length) {
+    rows.push(["more", `${summary.investigations.length - top.length} additional`]);
+  }
+  if (summary.blindSpots?.length) {
+    rows.push([
+      "blind spots",
+      summary.blindSpots
+        .slice(0, 3)
+        .map((b) => (typeof b === "string" ? b : String(b?.id ?? b?.code ?? b)))
+        .join("; "),
+    ]);
+  }
+  if (summary.nextAsks?.length) {
+    rows.push([
+      "next asks",
+      summary.nextAsks
+        .slice(0, 2)
+        .map((a) =>
+          typeof a === "string" ? a : `${a.who ?? "?"}: ${a.do ?? a.why ?? JSON.stringify(a)}`,
+        )
+        .join("; "),
+    ]);
+  }
+  return formatKvPanel("repay plan", rows);
+}
+
 try {
   const { targetInput, options } = parse(process.argv.slice(2));
   const target = await resolveTargetRoot(targetInput);
@@ -155,11 +213,15 @@ try {
     focus: options.focus,
     depth: options.depth,
   });
-  process.stdout.write(
-    options.format === "markdown"
-      ? markdown(plan)
-      : `${JSON.stringify(options.format === "summary-json" ? summaryJson(plan) : plan, null, 2)}\n`,
-  );
+  if (options.format === "markdown") {
+    process.stdout.write(markdown(plan));
+  } else if (options.format === "table") {
+    process.stdout.write(table(summaryJson(plan)));
+  } else {
+    process.stdout.write(
+      `${JSON.stringify(options.format === "summary-json" ? summaryJson(plan) : plan, null, 2)}\n`,
+    );
+  }
 } catch (error) {
   process.stderr.write(
     `${formatTargetError(error) ?? JSON.stringify({ type: "planning-failure", reason: error.message })}\n`,

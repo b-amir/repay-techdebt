@@ -53,6 +53,7 @@ const BOOLEAN_FLAGS = new Set(["--yes", "--interactive", "--allow-non-git", "--h
 
 /**
  * Spawn local script with inherit stdio. Optional label → dim lead-in + ✓/✗ trailer.
+ * Exit 2 (consent / already-exists) → yellow soft trailer; other non-zero → red.
  * (Spinner lives in child long work via createSpinner — inherit owns the TTY mid-run.)
  * @param {string} command
  * @param {string[]} args
@@ -74,7 +75,16 @@ function run(command, args, options = {}) {
         resolvePromise();
         return;
       }
-      if (label) stderr.write(`${red("✗", stderr)} ${label} (exit ${code ?? 1})\n`);
+      // Consent / already-exists are expected soft stops — not hard failure chrome.
+      if (label) {
+        if (code === 2) {
+          stderr.write(
+            `${paint("yellow", "!", stderr)} ${dim(label, stderr)} ${dim("(exit 2)", stderr)}\n`,
+          );
+        } else {
+          stderr.write(`${red("✗", stderr)} ${label} (exit ${code ?? 1})\n`);
+        }
+      }
       // Child already wrote diagnostics on stdio; preserve its exit code only.
       /** @type {Error & { exitCode?: number, silent?: boolean }} */
       const err = new Error(`exit ${code ?? 1}`);
@@ -264,7 +274,11 @@ async function initCommand(argv) {
   }
   const targetRoot = resolve(positionals[0] ?? cwd());
   const script = resolve(skillRoot, "scripts", "project-memory.js");
-  await run(process.execPath, [script, "init", targetRoot, ...flagArgs], {
+  const args = [script, "init", targetRoot, ...flagArgs];
+  if (!flagArgs.some((t) => t === "--format" || t.startsWith("--format="))) {
+    args.push("--format", "table");
+  }
+  await run(process.execPath, args, {
     label: `init ${targetRoot}`,
   });
 }
@@ -312,7 +326,7 @@ async function planCommand(argv) {
   // Avoid duplicate --focus if already present
   if (focus && !focusFromFlags) args.push("--focus", focus);
   if (!flagArgs.some((t) => t === "--format" || t.startsWith("--format="))) {
-    args.push("--format", "summary-json");
+    args.push("--format", "table");
   }
   await run(process.execPath, args, { label: `plan ${targetRoot}` });
 }
