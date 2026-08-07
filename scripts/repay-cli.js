@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
-import { cwd } from "node:process";
+import { cwd, stderr, stdout } from "node:process";
 import { parseArgs } from "node:util";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { isDirectCliInvocation } from "../src/foundations/cli-entry.js";
 import { resolveSkillRoot } from "../src/foundations/skill-locator.js";
+import { bold, cyan, dim, green, paint, red } from "../src/foundations/term.js";
 
 const entryPath = fileURLToPath(import.meta.url);
 const skillRoot = resolveSkillRoot(entryPath);
@@ -48,28 +49,38 @@ const ALLOWED_PLAN_FLAGS = new Set([
   "-h",
 ]);
 
-const BOOLEAN_FLAGS = new Set([
-  "--yes",
-  "--interactive",
-  "--allow-non-git",
-  "--help",
-  "-h",
-]);
+const BOOLEAN_FLAGS = new Set(["--yes", "--interactive", "--allow-non-git", "--help", "-h"]);
 
+/**
+ * Spawn local script with inherit stdio. Optional label → dim lead-in + ✓/✗ trailer.
+ * (Spinner lives in child long work via createSpinner — inherit owns the TTY mid-run.)
+ * @param {string} command
+ * @param {string[]} args
+ * @param {{ label?: string }} [options]
+ */
 function run(command, args, options = {}) {
+  const label = options.label;
+  if (label) stderr.write(`${dim("→", stderr)} ${dim(label, stderr)}\n`);
+
   return new Promise((resolvePromise, reject) => {
-    const child = spawn(command, args, { stdio: "inherit", shell: false, ...options });
-    child.on("error", reject);
-    child.on("close", (code) => {
-      if (code === 0) resolvePromise();
-      else {
-        // Child already wrote diagnostics on stdio; preserve its exit code only.
-        /** @type {Error & { exitCode?: number, silent?: boolean }} */
-        const err = new Error(`exit ${code ?? 1}`);
-        err.exitCode = code ?? 1;
-        err.silent = true;
-        reject(err);
+    const child = spawn(command, args, { stdio: "inherit", shell: false });
+    child.on("error", (/** @type {Error} */ error) => {
+      if (label) stderr.write(`${red("✗", stderr)} ${label}\n`);
+      reject(error);
+    });
+    child.on("close", (/** @type {number | null} */ code) => {
+      if (code === 0) {
+        if (label) stderr.write(`${green("✓", stderr)} ${label}\n`);
+        resolvePromise();
+        return;
       }
+      if (label) stderr.write(`${red("✗", stderr)} ${label} (exit ${code ?? 1})\n`);
+      // Child already wrote diagnostics on stdio; preserve its exit code only.
+      /** @type {Error & { exitCode?: number, silent?: boolean }} */
+      const err = new Error(`exit ${code ?? 1}`);
+      err.exitCode = code ?? 1;
+      err.silent = true;
+      reject(err);
     });
   });
 }
@@ -98,9 +109,7 @@ export function sanitizeArgs(rest, allowedFlags) {
     if (token.startsWith("-")) {
       const flag = token.includes("=") ? token.slice(0, token.indexOf("=")) : token;
       if (!allowedFlags.has(flag)) {
-        throw new Error(
-          `Rejected unknown flag: ${flag}. Allowed: ${[...allowedFlags].join(" ")}`,
-        );
+        throw new Error(`Rejected unknown flag: ${flag}. Allowed: ${[...allowedFlags].join(" ")}`);
       }
       out.push(token);
       if (
@@ -124,33 +133,54 @@ export function sanitizeArgs(rest, allowedFlags) {
 
 /** @deprecated use sanitizeArgs — kept for older tests */
 export function sanitizeInvokeArgs(rest) {
-  return sanitizeArgs(rest, new Set([...ALLOWED_INIT_FLAGS, ...ALLOWED_PLAN_FLAGS, "--task", "--view", "--create", "--clear-output", "--clear-cache", "--reset", "--reconfig", "--keep-lessons", "--keep-config", "--revert-target-markers", "--dry-run", "--workbook"]));
+  return sanitizeArgs(
+    rest,
+    new Set([
+      ...ALLOWED_INIT_FLAGS,
+      ...ALLOWED_PLAN_FLAGS,
+      "--task",
+      "--view",
+      "--create",
+      "--clear-output",
+      "--clear-cache",
+      "--reset",
+      "--reconfig",
+      "--keep-lessons",
+      "--keep-config",
+      "--revert-target-markers",
+      "--dry-run",
+      "--workbook",
+    ]),
+  );
 }
 
 function printHelp() {
-  process.stdout.write(`Usage:
-  repay view [<target-root>] [--open] [--port <n>] [--lesson <lessons/...>]
-  repay init [<target-root>] [init flags…]
-  repay plan [<target-root>] [<focus…>] [--mode pr|workbook|focused] [--depth …] [--scope …]
-  repay status [<target-root>]
-  repay --help
-
-Local skill scripts only — no remote skills CLI.
-
-  view    Workbook browser UI (scripts/view-lessons.js)
-  init    Project memory setup (scripts/project-memory.js init)
-  plan    Evidence-ranked investigation plan (scripts/plan-analysis.js)
-  status  Read-only memory health (scripts/project-memory.js status)
-
-init mutations need --yes (or --interactive for a terminal wizard).
-plan is read-only analysis of the target.
-
-Examples:
-  repay init --yes
-  repay plan "auth from request boundary to data access"
-  repay plan ./apps/web --mode focused --depth balanced
-  repay view --open
-`);
+  const pipe = dim("│");
+  const head = `${paint(["bold", "cyan"], "repay")} ${dim("— Local skill scripts only")}`;
+  stdout.write(`${head}\n`);
+  stdout.write(`${pipe}\n`);
+  stdout.write(`${pipe} ${bold("Usage")}\n`);
+  stdout.write(`${pipe}   repay view   [<target-root>] [--open] [--port <n>] [--lesson …]\n`);
+  stdout.write(`${pipe}   repay init   [<target-root>] [init flags…]\n`);
+  stdout.write(`${pipe}   repay plan   [<target-root>] [<focus…>] [--mode …] [--depth …]\n`);
+  stdout.write(`${pipe}   repay status [<target-root>]\n`);
+  stdout.write(`${pipe}   repay --help\n`);
+  stdout.write(`${pipe}\n`);
+  stdout.write(`${pipe} ${bold("Commands")}\n`);
+  stdout.write(`${pipe}   ${cyan("view")}    Workbook browser UI\n`);
+  stdout.write(`${pipe}   ${cyan("init")}    Project memory setup\n`);
+  stdout.write(`${pipe}   ${cyan("plan")}    Evidence-ranked investigation plan\n`);
+  stdout.write(`${pipe}   ${cyan("status")}  Read-only memory health\n`);
+  stdout.write(`${pipe}\n`);
+  stdout.write(`${pipe} ${dim("init needs --yes (or --interactive). plan is read-only.")}\n`);
+  stdout.write(`${pipe}\n`);
+  stdout.write(`${pipe} ${bold("Examples")}\n`);
+  stdout.write(`${pipe}   ${dim("repay init --yes")}\n`);
+  stdout.write(`${pipe}   ${dim('repay plan "auth from request boundary to data access"')}\n`);
+  stdout.write(`${pipe}   ${dim("repay plan ./apps/web --mode focused --depth balanced")}\n`);
+  stdout.write(`${pipe}   ${dim("repay view --open")}\n`);
+  stdout.write(`${pipe}   ${dim("repay status")}\n`);
+  stdout.write(`${dim("╰")}\n`);
 }
 
 /**
@@ -202,7 +232,7 @@ async function viewCommand(argv) {
   if (values.open) args.push("--open");
   if (typeof values.lesson === "string") args.push("--lesson", values.lesson);
 
-  await run(process.execPath, args);
+  await run(process.execPath, args, { label: "open workbook viewer" });
 }
 
 async function initCommand(argv) {
@@ -234,7 +264,9 @@ async function initCommand(argv) {
   }
   const targetRoot = resolve(positionals[0] ?? cwd());
   const script = resolve(skillRoot, "scripts", "project-memory.js");
-  await run(process.execPath, [script, "init", targetRoot, ...flagArgs]);
+  await run(process.execPath, [script, "init", targetRoot, ...flagArgs], {
+    label: `init ${targetRoot}`,
+  });
 }
 
 async function planCommand(argv) {
@@ -282,13 +314,15 @@ async function planCommand(argv) {
   if (!flagArgs.some((t) => t === "--format" || t.startsWith("--format="))) {
     args.push("--format", "summary-json");
   }
-  await run(process.execPath, args);
+  await run(process.execPath, args, { label: `plan ${targetRoot}` });
 }
 
 async function statusCommand(argv) {
   const targetRoot = resolve(argv.find((t) => !t.startsWith("-")) ?? cwd());
   const script = resolve(skillRoot, "scripts", "project-memory.js");
-  await run(process.execPath, [script, "status", targetRoot, "--format", "table"]);
+  await run(process.execPath, [script, "status", targetRoot, "--format", "table"], {
+    label: `status ${targetRoot}`,
+  });
 }
 
 export async function main() {
@@ -311,13 +345,13 @@ export async function main() {
     } else if (command === "status") {
       await statusCommand(rest);
     } else {
-      process.stderr.write(`Unknown command: ${command}\n`);
+      stderr.write(`${red("✗", stderr)} Unknown command: ${command}\n`);
       printHelp();
       process.exitCode = 1;
     }
   } catch (error) {
     const err = /** @type {Error & { exitCode?: number, silent?: boolean }} */ (error);
-    if (!err.silent) process.stderr.write(`${err.message}\n`);
+    if (!err.silent) stderr.write(`${red("✗", stderr)} ${err.message}\n`);
     process.exitCode = err.exitCode ?? 1;
   }
 }

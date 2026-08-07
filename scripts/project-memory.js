@@ -26,6 +26,7 @@ import {
   projectStoragePaths,
 } from "../src/foundations/private-storage.js";
 import { resolveMemoryPaths } from "../src/foundations/memory-paths.js";
+import { formatKvPanel, green, red, yellow } from "../src/foundations/term.js";
 import { computeEvidenceDigests } from "../src/memory/curriculum-refresh.js";
 import { readCurriculum, writeCurriculum } from "../src/memory/curriculum-store.js";
 import { renderCurriculumMarkdown } from "../src/curriculum/curriculum-planning.js";
@@ -317,24 +318,45 @@ async function readConfig(paths) {
   return validateConfig(JSON.parse(await readFile(paths.config, "utf8")));
 }
 
+/**
+ * @param {string} status
+ */
+function paintStatus(status) {
+  const s = String(status ?? "");
+  if (/ready|ok|complete|initialized/i.test(s)) return green(s);
+  if (/broken|error|fail|unsafe/i.test(s)) return red(s);
+  if (/not-initialized|first-run|pending|partial|blocked/i.test(s)) return yellow(s);
+  return s;
+}
+
 function emit(value, format = "json") {
   if (format === "json") process.stdout.write(`${JSON.stringify(value, null, 2)}\n`);
   else {
-    process.stdout.write(`Project memory: ${value.status}\n`);
-    process.stdout.write(`Target: ${value.targetRoot}\n`);
-    process.stdout.write(`Location: ${value.memoryRoot}\n`);
-    if (value.outputRoot) process.stdout.write(`Workbook: ${value.outputRoot}\n`);
-    if (value.config)
-      process.stdout.write(
-        `Sharing: ${value.config.sharing}; mode: ${value.config.defaults.mode}; lesson depth: ${value.config.defaults.lessonDepth}; save policy: ${value.config.output.savePolicy}\n`,
+    /** @type {Array<[string, string]>} */
+    const rows = [
+      ["status", paintStatus(value.status)],
+      ["target", String(value.targetRoot ?? "")],
+      ["memory", String(value.memoryRoot ?? "")],
+    ];
+    if (value.outputRoot) rows.push(["workbook", String(value.outputRoot)]);
+    if (value.config) {
+      rows.push(
+        ["sharing", String(value.config.sharing)],
+        ["mode", String(value.config.defaults.mode)],
+        ["depth", String(value.config.defaults.lessonDepth)],
+        ["save", String(value.config.output.savePolicy)],
       );
-    if (typeof value.lessonCount === "number")
-      process.stdout.write(`Saved lessons: ${value.lessonCount}\n`);
-    if (typeof value.curriculumTopicCount === "number")
-      process.stdout.write(
-        `Curriculum: ${value.curriculumTopicCount} topics; ${value.pendingTopicCount} planned\n`,
-      );
-    for (const warning of value.warnings ?? []) process.stdout.write(`Warning: ${warning}\n`);
+    }
+    if (typeof value.lessonCount === "number") rows.push(["lessons", String(value.lessonCount)]);
+    if (typeof value.curriculumTopicCount === "number") {
+      rows.push([
+        "curriculum",
+        `${value.curriculumTopicCount} topics · ${value.pendingTopicCount} planned`,
+      ]);
+    }
+    for (const warning of value.warnings ?? []) rows.push(["warning", yellow(String(warning))]);
+    if (value.requiredAction) rows.push(["next", String(value.requiredAction)]);
+    process.stdout.write(formatKvPanel("repay status", rows));
   }
 }
 

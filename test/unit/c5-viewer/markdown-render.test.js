@@ -1,10 +1,7 @@
 // @category C5
 import assert from "node:assert/strict";
 import { test } from "vite-plus/test";
-import {
-  renderMarkdown,
-  prepareLessonMarkdown,
-} from "../../../src/viewer/markdown-render.js";
+import { renderMarkdown, prepareLessonMarkdown } from "../../../src/viewer/markdown-render.js";
 import { renderLesson } from "../../../src/viewer/shell.js";
 
 test("renderMarkdown renders GFM tables", () => {

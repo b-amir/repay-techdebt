@@ -77,7 +77,10 @@ test("main column stays measure-limited and centered (no TOC expand, zen hides r
     css,
     /\.ds-layout-toc\s+\.ds-main-inner:has\(\.ds-plaque\)\s*\{\s*max-width:\s*none/,
   );
-  assert.match(css, /\.ds-main-inner:has\(\.ds-plaque\)\s*\{[\s\S]*?max-width:\s*var\(--lesson-measure\)/);
+  assert.match(
+    css,
+    /\.ds-main-inner:has\(\.ds-plaque\)\s*\{[\s\S]*?max-width:\s*var\(--lesson-measure\)/,
+  );
   assert.match(css, /\.ds-main-inner\s*\{[\s\S]*?margin-inline:\s*auto/);
   // zen must remove rails from flow, not only opacity:0
   assert.match(css, /html\[data-focus="on"\]\s+\.ds-rail[\s\S]*?display:\s*none/);

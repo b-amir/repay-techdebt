@@ -51,10 +51,7 @@ test("sanitizeArgs allowlists flags and keeps positionals", () => {
     "../app",
   ]);
   assert.throws(() => sanitizeArgs(["--eval", "1"], allowed), /Rejected unknown flag/);
-  assert.throws(
-    () => sanitizeArgs(["--focus", "plan\n--evil"], allowed),
-    /control characters/,
-  );
+  assert.throws(() => sanitizeArgs(["--focus", "plan\n--evil"], allowed), /control characters/);
 });
 
 test("sanitizeInvokeArgs remains exported for compatibility", () => {

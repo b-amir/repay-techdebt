@@ -1356,7 +1356,11 @@ html[data-theme="dark"] .ds-settings-panel {
   color: var(--text-secondary);
   cursor: pointer;
   opacity: 0.85;
-  transition: opacity 120ms ease, color 120ms ease, border-color 120ms ease, background 120ms ease;
+  transition:
+    opacity 120ms ease,
+    color 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease;
 }
 
 .ds-mermaid-wrap:hover .ds-mermaid-expand,

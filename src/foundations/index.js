@@ -17,3 +17,18 @@ export {
 } from "./private-storage.js";
 
 export { MEMORY_CONFIG_FILE, memoryPaths, resolveMemoryPaths } from "./memory-paths.js";
+
+export {
+  colorEnabled,
+  paint,
+  dim,
+  bold,
+  cyan,
+  green,
+  yellow,
+  red,
+  magenta,
+  formatKvPanel,
+  formatBanner,
+  createSpinner,
+} from "./term.js";
