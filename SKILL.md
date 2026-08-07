@@ -40,14 +40,14 @@ source ranking, mode paths, and B0–B6 checkpoint asks. Scripts return proposal
 
 Full model: `<skill-root>/docs/security.md`.
 
-| Surface | What runs | Gate |
-| ------- | --------- | ---- |
-| Skill deps | `pnpm install` in **`<skill-root>` only** | `--ignore-scripts`; `--frozen-lockfile` when lock present; never target app |
-| PATH shim | `~/.local/bin/repay` | **Off** unless `REPAY_LINK_CLI=1` / `--link-cli` |
-| Runtime evidence | optional shell capture | mandatory `--consent`; refuse without it |
-| Optional tools | graphifyy / serena / semgrep | suggest install only; never silent target install |
-| Viewer | loopback HTTP | `127.0.0.1` only; path sandbox; Markdown `html:false` |
-| CLI `init`/`plan`/`view` | local scripts only | flag allowlist; `shell:false`; no remote `skills` invoke |
+| Surface                  | What runs                                 | Gate                                                                        |
+| ------------------------ | ----------------------------------------- | --------------------------------------------------------------------------- |
+| Skill deps               | `pnpm install` in **`<skill-root>` only** | `--ignore-scripts`; `--frozen-lockfile` when lock present; never target app |
+| PATH shim                | `~/.local/bin/repay`                      | **Off** unless `REPAY_LINK_CLI=1` / `--link-cli`                            |
+| Runtime evidence         | optional shell capture                    | mandatory `--consent`; refuse without it                                    |
+| Optional tools           | graphifyy / serena / semgrep              | suggest install only; never silent target install                           |
+| Viewer                   | loopback HTTP                             | `127.0.0.1` only; path sandbox; Markdown `html:false`                       |
+| CLI `init`/`plan`/`view` | local scripts only                        | flag allowlist; `shell:false`; no remote `skills` invoke                    |
 
 No telemetry. No outbound upload of target source.
 

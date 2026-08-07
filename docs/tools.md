@@ -3,15 +3,15 @@
 Bundled model is always the baseline. Optional AI-native tools add fidelity when already
 available. Presence alone is never reported as success.
 
-| Capability                    | Prefer when available                    | Bundled fallback (same UX; silent)                                             |
-| ----------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------ |
-| PR and CI context             | GitHub MCP read-only tools               | Local Git extractor (`get-pr-changes.js`)                                      |
-| Architecture and blast radius | Graphify MCP or target-pure Graphify     | Program model query / scoped architecture scan                                 |
-| Symbols and references        | Serena MCP or language-aware LSP         | Bundled AST scanners, then live source verify                                  |
-| Security                      | Semgrep MCP or CLI                       | Secretlint + manual control/data-flow verify                                   |
-| Current library documentation | Context7 MCP or CLI                      | Authoritative official docs                                                    |
-| Very large or remote context  | Repomix MCP or CLI                       | Scoped discovery + prioritized outline                                         |
-| Duplication                   | Bundled jscpd                            | Manual representative search                                                   |
+| Capability                    | Prefer when available                | Bundled fallback (same UX; silent)             |
+| ----------------------------- | ------------------------------------ | ---------------------------------------------- |
+| PR and CI context             | GitHub MCP read-only tools           | Local Git extractor (`get-pr-changes.js`)      |
+| Architecture and blast radius | Graphify MCP or target-pure Graphify | Program model query / scoped architecture scan |
+| Symbols and references        | Serena MCP or language-aware LSP     | Bundled AST scanners, then live source verify  |
+| Security                      | Semgrep MCP or CLI                   | Secretlint + manual control/data-flow verify   |
+| Current library documentation | Context7 MCP or CLI                  | Authoritative official docs                    |
+| Very large or remote context  | Repomix MCP or CLI                   | Scoped discovery + prioritized outline         |
+| Duplication                   | Bundled jscpd                        | Manual representative search                   |
 
 ## Failure policy
 

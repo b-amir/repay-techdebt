@@ -79,7 +79,6 @@ Step-by-step control flow: **[docs/how-it-works.md](docs/how-it-works.md)**.
 | [docs/security.md](docs/security.md)         | Trust boundaries and consent gates                      |
 | [docs/develop.md](docs/develop.md)           | Repo map, `vp test`, local install                      |
 
-
 ## Agent notes
 
 Works with Codex, Claude Code, Cursor, OpenCode, Antigravity, and other agents that load

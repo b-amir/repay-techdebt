@@ -142,10 +142,10 @@ Agents follow `templates/agent-experience.md`: **progress table** at top, **`###
 important asks, one blank line between tables, ≤25 words status on routine turns, ≤60 on asks,
 `👉 Reply` when needed. See `SKILL.md`.
 
-| Path        | Reply              | Defaults / behavior                                                                 |
-| ----------- | ------------------ | ----------------------------------------------------------------------------------- |
-| **Fast**    | `fast` (`express`) | private + sister workbook + mode `workbook` + depth `balanced` + save `automatic`   |
-| **Control** | `control`          | Full settings tables; save-policy often `ask` unless user chooses automatic         |
+| Path        | Reply              | Defaults / behavior                                                               |
+| ----------- | ------------------ | --------------------------------------------------------------------------------- |
+| **Fast**    | `fast` (`express`) | private + sister workbook + mode `workbook` + depth `balanced` + save `automatic` |
+| **Control** | `control`          | Full settings tables; save-policy often `ask` unless user chooses automatic       |
 
 Fast auto-saves and auto-opens the viewer after the batch rule (`openRecommended`).
 

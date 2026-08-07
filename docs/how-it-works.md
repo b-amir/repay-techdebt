@@ -183,10 +183,10 @@ node <skill-root>/scripts/project-memory.js status <target-root> --format json
 
 First-run paths (see `templates/introduction-wizard.md`):
 
-| Path        | User reply        | Init defaults                                                                 |
-| ----------- | ----------------- | ----------------------------------------------------------------------------- |
+| Path        | User reply         | Init defaults                                                                                   |
+| ----------- | ------------------ | ----------------------------------------------------------------------------------------------- |
 | **Fast**    | `fast` (`express`) | private memory, sister workbook, `--mode workbook`, depth `balanced`, `--save-policy automatic` |
-| **Control** | `control`         | Full option tables; defaults often mode `ask`, save-policy `ask` unless chosen |
+| **Control** | `control`          | Full option tables; defaults often mode `ask`, save-policy `ask` unless chosen                  |
 
 | Condition                                        | Branch                              |
 | ------------------------------------------------ | ----------------------------------- |
@@ -253,12 +253,12 @@ node <skill-root>/scripts/plan-analysis.js <target-root> \
 node <skill-root>/scripts/check-capabilities.js <target-root> --format table
 ```
 
-| Condition                            | Branch                                                                                          |
-| ------------------------------------ | ----------------------------------------------------------------------------------------------- |
-| Tool `ready`                         | May attempt functionally                                                                        |
-| `missing` / `needs-setup` / `broken` | Do **not** claim it ran; use named bundled fallback silently; ask only for install/config      |
-| Checker itself throws                | **exit 1**                                                                                      |
-| Missing tools alone                  | Does **not** exit 2 — report only                                                               |
+| Condition                            | Branch                                                                                    |
+| ------------------------------------ | ----------------------------------------------------------------------------------------- |
+| Tool `ready`                         | May attempt functionally                                                                  |
+| `missing` / `needs-setup` / `broken` | Do **not** claim it ran; use named bundled fallback silently; ask only for install/config |
+| Checker itself throws                | **exit 1**                                                                                |
+| Missing tools alone                  | Does **not** exit 2 — report only                                                         |
 
 Bundled profiler success ≠ Graphify / Serena / Semgrep / Context7 success. See [tools.md](tools.md).
 
@@ -570,16 +570,16 @@ flowchart LR
   end
 ```
 
-| Checkpoint           | Ask (agent)                                 | Floor (script)                    | Sense                            |
-| -------------------- | ------------------------------------------- | --------------------------------- | -------------------------------- |
-| **B0** Purpose       | ACCEPT \| UNRESOLVED                        | `purposeStatus` on approval       | Concrete anchor or unresolved    |
-| **B1** Stack         | Confirm/correct languages/frameworks        | Packs ⊆ registry                  | Corrections in ledger            |
-| **B2** Inventory     | ≤5 retrieve questions from blindSpots       | Envelope fields present           | Questions tool-ready             |
-| **B5** Relations     | Who calls / calls what / registered / fails | Anchors verified; gaps named      | ≤3 anchors verified or gap named |
-| **B3** Subjects      | SHORTLIST + corroborate heuristics          | `agentApproval` gate              | Shortlist ≠ scanner top-N        |
-| **B4a** Curriculum   | Order + split omnibus                       | Topic floors + omnibus reject     | One outcome per topic            |
-| **B4b** Lesson craft | PRIMM without empty headings                | `check-lesson-quality`            | Semantic checklist               |
-| **B6** Evidence      | CLAIMS decomposition                        | evidence + faithfulness           | Claim↔snippet support            |
+| Checkpoint           | Ask (agent)                                 | Floor (script)                | Sense                            |
+| -------------------- | ------------------------------------------- | ----------------------------- | -------------------------------- |
+| **B0** Purpose       | ACCEPT \| UNRESOLVED                        | `purposeStatus` on approval   | Concrete anchor or unresolved    |
+| **B1** Stack         | Confirm/correct languages/frameworks        | Packs ⊆ registry              | Corrections in ledger            |
+| **B2** Inventory     | ≤5 retrieve questions from blindSpots       | Envelope fields present       | Questions tool-ready             |
+| **B5** Relations     | Who calls / calls what / registered / fails | Anchors verified; gaps named  | ≤3 anchors verified or gap named |
+| **B3** Subjects      | SHORTLIST + corroborate heuristics          | `agentApproval` gate          | Shortlist ≠ scanner top-N        |
+| **B4a** Curriculum   | Order + split omnibus                       | Topic floors + omnibus reject | One outcome per topic            |
+| **B4b** Lesson craft | PRIMM without empty headings                | `check-lesson-quality`        | Semantic checklist               |
+| **B6** Evidence      | CLAIMS decomposition                        | evidence + faithfulness       | Claim↔snippet support            |
 
 `check-trajectory.js` / `validateTrajectory`:
 
@@ -599,10 +599,10 @@ Conformance (`run-conformance.js`) also validates a workbook trajectory stub aft
 
 ## 9. Exit code convention
 
-| Code  | Meaning                                                                                                                                           |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **0** | Success (or help / stub printed)                                                                                                                  |
-| **1** | Usage / target / unexpected throw                                                                                                                 |
+| Code  | Meaning                                                                                                                          |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **0** | Success (or help / stub printed)                                                                                                 |
+| **1** | Usage / target / unexpected throw                                                                                                |
 | **2** | Expected control-flow gate: consent, quality/evidence/faithfulness fail, hard tool-failure, incomplete memory, runtime not ready |
 
 ---
@@ -685,18 +685,18 @@ Also present (ops / deeper retrieve): `plan-runtime-evidence.js`, `collect-runti
 
 ## 13. Agent-only vs script-enforced
 
-| Rule                                       | Enforced by                      |
-| ------------------------------------------ | -------------------------------- |
-| Read dialogue/checkpoints at activation    | Agent                            |
-| ≤1 investigate / ≤1 rewrite caps           | Agent                            |
-| Silent bundled fallback; ask only install  | Agent                            |
-| Honor `savePolicy=ask` before `--yes`      | Agent                            |
-| Mini-curriculum before PR/focused save     | Agent (script links via topic-id)|
-| Pick focused vs workbook from user intent  | Agent                            |
-| `agentApproval` fields                     | Script on `save-curriculum`      |
-| Citation / quality / explicit faithfulness | Script on checks + `save-lesson` |
-| find-patterns `--scope`/`--all`            | Script                           |
-| Target≠skill                               | Script                           |
-| Consent `--yes` on mutations               | Script                           |
+| Rule                                       | Enforced by                       |
+| ------------------------------------------ | --------------------------------- |
+| Read dialogue/checkpoints at activation    | Agent                             |
+| ≤1 investigate / ≤1 rewrite caps           | Agent                             |
+| Silent bundled fallback; ask only install  | Agent                             |
+| Honor `savePolicy=ask` before `--yes`      | Agent                             |
+| Mini-curriculum before PR/focused save     | Agent (script links via topic-id) |
+| Pick focused vs workbook from user intent  | Agent                             |
+| `agentApproval` fields                     | Script on `save-curriculum`       |
+| Citation / quality / explicit faithfulness | Script on checks + `save-lesson`  |
+| find-patterns `--scope`/`--all`            | Script                            |
+| Target≠skill                               | Script                            |
+| Consent `--yes` on mutations               | Script                            |
 
 If a branch matters for safety (consent, secrets, citations, approval), it is script-enforced. If it matters for teaching quality beyond floors, the agent owns the sense step—and may still ship with named gaps after the rewrite budget is spent.

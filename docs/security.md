@@ -7,13 +7,13 @@ the default path.
 
 ## Trust boundaries
 
-| Boundary                        | Policy                                                                                                                                           |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Target application repo         | Read-only analysis by default. Writes only under consented workbook / `.repay-techdebt/` / private store.                                        |
-| Skill root (`SKILL.md` package) | May run `pnpm install` here when `node_modules` is missing.                                                                                      |
-| User home                       | Optional PATH shim for `repay` CLI — **opt-in only**.                                                                                            |
-| Network                         | Bundled dep install (skill lockfile); optional user-consented analyzer installs (`uv tool …`). CLI never calls remote `skills` invoke.          |
-| Browser viewer                  | Loopback `127.0.0.1` only; Markdown rendered with `html:false`; path sandbox on lesson files.                                                    |
+| Boundary                        | Policy                                                                                                                                 |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Target application repo         | Read-only analysis by default. Writes only under consented workbook / `.repay-techdebt/` / private store.                              |
+| Skill root (`SKILL.md` package) | May run `pnpm install` here when `node_modules` is missing.                                                                            |
+| User home                       | Optional PATH shim for `repay` CLI — **opt-in only**.                                                                                  |
+| Network                         | Bundled dep install (skill lockfile); optional user-consented analyzer installs (`uv tool …`). CLI never calls remote `skills` invoke. |
+| Browser viewer                  | Loopback `127.0.0.1` only; Markdown rendered with `html:false`; path sandbox on lesson files.                                          |
 
 ## Sensitive surfaces and mitigations
 
