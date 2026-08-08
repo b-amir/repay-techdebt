@@ -25,8 +25,8 @@ Every handoff between scripts and the agent is structured JSON with a defined sc
 
 ### 1. Curriculum proposal → Agent shortlist
 
-- **Script (proposes):** Scans the project and emits a JSON list of topics (`proposals`), identifying relationships (`evidence`), and suggesting what to cover (`nextAsks`).
-- **Agent (judges):** Evaluates the proposal against the learner's purpose. Emits a structured JSON with `acceptedIds` for the topics to keep and `decisions` for the reasoning.
+- **Script (proposes):** Scans the project and emits a JSON list of topics (`proposals`), identifying relationships (`evidence`), and suggesting what to cover (`nextAsks`). Titles/outcomes are path-unique placeholders — not finished INDEX copy.
+- **Agent (judges):** Evaluates the proposal against the learner's purpose. Rewrites each kept topic's `title` and `learnerOutcome` from live source (mechanism-specific, non-repetitive). Emits keep/demote/add + rewritten fields + `agentApproval`.
 
 ### 2. Evidence packet → Agent draft
 

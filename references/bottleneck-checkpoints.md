@@ -48,20 +48,33 @@ questions (symbol/path/workflow).
 **Ask:** `SHORTLIST` keep/demote/add. Each keep: one sentence why it enables a safe change.
 Corroborate naming-heuristic IDs or demote.
 
-**Floor:** `agentApproval` + corroboration gate (existing).
+**Titles (agent judgment):** plan-curriculum `title` / `learnerOutcome` are path-unique
+placeholders. Before save-curriculum / teach, rewrite kept rows from live source:
 
-**Sense:** shortlist ≠ scanner top-N; includes a critical flow when purpose is known.
+- Name the mechanism or decision (symbol, screen, contract) — not folder genre or chapter.
+- Same chapter: do not reuse one sentence stem with only the basename swapped (classic fail:
+  `Trace the data lifecycle through X` × N, `Understand the role of X` × N).
+- Prefer `How X does Y` / consequence lines when evidence allows. Keep product context on
+  generic basenames (`Chat store types`, not `Types`).
+- Sense check: skim INDEX — each line stands alone; three shared stems → rewrite.
+
+**Floor:** `agentApproval` + corroboration gate (existing). No hard title regex on save —
+taste is the agent's job.
+
+**Sense:** shortlist ≠ scanner top-N; critical flow present when purpose known; INDEX reads
+hand-written, not stamped.
 
 ---
 
 ## B4a — Curriculum design
 
 **Ask:** Is study order purpose → flow → ownership → mechanism? Split/demote omnibus topics.
+Re-check title diversity after demotions (B3 title rules).
 
 **Floor:** topic count / chapter diversity on save; omnibus titles (`whole app` / `complete overview`)
 rejected by `agentApproval` validation.
 
-**Sense:** each outcome is one skill; INDEX is skimmable.
+**Sense:** each outcome is one skill; INDEX is skimmable without identical sentence stems.
 
 ---
 

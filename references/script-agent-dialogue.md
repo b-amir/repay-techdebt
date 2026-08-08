@@ -158,8 +158,10 @@ under chapter **Recent teaching**.
 Script inventory ↔ Agent purpose
 Retrieve: graph hubs / critical workflows (agent questions)
 Agent: note what naming heuristics miss (DI, events, odd package names)
-Script: plan-curriculum.js … --format json (Inventory / Propose)
-Agent: SHORTLIST approve/demote/add — stamp agentApproval (Selection)
+Script: plan-curriculum.js … --format json (Inventory / Propose; titles = path placeholders)
+Agent: SHORTLIST approve/demote/add + **rewrite titles/outcomes from source** (Selection / taste)
+      — B3 title judgment in bottleneck-checkpoints.md
+Agent: stamp agentApproval on the rewritten curriculum JSON
 Script: project-memory.js save-curriculum … --input <approved.json> --yes (Save)
 Loop 1–3 lessons/run: plan-lesson (Propose) ↔ draft (Quality) ↔ check-lesson-quality (Mechanical QA) ↔ semantic (Quality judgment) ↔ save-lesson (Save)
 Agent: index + ledger; stop (resume next session)

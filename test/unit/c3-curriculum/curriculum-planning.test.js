@@ -71,10 +71,7 @@ test("written curriculum topics become lesson links", () => {
   curriculum.topics[0].status = "written";
   curriculum.topics[0].lessonPath = "lessons/customer-checkout.md";
   const markdown = renderCurriculumMarkdown(curriculum);
-  assert.match(
-    markdown,
-    /\[Trace the Customer checkout workflow\]\(lessons\/customer-checkout\.md\)/,
-  );
+  assert.match(markdown, /\[Customer checkout\]\(lessons\/customer-checkout\.md\)/);
   assert.match(markdown, /1 lesson is written/);
 });
 

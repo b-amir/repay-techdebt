@@ -9,6 +9,17 @@ One lesson teaches one durable mental model, decision, flow, or mechanism. If th
 to join two independently useful topics, split it. Code generation, API ownership, cache
 invalidation, and handwritten contract drift are four lessons, not four sections in one chapter.
 
+## Topic titles (INDEX + lesson frontmatter)
+
+Script titles are path placeholders. Agent owns final INDEX + lesson titles:
+
+1. Read focus path (+ 1–2 anchors). Name mechanism, not folder genre.
+2. Prefer `How <subject> <verb phrase>` or a concrete consequence. Reject monotony: same stem
+   with only basename swapped (e.g. `Trace the data lifecycle through X` across a chapter).
+3. Product context on generic basenames (`Chat store types`, not `Types`).
+4. Lesson `title` frontmatter = `H1` = INDEX link text.
+5. After rename, skim chapter: three shared stems → rewrite.
+
 Default size:
 
 - concise: 250–650 words;

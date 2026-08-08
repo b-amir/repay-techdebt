@@ -27,6 +27,98 @@ function words(value) {
     .trim();
 }
 
+/** Path roots that add no product meaning in titles. */
+const PATH_NOISE =
+  /^(?:app|apps|src|lib|packages?|pkg|client|server|www|web|frontend|backend|internal|shared|common|core)$/i;
+
+/**
+ * Layout folders that group code but rarely belong in a scannable title
+ * (keep the product noun: Auth, Chat, Users).
+ */
+const PATH_STRUCTURAL =
+  /^(?:domains?|features?|modules?|components?|containers?|pages?|routes?|views?|screens?|ui|utils?|helpers?|hooks?|store|api|data|types?|lib)$/i;
+
+/** Basename alone is useless in an index (collides everywhere). */
+const GENERIC_BASENAME =
+  /^(?:index|types?|keys?|utils?|helpers?|hooks?|components?|styles?|constants?|config|server|client|api|mod|module)$/i;
+
+function stem(path) {
+  return basename(path === "." ? "application" : path).replace(/\.[^./]+$/, "");
+}
+
+/**
+ * Meaningful path segments as Title Case words (no extension, no noise roots).
+ * Structural layout folders stay only when needed to disambiguate generics.
+ * @param {string} path
+ * @param {{ keepStructural?: boolean }} [opts]
+ * @returns {string[]}
+ */
+function meaningfulSegments(path, { keepStructural = false } = {}) {
+  return String(path === "." ? "application" : path)
+    .replace(/\.[^./]+$/, "")
+    .split(/[/\\]+/)
+    .filter((part) => {
+      if (!part || part === ".") return false;
+      if (PATH_NOISE.test(part)) return false;
+      if (!keepStructural && PATH_STRUCTURAL.test(part)) return false;
+      return true;
+    })
+    .map((part) => words(part));
+}
+
+/**
+ * Human label for a focus path. Prefers basename when distinctive; pulls parent
+ * context when basename is generic (Types, Index, Keys) so the index stays scannable.
+ * @param {string} path
+ * @returns {string}
+ */
+export function displayName(path) {
+  if (!path || path === ".") return "the application";
+  const raw = stem(path);
+  const product = meaningfulSegments(path);
+  const withLayout = meaningfulSegments(path, { keepStructural: true });
+
+  if (/^index$/i.test(raw)) {
+    // Drop the trailing "Index" segment — title the barrel by its folder.
+    const productParents = product.filter((seg) => !/^index$/i.test(seg));
+    const layoutParents = withLayout.filter((seg) => !/^index$/i.test(seg));
+    const base = productParents.length > 0 ? productParents : layoutParents;
+    return (base.slice(-2).join(" ") || "Index").trim();
+  }
+
+  if (GENERIC_BASENAME.test(raw) || (product.length === 0 && PATH_STRUCTURAL.test(raw))) {
+    // Prefer product nouns + the generic role: "Chat Types", "Users Keys".
+    if (product.length > 0) {
+      const role = words(raw);
+      const head = product.slice(-2).join(" ");
+      return head.toLowerCase().endsWith(role.toLowerCase()) ? head : `${head} ${role}`.trim();
+    }
+    // Bare structural path (app/core/api, app/ui) — keep noise-ish parents that
+    // withLayout dropped via PATH_NOISE so we never ship a one-word "Api".
+    const full = String(path === "." ? "application" : path)
+      .replace(/\.[^./]+$/, "")
+      .split(/[/\\]+/)
+      .filter((part) => part && part !== "." && !/^(?:app|apps|src)$/i.test(part))
+      .map((part) => words(part));
+    return full.slice(-3).join(" ") || words(raw);
+  }
+
+  // Distinctive multi-word basename (Permission Guard, Chat Api Hooks) — keep as-is
+  // but pair with one product parent when available for disambiguation.
+  const baseLabel = words(raw);
+  // product includes the basename as last segment; parent is the segment before it.
+  const parents = product.filter((seg) => seg.toLowerCase() !== baseLabel.toLowerCase());
+  if (parents.length >= 1) {
+    const parent = parents[parents.length - 1];
+    // Basename already carries the product noun (Users Keys, Chat Store).
+    if (baseLabel.toLowerCase().startsWith(parent.toLowerCase())) return baseLabel;
+    // Single-token basename: "Sidebar" → "Chat Sidebar".
+    if (baseLabel.split(" ").length === 1) return `${parent} ${baseLabel}`;
+  }
+
+  return baseLabel;
+}
+
 function stableTopicId(kind, focus) {
   return `topic-${createHash("sha256").update(`${kind}\0${focus}`).digest("hex").slice(0, 12)}`;
 }
@@ -65,42 +157,39 @@ function learningStageFor(chapter) {
   return "2. foundational";
 }
 
-function titleFor(kind, path) {
-  const name = words(basename(path === "." ? "application" : path));
-  if (kind === "workflow") return `Trace the ${words(path)} workflow`;
-  if (kind === "entry") return `Follow ${name} from entry to effect`;
-  if (kind === "component") return `Understand what ${name} owns`;
-  if (kind === "boundary") return `Understand the boundary around ${name}`;
-  if (kind === "dependency") return `Understand how ${name} shapes the program`;
-  if (kind === "test") return `Use ${name} to understand the behavior contract`;
-  if (kind === "area" && /(?:^|\/)features?\//i.test(`${path}/`))
-    return `Follow the ${name} feature`;
-  if (kind === "area" && /(?:^|\/)domains?\//i.test(`${path}/`))
-    return `Understand the ${name} domain contract`;
-  if (kind === "area" && /(?:^|\/)routes?(?:\/|$)/i.test(path))
-    return `Map the ${name} route surface`;
-  if (TRUST_SIGNAL.test(path)) return `Follow the access decisions in ${name}`;
-  if (DATA_SIGNAL.test(path)) return `Trace the data lifecycle through ${name}`;
-  if (UI_SIGNAL.test(path)) return `Follow the user interaction in ${name}`;
-  if (OPERATIONS_SIGNAL.test(path)) return `Understand how ${name} behaves at runtime`;
-  return `Understand the role of ${name}`;
+/**
+ * Catalog title from path only (unique + skimmable). Agent rewrites after source read.
+ * @param {string} kind
+ * @param {string} path
+ */
+export function titleFor(kind, path) {
+  const name = displayName(path);
+  if (kind === "workflow") return words(path);
+  if (kind === "test") return `${name} (test)`;
+  return name;
 }
 
-function outcomeFor(kind, path) {
-  const label = words(path === "." ? "the application" : path);
+/**
+ * Placeholder outcome until agent rewrites from source. Learner-facing if left as-is;
+ * no meta "rewrite me" copy.
+ * @param {string} kind
+ * @param {string} path
+ */
+export function outcomeFor(kind, path) {
+  const label = displayName(path);
   if (kind === "workflow")
-    return `You will be able to trace ${label} across its owners, effects, and failure paths.`;
+    return `Trace ${label} end-to-end across owners, effects, and failure paths.`;
   if (kind === "entry")
-    return `You will know how execution enters through ${label}, which code it reaches, and what result it produces.`;
+    return `Follow how execution enters through ${label} and what result it produces.`;
   if (kind === "component")
-    return `You will know which responsibilities belong to ${label} and which contracts connect it to the rest of the program.`;
+    return `Name what ${label} owns and which contracts connect it to the rest.`;
   if (kind === "boundary")
-    return `You will be able to change code near ${label} without crossing an ownership or trust boundary by accident.`;
+    return `Change code near ${label} without crossing its ownership or trust edge.`;
   if (kind === "dependency")
-    return `You will know why ${label} is present, where the program relies on it, and which contract an upgrade must preserve.`;
+    return `Know why ${label} is load-bearing and which contract an upgrade must keep.`;
   if (kind === "test")
-    return `You will use ${label} to understand the protected behavior, its test seam, and the most important missing case.`;
-  return `You will understand why ${label} matters, who uses it, and how to change it safely.`;
+    return `Use ${label} to see the protected behavior and the important missing case.`;
+  return `Change ${label} safely: what it owns, who uses it, and the contracts that bind it.`;
 }
 
 function entryImportance(path) {
@@ -386,21 +475,23 @@ export function planCurriculum(model) {
     extraNextAsks: [
       {
         who: "agent",
-        do: "corroborate-or-demote-naming-heuristic-topics",
+        do: "approve-curriculum-shortlist",
         why: "signalClass-naming-heuristic",
+        question:
+          "Corroborate or demote naming-heuristic topics before save (agentApproval.corroboratedTopicIds).",
       },
       {
         who: "tool",
-        do: "graphify-query-hubs",
+        do: "graphify-or-serena-retrieve",
         why: "recover-topics-regex-may-miss",
       },
       ...(omnibus.length > 0
         ? [
             {
               who: "agent",
-              do: "split-or-demote-omnibus-topics",
+              do: "approve-curriculum-shortlist",
               why: "b4a-one-outcome-per-topic",
-              question: `Split: ${omnibus
+              question: `Split or demote omnibus topics: ${omnibus
                 .slice(0, 4)
                 .map((topic) => topic.id)
                 .join(", ")}`,

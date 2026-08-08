@@ -223,9 +223,12 @@ After purpose + retrieve hubs, run the curriculum **proposal**, then agent short
 node <skill-root>/scripts/plan-curriculum.js <target-root> --format json
 ```
 
-Approve/demote/add topics (B3; corroborate `signalClass: naming-heuristic`). Complete B4a order
-check. Persist only with `agentApproval` including `purposeStatus: accepted|unresolved`,
-`approvedAt`, `corroboratedTopicIds`, and `acceptedPartialScope` when coverage is partial:
+Approve/demote/add topics (B3; corroborate `signalClass: naming-heuristic`). **Rewrite
+`title` + `learnerOutcome` from live source** — script labels are path-unique placeholders;
+agent judgment makes INDEX non-repetitive (B3 title rules in `bottleneck-checkpoints.md`).
+Complete B4a order check. Persist only with `agentApproval` including
+`purposeStatus: accepted|unresolved`, `approvedAt`, `corroboratedTopicIds`, and
+`acceptedPartialScope` when coverage is partial:
 
 ```text
 node <skill-root>/scripts/project-memory.js save-curriculum <target-root> --input <approved.json> --yes
