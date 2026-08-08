@@ -285,7 +285,13 @@ if (args[0] === "extract") {
   mkdirSync(resolve(out, "graphify-out"), { recursive: true });
   writeFileSync(resolve(out, "graphify-out", "graph.json"), JSON.stringify({ nodes: [], edges: [] }));
   process.stdout.write("private graph built");
-} else process.stdout.write("private graph query");
+} else if (args[0] === "query") {
+  const narrowed = args[1].includes("exact symbols and project-relative paths");
+  const count = narrowed ? 2 : 80;
+  process.stdout.write(JSON.stringify({
+    nodes: Array.from({ length: count }, (_, index) => ({ path: "app/feature-" + index + ".ts" })),
+  }));
+} else process.stdout.write("private graph exact operation");
 `,
     );
     await chmod(fake, 0o755);
@@ -319,7 +325,12 @@ if (args[0] === "extract") {
       { env: environment },
     );
     assert.equal(query.code, 0, query.stderr);
-    assert.equal(JSON.parse(query.stdout).output, "private graph query");
+    const queryResult = JSON.parse(query.stdout);
+    assert.equal(queryResult.attempts, 2);
+    assert.equal(queryResult.matchCount, 2);
+    assert.equal(queryResult.truncated, false);
+    assert.equal(queryResult.precision, "bounded");
+    assert.ok(Array.isArray(queryResult.suggestedNarrowingSeeds));
     assert.deepEqual((await readdir(directory)).sort(), before);
   } finally {
     await rm(directory, { recursive: true, force: true });

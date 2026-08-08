@@ -20,6 +20,7 @@ export const JUDGMENT_PAYLOAD_SCHEMA = z.object({
   mustFix: z.array(z.string()).default([]),
   reasoning: z.string().min(1),
   reviewerRole: z.string().optional(),
+  reviewerProvenance: z.enum(["self", "independent-agent", "human"]),
 });
 
 /**
@@ -61,6 +62,11 @@ export async function recordJudgment(draftPath, payload) {
     mustFix: validated.mustFix,
     reasoning: validated.reasoning,
     reviewerRole: validated.reviewerRole || "peer",
+    reviewerProvenance: validated.reviewerProvenance,
+    scoreMeaning:
+      validated.reviewerProvenance === "self"
+        ? "author-self-assessment-advisory"
+        : "independent-review-assessment",
     at: new Date().toISOString(),
   };
 
@@ -76,7 +82,7 @@ export async function hasPassingJudgment(draftPath, threshold = 80) {
     if (!existsSync(`${draftPath}.judgment.json`)) {
       return {
         ok: false,
-        reason: "No AI judgment recorded. Run review-lesson.js first.",
+        reason: "No reviewer judgment recorded. Run review-lesson.js first.",
       };
     }
 
@@ -92,6 +98,7 @@ export async function hasPassingJudgment(draftPath, threshold = 80) {
       mustFix: raw.mustFix ?? [],
       reasoning: raw.reasoning,
       reviewerRole: raw.reviewerRole,
+      reviewerProvenance: raw.reviewerProvenance ?? "self",
     });
     if (validation.ok === false) {
       return { ok: false, reason: `Invalid judgment record: ${validation.error}` };
@@ -100,8 +107,32 @@ export async function hasPassingJudgment(draftPath, threshold = 80) {
     if (raw.lessonDigest !== digest) {
       return {
         ok: false,
-        reason: "Draft was modified after the AI judgment was recorded.",
+        reason: "Draft was modified after the reviewer judgment was recorded.",
       };
+    }
+
+    if (validation.value.reviewerProvenance === "self") {
+      if (validation.value.mustFix.length > 0) {
+        return {
+          ok: false,
+          reason: "Author self-review still contains required fixes.",
+        };
+      }
+      const weakDimensions = [
+        "insight",
+        "accuracy",
+        "evidenceFit",
+        "pacing",
+        "singleSubject",
+        "elementsPresent",
+      ].filter((dimension) => validation.value[dimension] < 3);
+      if (weakDimensions.length > 0) {
+        return {
+          ok: false,
+          reason: `Author self-review reports weak required dimensions: ${weakDimensions.join(", ")}.`,
+        };
+      }
+      return { ok: true, record: raw, advisory: true };
     }
 
     if (validation.value.score < threshold) {

@@ -95,8 +95,42 @@ CLAIMS:
     assert.equal(result.mode, "explicit-claims");
     assert.equal(result.ok, false);
     assert.ok(
-      result.problems.some((p) => /declared support:yes but snippet does not support/i.test(p)),
+      result.problems.some((p) => /declared support:yes but cited anchors do not support/i.test(p)),
     );
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("natural engineering prose can use multiple cited windows without mirroring code order", async () => {
+  const dir = await fixture();
+  try {
+    await writeFile(
+      resolve(dir, "billing/settlement.js"),
+      "export async function uploadCompletion() { return 'complete'; }\n",
+    );
+    const md = `CLAIMS:
+1. "capturePayment waits for uploadCompletion before settlement continues" — billing/capture.js:1, billing/settlement.js:1 — support: yes — state: observed
+`;
+    const result = await assessClaimFaithfulness(dir, md);
+    assert.equal(result.ok, true, result.problems.join("; "));
+    assert.equal(result.verificationKind, "deterministic-evidence-anchor-coverage");
+    assert.equal(result.semanticReviewRequired, true);
+    assert.equal(result.assessments[0].citations.length, 2);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("absolute or negative claims remain semantic gaps", async () => {
+  const dir = await fixture();
+  try {
+    const md = `CLAIMS:
+1. "capturePayment never calls settle" — billing/capture.js:1 — support: yes — state: observed
+`;
+    const result = await assessClaimFaithfulness(dir, md);
+    assert.equal(result.ok, false);
+    assert.match(result.assessments[0].clauseAssessments[0].limitation, /semantic review/i);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

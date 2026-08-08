@@ -42,3 +42,38 @@ test("Validation fails when SKILL.md is invalid", async () => {
     await rm(TEST_ROOT, { recursive: true, force: true }).catch(() => {});
   }
 });
+
+test("Validation can require independent forward-test review provenance", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "release-review-"));
+  try {
+    const selfReview = join(directory, "self.json");
+    const independentReview = join(directory, "independent.json");
+    await writeFile(
+      selfReview,
+      JSON.stringify({ reviewerProvenance: "self", mustFix: [] }),
+      "utf8",
+    );
+    await writeFile(
+      independentReview,
+      JSON.stringify({ reviewerProvenance: "independent-agent", mustFix: [] }),
+      "utf8",
+    );
+
+    const rejected = await execa(
+      "node",
+      [SCRIPT_PATH, "--require-independent-review", selfReview],
+      { cwd: process.cwd(), reject: false },
+    );
+    assert.equal(rejected.exitCode, 1);
+    assert.match(rejected.stderr, /not independent/);
+
+    const accepted = await execa(
+      "node",
+      [SCRIPT_PATH, "--require-independent-review", independentReview],
+      { cwd: process.cwd(), reject: false },
+    );
+    assert.equal(accepted.exitCode, 0);
+  } finally {
+    await rm(directory, { recursive: true, force: true }).catch(() => {});
+  }
+});

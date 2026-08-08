@@ -29,7 +29,7 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-test("runPackageInstall uses pnpm and ignores npm", async () => {
+test("runPackageInstall prefers manifest-pinned pnpm through corepack", async () => {
   const mockChild = {
     on: (event, cb) => {
       if (event === "close") cb(0);
@@ -41,14 +41,15 @@ test("runPackageInstall uses pnpm and ignores npm", async () => {
   spawn.mockReturnValue(mockChild);
 
   const result = await runPackageInstall("/mock/skill");
-  assert.equal(result.command.startsWith("pnpm"), true);
+  assert.equal(result.command.startsWith("corepack pnpm@"), true);
+  assert.equal(result.packageManagerVersion, "11.18.0");
 
   assert.equal(mkdir.mock.calls.length > 0, true);
   assert.equal(writeFile.mock.calls.length > 0, true);
   assert.equal(writeFile.mock.calls[0][0].includes(".npmrc"), true);
 });
 
-test("runPackageInstall falls back to corepack and ignores npm", async () => {
+test("runPackageInstall falls back to system pnpm only when corepack is unavailable", async () => {
   const mockChildFail = {
     on: (event, cb) => {
       if (event === "error") cb(Object.assign(new Error("not found"), { code: "ENOENT" }));
@@ -61,13 +62,29 @@ test("runPackageInstall falls back to corepack and ignores npm", async () => {
   };
 
   /** @type {any} */ (cp.spawn).mockImplementation((command) => {
-    if (command === "pnpm") return mockChildFail;
-    if (command === "corepack") return mockChildSuccess;
+    if (command === "corepack") return mockChildFail;
+    if (command === "pnpm") return mockChildSuccess;
     return mockChildFail;
   });
 
   const result = await runPackageInstall("/mock/skill");
-  assert.equal(result.command.startsWith("corepack"), true);
+  assert.equal(result.command.startsWith("pnpm"), true);
+  assert.equal(result.packageManagerVersion, "system-fallback");
+});
+
+test("runPackageInstall does not retry after a pinned install failure", async () => {
+  const mockChildFail = {
+    on: (event, cb) => {
+      if (event === "close") cb(1);
+    },
+  };
+  /** @type {any} */ (cp.spawn).mockReturnValue(mockChildFail);
+
+  await assert.rejects(
+    runPackageInstall("/mock/skill"),
+    (err) => err instanceof RuntimeBootstrapError && err.details?.code === "pinned-install-failed",
+  );
+  assert.equal(/** @type {any} */ (cp.spawn).mock.calls.length, 1);
 });
 
 test("runPackageInstall throws if both fail (no npm)", async () => {

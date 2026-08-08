@@ -117,6 +117,24 @@ test("keeps weak clues out of a concise lesson instead of printing empty modules
   }
 });
 
+test("a missing named focus does not fall back to unrelated global hubs", async () => {
+  const directory = await richFixture();
+  try {
+    const model = await buildProgramModel(await resolveTargetRoot(directory));
+    const plan = planLesson(model, {
+      focus: "nonexistent invoicing webhook",
+      kind: "auto",
+      depth: "balanced",
+    });
+    assert.deepEqual(plan.focusAnchors, []);
+    assert.ok(plan.evidenceGaps.some((item) => /No focus anchor/i.test(item)));
+    assert.ok(plan.signals.every((signal) => signal.focusRelated === false));
+    assert.deepEqual(plan.activatedOptionalSections, []);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test("CLI Markdown exposes a simple plan while JSON retains selection evidence", async () => {
   const directory = await richFixture();
   try {

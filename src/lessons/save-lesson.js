@@ -171,6 +171,8 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
   quality.faithfulness = {
     mode: faithfulness.mode,
     ok: faithfulness.ok,
+    verificationKind: faithfulness.verificationKind,
+    semanticReviewRequired: faithfulness.semanticReviewRequired,
     problems: faithfulness.problems,
   };
   if (faithfulness.mode === "explicit-claims" && faithfulness.problems.length > 0) {
@@ -184,11 +186,13 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
     const judgment = await hasPassingJudgment(options.draftPath);
     if (!judgment.ok) {
       quality.ok = false;
-      quality.errors.push(`AI Judgment missing or failed: ${judgment.reason}`);
+      quality.errors.push(`Reviewer judgment missing or failed: ${judgment.reason}`);
     }
   } else {
     quality.ok = false;
-    quality.errors.push("AI Judgment missing (no draftPath provided to evaluateLessonForSave).");
+    quality.errors.push(
+      "Reviewer judgment missing (no draftPath provided to evaluateLessonForSave).",
+    );
   }
 
   return { ok: quality.ok, quality, faithfulness, trajectory, craft };

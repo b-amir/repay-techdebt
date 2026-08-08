@@ -133,10 +133,12 @@ node <skill-root>/scripts/check-lesson-faithfulness.js <target-root> <lesson.md>
 ```
 
 Every `path:line` must resolve inside the target with a valid line. Prefer an explicit `CLAIMS:`
-block; malformed numbered entries and unsupported `support: yes` claims block `save-lesson`.
+block; one claim may cite multiple paths. The deterministic check uses bounded source windows,
+identifier anchors, and clause diagnostics. It does not prove meaning. Malformed numbered entries
+and unsupported `support: yes` claims block `save-lesson`.
 
-**Sense:** claim-vs-snippet support for those claims; optional report-only `evaluate-lesson.js`
-rubric proxies (not a CI gate).
+**Sense:** agent semantic review for those claims; optional report-only `evaluate-lesson.js`
+teaching-behavior report (not an independent judge or CI gate).
 
 ---
 
@@ -146,7 +148,7 @@ After the evidence floor passes:
 
 ```text
 CLAIMS:
-1. "<claim>" — <path:line> — support: yes|no|gap — state: observed|…
+1. "<claim>" — <path:line>[, <path:line>…] — support: yes|no|gap — state: observed|…
 2. …
 REWRITE once if any material claim is no without a named gap.
 ```

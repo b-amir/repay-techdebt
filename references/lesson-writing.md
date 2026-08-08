@@ -128,7 +128,8 @@ Before saving:
    alone does not demonstrate transfer. Provide private rubric or answer guidance.
 7. Ensure the lesson establishes clear motivation, teaches a causal mental model, anticipates at least one misconception, and manages cognitive load appropriately.
 8. Run `check-lesson-quality.js`; fix every error. Treat warnings as revision prompts, not noise.
-9. Ensure your draft will pass the AI reviewer. See `references/lesson-reviewer.md` for the rubric.
+9. Record reviewer provenance. If the authoring agent also reviews, mark `self`; its score is
+   advisory and every `mustFix` still blocks. See `references/lesson-reviewer.md`.
 
 The automated check is a floor, not proof of an excellent lesson. A passing lesson can still be
 unimportant, incorrect, or dull; source verification and editorial judgment remain required.

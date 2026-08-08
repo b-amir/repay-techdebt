@@ -2,44 +2,21 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { runTeachFloors } from "../src/lessons/save-lesson.js";
 import { formatTargetError, resolveTargetRoot } from "../src/foundations/targeting.js";
+import { assertClosedNextAsks } from "../src/dialogue/dialogue-envelope.js";
+import { evaluateLessonBehaviors } from "../src/evaluation/evaluation.js";
 
 /**
- * Report-only pedagogy / quality bundle. Floor failures set exit 2; rubric proxies never
- * invent an LLM judge — they score deterministic proxies for the LessonRubric dimensions.
+ * Report-only pedagogy / quality bundle. Floor failures set exit 2; behavior reports never
+ * invent an independent judge.
  */
 
 function help() {
   process.stdout.write(`Usage:
   node evaluate-lesson.js <target-root> <lesson.md> [--depth concise|balanced|deep] [--format json|text]
 
-Runs quality + citation validity + pedagogy proxies + optional claim faithfulness.
-Exit 2 only when mechanical floors fail (quality/citations). Rubric proxies are report-only.
+Runs quality + citation validity + observable teaching behaviors + evidence-anchor coverage.
+Exit 2 only when mechanical floors fail. Behavior scores are report-only.
 `);
-}
-
-function rubricProxies(markdown, quality) {
-  const lower = markdown.toLowerCase();
-  const hasCite = (quality.citations?.length ?? 0) >= 2;
-  const hasYou = /\b(?:you|your)\b/i.test(markdown);
-  const hasCausal = /\b(?:because|therefore|so that|which means|as a result)\b/i.test(markdown);
-  const hasChallenge = /challenge|try it|exercise|modify/i.test(lower);
-  const hasPredict = /predict|before you run|what happens if|expect/i.test(lower);
-  const score = (ok, mid) => (ok ? 5 : mid ? 3 : 1);
-  return {
-    judge: "deterministic-proxy",
-    note: "Not an LLM judge. Use for CI reporting only; calibrate before treating as truth.",
-    dimensions: {
-      correctness: score(hasCite && quality.ok, hasCite),
-      importance: score(/because|matters|critical|protect/i.test(lower), /why/i.test(lower)),
-      focus: score(
-        quality.sectionCount >= 3 && quality.sectionCount <= 8,
-        quality.sectionCount > 0,
-      ),
-      clarity: score(hasYou && (quality.warnings?.length ?? 0) === 0, hasYou),
-      pedagogy: score(hasPredict && hasChallenge, hasChallenge),
-      actionability: score(hasChallenge && hasCausal, hasChallenge || hasCausal),
-    },
-  };
 }
 
 try {
@@ -62,7 +39,7 @@ try {
   const markdown = await readFile(resolve(args[1]), "utf8");
   const floors = await runTeachFloors(target.targetRoot, markdown, { depth });
   const { floorOk, quality, citations, faithfulness } = floors;
-  const rubric = rubricProxies(markdown, quality);
+  const rubric = evaluateLessonBehaviors(markdown, quality, { depth });
   const payload = {
     analyzer: "evaluate-lesson",
     role: "check",
@@ -77,22 +54,24 @@ try {
       assessmentCount: faithfulness.assessments.length,
     },
     rubric,
-    nextAsks: floorOk
-      ? [
-          {
-            who: "agent",
-            do: "review-rubric-proxies-then-save",
-            why: "floors-passed",
-          },
-        ]
-      : [{ who: "agent", do: "fix-floor-errors", why: "floors-failed" }],
+    nextAsks: assertClosedNextAsks(
+      floorOk
+        ? [
+            {
+              who: "agent",
+              do: "review-behavior-report-then-save",
+              why: "floors-passed",
+            },
+          ]
+        : [{ who: "agent", do: "fix-floor-errors", why: "floors-failed" }],
+    ),
   };
   if (format === "text") {
     process.stdout.write(
-      `${floorOk ? "PASS" : "FAIL"} floors; faithfulness=${faithfulness.ok ? "ok" : "issues"}\\n`,
+      `${floorOk ? "PASS" : "FAIL"} floors; faithfulness=${faithfulness.ok ? "ok" : "issues"}\n`,
     );
-    for (const item of quality.errors) process.stdout.write(`- ${item}\\n`);
-    for (const item of quality.warnings) process.stdout.write(`- warning: ${item}\\n`);
+    for (const item of quality.errors) process.stdout.write(`- ${item}\n`);
+    for (const item of quality.warnings) process.stdout.write(`- warning: ${item}\n`);
   } else process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
   if (!floorOk) process.exitCode = 2;
 } catch (error) {

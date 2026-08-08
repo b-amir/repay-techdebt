@@ -141,7 +141,8 @@ In Fast mode, Turn 2 operates continuously without stopping:
 1. **Auto-derive purpose**: Use the project profile (top workflow + top 2 trust/data signals) to define the purpose silently.
 2. **Shortlist**: Select the most central `orient`-stage topic as lesson 1.
 3. **Draft & Mechanical**: Draft lesson 1 and run mechanical checks.
-4. **Inline Review**: Run reviewer judgment inline. If it fails, do one silent revise, then save. (Never save without judgment).
+4. **Inline Review**: Review semantic support inline. Record `self` provenance when the authoring
+   agent performs it; its score is advisory. If required fixes remain, revise once before save.
 5. **Auto-save & Auto-open**: Save the lesson, then immediately open the viewer for the user.
 
 ### Refinement / Purpose Ask (Fast Turn 3 / Control Turn 2)
@@ -175,14 +176,17 @@ Here are some other angles to focus the rest of the study list on. You can pick 
 ```markdown
 ### Keep this study list?
 
-We found many topics. This session we’ll **write 3** of the most important ones so we don’t blow
-your AI token budget. The rest stay planned — adding more lessons later is a short, guided step.
+In learning-path mode, we found more topics and will write **3** now so the session stays focused.
+Show the real pending count. In batch-only mode, say: “This workbook will contain exactly the 3
+lessons you requested.” Never show a planned-later row with zero pending topics.
 
 | #   | Topic (first batch) |
 | --- | ------------------- |
 | 1   | …                   |
 | 2   | …                   |
 | 3   | …                   |
+
+{If learning-path mode has pending topics:}
 
 | Mark             | Detail                    |
 | ---------------- | ------------------------- |
@@ -246,13 +250,14 @@ Saved `lessons/….md`. Next lesson next.
 ### You’re set
 
 Lessons are in the sister workbook folder. The browser viewer is open — read there, not in chat.
-More topics stay planned; say `/repay-techdebt` anytime to write the next batch (you’ll be walked).
+{If pending topics exist: More topics stay planned; say `/repay-techdebt` to write the next batch.}
+{If batch-only: This workbook contains exactly the requested lesson batch.}
 
 | Mark             | Detail                                      |
 | ---------------- | ------------------------------------------- |
 | ✍️ Lessons       | `…/repay-…-techdebt/lessons/`               |
 | 🌐 Viewer        | `http://127.0.0.1:8765`                     |
-| 📋 Still planned | N topics                                    |
+| 📋 Still planned | N topics _(omit when zero/batch-only)_      |
 | 🔁 Later         | `/repay-techdebt --view` or `--create <id>` |
 ```
 

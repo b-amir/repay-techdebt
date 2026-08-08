@@ -22,6 +22,7 @@ const VALID_JUDGMENT = {
   mustFix: ["Explain exactly what happens if the route omits the guard."],
   reasoning: "Heading present but no causal explanation.",
   reviewerRole: "skeptical-editor",
+  reviewerProvenance: "independent-agent",
 };
 
 const PASSING_JUDGMENT = {
@@ -35,12 +36,22 @@ const PASSING_JUDGMENT = {
   mustFix: [],
   reasoning: "Genuine architectural insight with evidence fit.",
   reviewerRole: "skeptical-editor",
+  reviewerProvenance: "independent-agent",
 };
 
 test("validateJudgmentPayload requires rubric dimensions", () => {
   const invalid = tryValidateJudgmentPayload({ score: 90, reasoning: "ok" });
   assert.equal(invalid.ok, false);
   assert.equal(validateJudgmentPayload(PASSING_JUDGMENT).score, 95);
+  for (const reviewerProvenance of ["self", "independent-agent", "human"]) {
+    assert.equal(
+      validateJudgmentPayload({ ...PASSING_JUDGMENT, reviewerProvenance }).reviewerProvenance,
+      reviewerProvenance,
+    );
+  }
+  const missingProvenance = { ...PASSING_JUDGMENT };
+  delete missingProvenance.reviewerProvenance;
+  assert.equal(tryValidateJudgmentPayload(missingProvenance).ok, false);
 });
 
 test("hollow lesson judgment fails threshold even with headings present", async () => {
@@ -78,6 +89,41 @@ test("recordJudgment and hasPassingJudgment", async () => {
   result = await hasPassingJudgment(draftPath, 80);
   assert.equal(result.ok, false);
   assert.match(result.reason, /modified/);
+
+  await rm(dir, { recursive: true, force: true });
+});
+
+test("self-review score is advisory while unresolved fixes still block", async () => {
+  const dir = await mkdtemp(resolve(tmpdir(), "judgment-self-"));
+  const draftPath = resolve(dir, "draft.md");
+  await writeFile(draftPath, "A lesson reviewed by its author");
+
+  await recordJudgment(draftPath, {
+    ...PASSING_JUDGMENT,
+    score: 40,
+    reviewerProvenance: "self",
+  });
+  const advisory = await hasPassingJudgment(draftPath, 80);
+  assert.equal(advisory.ok, true);
+  assert.equal(advisory.advisory, true);
+
+  await recordJudgment(draftPath, {
+    ...PASSING_JUDGMENT,
+    accuracy: 2,
+    reviewerProvenance: "self",
+  });
+  const weakSelfReview = await hasPassingJudgment(draftPath, 80);
+  assert.equal(weakSelfReview.ok, false);
+  assert.match(weakSelfReview.reason, /accuracy/);
+
+  await recordJudgment(draftPath, {
+    ...PASSING_JUDGMENT,
+    reviewerProvenance: "self",
+    mustFix: ["Clarify the failure path."],
+  });
+  const blocked = await hasPassingJudgment(draftPath, 80);
+  assert.equal(blocked.ok, false);
+  assert.match(blocked.reason, /required fixes/i);
 
   await rm(dir, { recursive: true, force: true });
 });

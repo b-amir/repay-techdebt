@@ -200,7 +200,7 @@ test("capture-settle-retrieve fixture surfaces capture subjects and workflow edg
   }
 });
 
-test("evaluate-lesson reports floors and rubric proxies", async () => {
+test("evaluate-lesson reports floors and observable teaching behaviors", async () => {
   const directory = await mkdtemp(resolve(tmpdir(), "repay-eval-lesson-"));
   try {
     await mkdir(resolve(directory, "billing"), { recursive: true });

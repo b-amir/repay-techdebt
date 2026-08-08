@@ -59,6 +59,12 @@ Never treat exit 2 as “try another product.” It is a **defined branch**.
 **Human CLI (`repay …`):** TTY → pretty table; non-TTY pipe → machine format for `plan`/`init`/`status`.  
 Still **not** the agent contract path — agents call scripts with explicit `--format`.
 
+`plan-curriculum.js` returns at most 18 diversified candidates by default. Pass `--batch-size N
+--batch-only` for an explicit exact-N request. Full candidate catalogs require
+`--include-catalog --output <outside-target-path>`; they are never returned in normal stdout. The
+compact `candidateSummary` reports available, eligible, filtered/rejected, folded, and returned
+counts plus bounded examples.
+
 ## Shared head (copy-paste sequence)
 
 ```text
@@ -143,6 +149,10 @@ Without `--yes` → exit 2 `consent-required` (expected). With existing memory �
 | `refused` / target write detected         | stop; disclose; do not use result                                 |
 | `partial` / `stale`                       | use with limitations; no confidence upgrade                       |
 
+Graphify `query` defaults to budget 80, bounds returned text, reports `matchCount`, `truncated`,
+`precision`, and `suggestedNarrowingSeeds`, and makes at most one narrowing retry. `precision: low`
+means switch to exact `path`/`explain` or the bundled relation graph before teaching.
+
 Install optional tools **only** after user consent; commands from `tool-integrations.md`
 (user-isolated `uv tool install …`). Never target dependency install for analyzers.
 
@@ -166,16 +176,22 @@ Install optional tools **only** after user consent; commands from `tool-integrat
 Agents **must** map these to the mode path — not free invention.  
 Enforced in code: `CLOSED_NEXT_ASK_DOS` in `dialogue-envelope.js`.
 
-| `do`                              | Who    | Meaning                                |
-| --------------------------------- | ------ | -------------------------------------- |
-| `confirm-purpose`                 | agent  | B0 ACCEPT \| UNRESOLVED                |
-| `plan-analysis`                   | script | run plan-analysis after purpose        |
-| `pick-retrieve-questions`         | agent  | ≤5 specific questions (focused/pr)     |
-| `approve-curriculum-shortlist`    | agent  | B3 SHORTLIST + agentApproval           |
-| `accept-partial-scope-or-narrow`  | agent  | accept partial or narrow scope         |
-| `graphify-or-serena-retrieve`     | tool   | run preferred retrieve chain           |
-| `verify-selected-leads-in-source` | agent  | verify pattern leads in live source    |
-| `unsupported-shrink-or-refuse`    | agent  | hard overclaim — no “continue weaker?” |
+| `do`                               | Who    | Meaning                                     |
+| ---------------------------------- | ------ | ------------------------------------------- |
+| `confirm-purpose`                  | agent  | B0 ACCEPT \| UNRESOLVED                     |
+| `plan-analysis`                    | script | run plan-analysis after purpose             |
+| `pick-retrieve-questions`          | agent  | ≤5 specific questions (focused/pr)          |
+| `approve-curriculum-shortlist`     | agent  | B3 SHORTLIST + agentApproval                |
+| `accept-partial-scope-or-narrow`   | agent  | accept partial or narrow scope              |
+| `graphify-or-serena-retrieve`      | tool   | run preferred retrieve chain                |
+| `verify-selected-leads-in-source`  | agent  | verify pattern leads in live source         |
+| `check-evidence-anchors`           | script | run deterministic claim-anchor coverage     |
+| `review-claim-semantics`           | agent  | judge whether cited anchors mean the claim  |
+| `fix-citations-or-rewrite`         | agent  | repair unresolved citations or narrow prose |
+| `rewrite-unsupported-claims`       | agent  | shrink claims that lack anchor coverage     |
+| `review-behavior-report-then-save` | agent  | inspect behavior report before save         |
+| `fix-floor-errors`                 | agent  | repair mechanical lesson floors             |
+| `unsupported-shrink-or-refuse`     | agent  | hard overclaim — no “continue weaker?”      |
 
 If a new `do` appears in JSON, handle via `requiredAction` / `why` text **inside the same
 mode path**. Do not start a second product workflow. Adding a new `do` requires updating

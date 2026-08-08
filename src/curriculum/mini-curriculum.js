@@ -91,6 +91,12 @@ export function buildTeachingCurriculum({
       selectedTopics: topics.length,
     },
     coverage: { modeledFiles: topics.length, status: "complete" },
+    delivery: {
+      mode: "batch-only",
+      requestedLessonCount: topics.length,
+      learningPathTopics: topics.map((topic) => topic.id),
+      sessionBatch: topics.map((topic) => topic.id),
+    },
     topics,
     unresolved: [],
     agentApproval: {

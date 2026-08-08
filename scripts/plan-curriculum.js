@@ -1,10 +1,16 @@
-import { formatTargetError, resolveTargetRoot } from "../src/foundations/targeting.js";
+import { writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import {
+  formatTargetError,
+  isSameOrInside,
+  resolveTargetRoot,
+} from "../src/foundations/targeting.js";
 import { planCurriculum, renderCurriculumMarkdown } from "../src/curriculum/curriculum-planning.js";
 import { buildProgramModel } from "../src/program/program-intelligence.js";
 
 function help() {
   process.stdout.write(`Usage:
-  node plan-curriculum.js <target-root> [--scope <relative-path>] [--format json|markdown] [--max-files <count>] [--max-manifest-files <count>] [--max-relation-files <count>] [--max-relation-bytes <count>]
+  node plan-curriculum.js <target-root> [--scope <relative-path>] [--format json|markdown] [--candidate-limit <count>] [--batch-size <count>] [--batch-only] [--include-catalog --output <path>] [--max-files <count>] [--max-manifest-files <count>] [--max-relation-files <count>] [--max-relation-bytes <count>]
 
 Build a ranked book-index proposal before writing lessons. It creates no target files. Output is a
 dialogue proposal (role/nextAsks/signalClass); the agent must approve the shortlist before save.
@@ -25,11 +31,16 @@ function parse(argv) {
     "max-manifest-files",
     "max-relation-files",
     "max-relation-bytes",
+    "candidate-limit",
+    "batch-size",
+    "output",
   ]);
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
     if (!argument.startsWith("--")) positional.push(argument);
-    else {
+    else if (argument === "--batch-only" || argument === "--include-catalog") {
+      options[argument.slice(2)] = true;
+    } else {
       const name = argument.slice(2);
       if (!allowed.has(name)) throw new Error(`Unknown option: ${argument}`);
       const value = argv[++index];
@@ -45,8 +56,19 @@ function parse(argv) {
     "max-manifest-files",
     "max-relation-files",
     "max-relation-bytes",
-  ])
-    if (options[name] !== undefined) options[name] = Number(options[name]);
+    "candidate-limit",
+    "batch-size",
+  ]) {
+    if (options[name] === undefined) continue;
+    options[name] = Number(options[name]);
+    if (!Number.isInteger(options[name]) || options[name] < 1)
+      throw new Error(`--${name} must be a positive integer`);
+  }
+  if (options["batch-size"] > 5) throw new Error("--batch-size must be between 1 and 5");
+  if (options["candidate-limit"] > 50)
+    throw new Error("--candidate-limit must be between 1 and 50");
+  if (options["include-catalog"] && !options.output)
+    throw new Error("--include-catalog requires --output so full diagnostics never flood stdout");
   return { targetInput: positional[0], options };
 }
 
@@ -60,11 +82,32 @@ try {
     maxRelationFiles: options["max-relation-files"],
     maxRelationBytes: options["max-relation-bytes"],
   });
-  const curriculum = planCurriculum(model);
+  const curriculum = planCurriculum(model, {
+    limit: options["candidate-limit"],
+    batchSize: options["batch-size"],
+    batchOnly: options["batch-only"] === true,
+    includeCatalog: options["include-catalog"] === true,
+  });
+  /** @type {any} */
+  let outputCurriculum = curriculum;
+  if (options.output) {
+    const outputPath = resolve(options.output);
+    if (isSameOrInside(outputPath, target.targetRoot))
+      throw new Error("Curriculum diagnostic output must stay outside the target repository");
+    await writeFile(outputPath, `${JSON.stringify(curriculum, null, 2)}\n`, {
+      encoding: "utf8",
+      flag: "wx",
+    });
+    outputCurriculum = {
+      ...curriculum,
+      candidateCatalog: undefined,
+      diagnosticsArtifact: outputPath,
+    };
+  }
   process.stdout.write(
     options.format === "markdown"
-      ? renderCurriculumMarkdown(curriculum)
-      : `${JSON.stringify(curriculum, null, 2)}\n`,
+      ? renderCurriculumMarkdown(outputCurriculum)
+      : `${JSON.stringify(outputCurriculum, null, 2)}\n`,
   );
 } catch (error) {
   process.stderr.write(

@@ -23,7 +23,7 @@ async function main() {
   });
   if (values.help) {
     process.stdout.write(
-      "Usage: node scripts/ensure-runtime.js [--dry-run] [--prune-runtime] [--link-cli] [--format json]\n\nInstalls skill-root node_modules when missing (ignore-scripts, frozen-lockfile).\n--link-cli or REPAY_LINK_CLI=1 also symlinks repay onto ~/.local/bin.\n",
+      "Usage: node scripts/ensure-runtime.js [--dry-run] [--prune-runtime] [--link-cli] [--format json]\n\nInstalls skill-root node_modules when missing with manifest-pinned pnpm via Corepack (ignore-scripts, frozen-lockfile).\n--link-cli or REPAY_LINK_CLI=1 also symlinks repay onto ~/.local/bin.\n",
     );
     process.exit(0);
   }
@@ -47,6 +47,7 @@ if (isDirectCliInvocation(import.meta.url)) {
     if (error instanceof RuntimeBootstrapError) {
       process.stderr.write(`${error.message}\n`);
       if (error.report) process.stderr.write(`${JSON.stringify(error.report, null, 2)}\n`);
+      if (error.details) process.stderr.write(`${JSON.stringify(error.details, null, 2)}\n`);
     } else {
       process.stderr.write(`ensure-runtime failed: ${error.message}\n`);
     }

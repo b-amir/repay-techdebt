@@ -4,6 +4,21 @@ import { join } from "node:path";
 
 async function validateRelease() {
   const root = process.cwd();
+  const args = process.argv.slice(2);
+  const requiredReviews = [];
+  for (let index = 0; index < args.length; index += 1) {
+    if (args[index] === "--help" || args[index] === "-h") {
+      process.stdout.write(
+        "Usage: node scripts/validate-release.js [--require-independent-review <judgment.json>]\n",
+      );
+      return;
+    }
+    if (args[index] !== "--require-independent-review")
+      throw new Error(`Unknown option: ${args[index]}`);
+    const reviewPath = args[++index];
+    if (!reviewPath) throw new Error("Missing path for --require-independent-review");
+    requiredReviews.push(reviewPath);
+  }
   process.stdout.write(`Validating release from: ${root}\n`);
   let failed = false;
 
@@ -45,6 +60,27 @@ async function validateRelease() {
     }
   } catch {
     failed = true;
+  }
+
+  // 4. Forward-test review provenance is optional by default, but release
+  // callers can require one or more clean independent judgments explicitly.
+  for (const reviewPath of requiredReviews) {
+    try {
+      const judgment = JSON.parse(await readFile(reviewPath, "utf8"));
+      if (!new Set(["independent-agent", "human"]).has(judgment.reviewerProvenance)) {
+        process.stderr.write(
+          `❌ Required review is not independent: ${reviewPath} (${judgment.reviewerProvenance ?? "missing provenance"})\n`,
+        );
+        failed = true;
+      }
+      if (!Array.isArray(judgment.mustFix) || judgment.mustFix.length > 0) {
+        process.stderr.write(`❌ Required review still has mustFix items: ${reviewPath}\n`);
+        failed = true;
+      }
+    } catch (err) {
+      process.stderr.write(`❌ Failed to read required review ${reviewPath}: ${err.message}\n`);
+      failed = true;
+    }
   }
 
   if (failed) {

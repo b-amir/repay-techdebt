@@ -15,9 +15,10 @@ model, then emit a small lesson that feels purpose-built for the selected code a
    transparent fallback gate before continuing.
 6. Use confirmed project memory for preferences and historical reasons only. Never use it as proof
    of current behavior.
-7. After drafting, run `check-lesson-quality.js` and `check-lesson-evidence.js`, then the agent
-   semantic + claim-decomposition steps in `references/bottleneck-checkpoints.md` (B4b/B6). At most
-   one rewrite unless the user asks for more.
+7. After drafting, run `check-lesson-quality.js`, `check-lesson-evidence.js`, and the deterministic
+   anchor-coverage check. Then perform the agent semantic + claim-decomposition steps in
+   `references/bottleneck-checkpoints.md` (B4b/B6). At most one rewrite unless the user asks for
+   more.
 
 ## Signal activation gate
 

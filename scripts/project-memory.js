@@ -39,6 +39,7 @@ import {
 import { searchWorkbookClaims } from "../src/lessons/claim-search.js";
 import { resolveWorkbook } from "../src/viewer/resolve-workbook.js";
 import { checkTrajectoryGate, formatPathIncompleteReason } from "../src/dialogue/trajectory.js";
+import { assertClosedNextAsks } from "../src/dialogue/dialogue-envelope.js";
 import { recordExercise, scheduleReview } from "../src/memory/learning-progress.js";
 import { validateCurriculum } from "../src/curriculum/approve-curriculum.js";
 import {
@@ -1345,7 +1346,7 @@ async function saveCurriculum(targetRoot, options) {
     index: workbook.lessonIndex,
     topicCount: input.topics.length,
     warnings: input.approvalWarnings ?? [],
-    nextAsks:
+    nextAsks: assertClosedNextAsks(
       input.approvalWarnings?.length > 0
         ? [
             {
@@ -1356,6 +1357,7 @@ async function saveCurriculum(targetRoot, options) {
             },
           ]
         : [],
+    ),
   });
 }
 
@@ -1558,6 +1560,7 @@ async function saveLesson(targetRoot, options) {
       await readFile(resolve(paths.root, "trajectory-gate.json"), "utf8"),
     );
   }
+  const lessonSubject = options.subject ?? topic?.subject ?? topic?.kind;
   const { ok, quality, trajectory } = await evaluateLessonForSave(targetRoot, content, {
     depth: config.defaults.lessonDepth,
     expectedEvidencePaths: topic?.evidencePaths ?? [],
@@ -1566,7 +1569,7 @@ async function saveLesson(targetRoot, options) {
     focus: topic?.focus,
     draftPath: inputPath,
     trajectoryGate,
-    subject: options.subject ?? topic?.subject ?? topic?.kind,
+    subject: lessonSubject,
   });
   if (!ok) {
     const pathBlocked = trajectory?.refuse === true;
@@ -1606,6 +1609,13 @@ async function saveLesson(targetRoot, options) {
     try {
       if (topic) {
         const previousCurriculum = structuredClone(curriculum);
+        const previousIndex = await readFile(workbook.lessonIndex, "utf8");
+        const normalizedTrajectory = checkTrajectoryGate(trajectoryGate, {
+          subject: lessonSubject,
+        });
+        if (!normalizedTrajectory.ok || !normalizedTrajectory.gate) {
+          throw new Error("Validated lesson save lost its trajectory gate before persistence");
+        }
         topic.status = "written";
         topic.lessonPath = `lessons/${candidate.name}`;
         topic.writtenAt = new Date().toISOString();
@@ -1623,9 +1633,18 @@ async function saveLesson(targetRoot, options) {
           });
           await writeCurriculum(paths.curriculumData, curriculum, expectedRevision);
           await replaceLessonIndex(workbook, renderCurriculumMarkdown(curriculum));
+          // Persist the authorizing gate last. Status can never claim a complete
+          // path for a lesson that was not written and indexed successfully.
+          await replaceJsonFile(resolve(paths.root, "trajectory-gate.json"), {
+            gate: normalizedTrajectory.gate,
+            savedAt: new Date().toISOString(),
+            source: "lesson-save",
+            topicId: topic.id,
+          });
         } catch (error) {
           // Revert on failure, pass previous curriculum (blind overwrite to restore, lock held in writeCurriculum)
           await writeCurriculum(paths.curriculumData, previousCurriculum);
+          await replaceLessonIndex(workbook, previousIndex);
           throw error;
         }
       } else {

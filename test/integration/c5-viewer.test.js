@@ -172,7 +172,14 @@ test("mini-curriculum save-lesson exposes viewer hint and server lists the lesso
     };
     // Resolve curriculum path from status
     const status = await runMemory(["status", target, "--format", "json"], environment);
-    const memoryRoot = JSON.parse(status.stdout).memoryRoot;
+    const statusPayload = JSON.parse(status.stdout);
+    const memoryRoot = statusPayload.memoryRoot;
+    assert.equal(statusPayload.path.pathComplete, true);
+    const persistedTrajectory = JSON.parse(
+      await readFile(resolve(memoryRoot, "trajectory-gate.json"), "utf8"),
+    );
+    assert.equal(persistedTrajectory.source, "lesson-save");
+    assert.equal(persistedTrajectory.topicId, topicId);
     workbook.curriculumPath = resolve(memoryRoot, "curriculum.json");
 
     const server = createViewerServer({

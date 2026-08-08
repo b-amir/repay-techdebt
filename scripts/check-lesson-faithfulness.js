@@ -2,13 +2,15 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { assessClaimFaithfulness } from "../src/lessons/claim-faithfulness.js";
 import { formatTargetError, resolveTargetRoot } from "../src/foundations/targeting.js";
+import { assertClosedNextAsks } from "../src/dialogue/dialogue-envelope.js";
 
 function help() {
   process.stdout.write(`Usage:
   node check-lesson-faithfulness.js <target-root> <lesson.md> [--format json|text] [--strict]
 
-Claim↔snippet faithfulness floor (B6). Prefers an explicit CLAIMS: block; otherwise checks
-sentences near citations. Explicit CLAIMS with support:yes that fail overlap always exit 2.
+Evidence-anchor coverage floor (B6). Prefers an explicit CLAIMS: block; otherwise checks
+sentences near citations. This verifies cited windows and identifiers, not semantic meaning.
+Explicit CLAIMS with support:yes that lack anchor coverage always exit 2.
 Auto mode only exits 2 with --strict.
 `);
 }
@@ -47,14 +49,16 @@ try {
     role: "check",
     status: blocking.length === 0 ? "succeeded" : "failed",
     mode: result.mode,
+    verificationKind: result.verificationKind,
+    semanticReviewRequired: result.semanticReviewRequired,
     strict,
     assessmentCount: result.assessments.length,
     assessments: result.assessments,
     problems: result.problems,
     blocking,
-    nextAsks:
+    nextAsks: assertClosedNextAsks(
       blocking.length === 0
-        ? [{ who: "agent", do: "proceed-or-save", why: "faithfulness-ok" }]
+        ? [{ who: "agent", do: "review-claim-semantics", why: "faithfulness-ok" }]
         : [
             {
               who: "agent",
@@ -62,6 +66,7 @@ try {
               why: "faithfulness-failed",
             },
           ],
+    ),
   };
   if (format === "text") {
     process.stdout.write(

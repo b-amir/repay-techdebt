@@ -8,10 +8,11 @@ import { mkdir, writeFile, readFile, readdir } from "node:fs/promises";
 import { resolve, join } from "node:path";
 
 export class RuntimeBootstrapError extends Error {
-  constructor(message, report) {
+  constructor(message, report, details = null) {
     super(message);
     this.name = "RuntimeBootstrapError";
     this.report = report;
+    this.details = details;
   }
 }
 
@@ -83,22 +84,35 @@ confirmModulesPurge=false
   });
   delete env.NODE_OPTIONS;
 
+  // Prefer the manifest-pinned package manager. An arbitrary system pnpm can
+  // interpret a synced lockfile with different settings and report false drift.
   const attempts = [
-    { command: "pnpm", args },
-    { command: "corepack", args: ["pnpm@" + version, ...args] },
+    { command: "corepack", args: ["pnpm@" + version, ...args], pinned: true },
+    { command: "pnpm", args, pinned: false },
   ];
-  for (const { command, args } of attempts) {
+  for (const { command, args, pinned } of attempts) {
     try {
       await runCommand(command, args, skillRoot, env);
       return {
         command: `${command} ${args.join(" ")}`.trim(),
         installSource: warmStore ? "warm-store" : "network",
+        packageManagerVersion: pinned ? version : "system-fallback",
       };
     } catch (error) {
       if (error.errno === "ENOENT") continue;
+      const managerLabel = pinned ? `pinned pnpm ${version}` : "system pnpm fallback";
       throw new RuntimeBootstrapError(
-        `Skill dependency install failed (${command}): ${error.message}`,
+        `Skill dependency install failed with ${managerLabel} (${command}): ${error.message}. ` +
+          "The lockfile was not bypassed; repair package.json and pnpm-lock.yaml together, then rerun node scripts/ensure-runtime.js.",
         null,
+        {
+          code: "pinned-install-failed",
+          packageManager: command,
+          packageManagerVersion: pinned ? version : "system-fallback",
+          frozenLockfile: hasLockfile,
+          lifecycleScripts: "ignored",
+          repairCommand: "node scripts/ensure-runtime.js --format json",
+        },
       );
     }
   }

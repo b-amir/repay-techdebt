@@ -94,11 +94,11 @@ Use the **exact** ask blocks in `templates/agent-experience.md` (`###` + why + t
 | Open workbook    | Browser viewer                   |
 | Wrap up          | Done                             |
 
-After **three** saved lessons in a workbook batch (or when the batch finishes with fewer than three),
+After the requested saved lesson batch completes,
 run `node <skill-root>/scripts/view-lessons.js <target-root> --open` (or `repay view --open`).
 In **Fast** mode do not ask — open, then **Wrap up**. In Control with save-policy `ask`, you may
-confirm open. Explain: we start with 3 lessons so tokens stay sane; the rest of the curriculum
-stays planned and is easy to continue with guidance.
+confirm open. In learning-path mode, name the real pending count. In batch-only mode, say that the
+workbook contains exactly the requested lessons and omit continuation claims.
 
 Omnibus topics (“understand the whole app”) must be split/demoted; save rejects them.
 
@@ -158,7 +158,8 @@ under chapter **Recent teaching**.
 Script inventory ↔ Agent purpose
 Retrieve: graph hubs / critical workflows (agent questions)
 Agent: note what naming heuristics miss (DI, events, odd package names)
-Script: plan-curriculum.js … --format json (Inventory / Propose; titles = path placeholders)
+Script: plan-curriculum.js … --format json [--batch-size N] [--batch-only]
+        (Inventory / bounded Propose; titles = path placeholders)
 Agent: SHORTLIST approve/demote/fold/add + reasons + **rewrite titles/outcomes from source** (Selection / taste)
       — B3 title judgment in bottleneck-checkpoints.md
 Agent: stamp agentApproval on the rewritten curriculum JSON
@@ -171,7 +172,8 @@ Naming-heuristic topics need agent corroboration (graph, source, docs, or user) 
 `agentApproval.corroboratedTopicIds` (or `topic.corroborated=true`) before save.
 Partial coverage requires `agentApproval.acceptedPartialScope`.
 Demotions/folds use `agentApproval.topicDecisions`; folds name a kept `intoTopicId`. Treat
-save-curriculum placeholder/compression warnings as revise-or-explain prompts.
+save-curriculum placeholder warnings as revise-or-explain prompts. Breadth/compression warnings
+apply only to learning-path mode, never an explicit batch-only request.
 
 ## Semantic checklist (agent; after mechanical QA + evidence floor)
 
@@ -179,12 +181,14 @@ save-curriculum placeholder/compression warnings as revise-or-explain prompts.
 - Can the learner safely change or debug something afterward? If no, `mustFix`.
 - At least one consumer↔dependency relationship **or** a named gap.
 - Material claims use honest evidence states in prose or ledger.
-- Run claim decomposition from `bottleneck-checkpoints.md` (B6).
+- Run claim decomposition from `bottleneck-checkpoints.md` (B6). Treat deterministic anchor
+  coverage as a lead; the agent owns semantic support.
 - Snippets match current lines; memory is not current-code proof.
 - Sources listed with reliability rank; model prior not dressed as project fact.
 - If Graphify/Serena failed or was skipped, state which relation class is untrusted.
 - PRIMM moves present without empty Predict/Run/Investigate/Modify/Make headings.
 - A verified source fence appears in the worked path; the ending is a job, not symbol recall.
+- Reviewer provenance is explicit. Self-review scores are advisory, not independent certification.
 
 ## Script catalog (roles)
 

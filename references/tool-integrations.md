@@ -135,6 +135,12 @@ node <skill-root>/scripts/run-graphify.js extract <target-root> --yes
 node <skill-root>/scripts/run-graphify.js query <target-root> --question "<question>"
 ```
 
+Prefer exact `path` and `explain` operations seeded from verified symbols or project-relative paths.
+Free-text `query` defaults to budget 80 and returns bounded output with match count, truncation,
+precision, and narrowing seeds. The wrapper makes at most one narrowing retry. Treat `precision:
+low` as unusable for teaching until an exact operation or the bundled relation graph confirms the
+lead.
+
 The wrapper always uses code-only extraction, explicit external `--out`, explicit `--graph`, and
 `GRAPHIFY_QUERY_LOG_DISABLE=1`. Extraction writes only to the reported private cache and requires
 consent. Installation is a separate consent decision. If the wrapper reports any target write,

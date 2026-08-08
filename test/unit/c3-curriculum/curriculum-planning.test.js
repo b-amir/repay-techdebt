@@ -25,12 +25,25 @@ function largeModel() {
         to: `file:${index - 1}`,
       });
   }
+  nodes.push({
+    id: "file:test-result",
+    kind: "file",
+    name: "output.json",
+    path: "test-results/run/output.json",
+  });
   return {
     generatedAt: "2026-08-01T00:00:00.000Z",
     target: { root: "/tmp/large-app", scope: ".", excludedSkillPath: null },
     coverage: { modeledFiles: 1200 },
     nodes,
     edges,
+    dependencies: [
+      {
+        name: "react",
+        manifests: ["package.json"],
+        usedBy: ["app/root.tsx", "app/features/feature-1/module-10.ts"],
+      },
+    ],
     profile: {
       criticalWorkflows: ["customer checkout"],
       entryPoints: ["app/root.tsx"],
@@ -47,12 +60,18 @@ function largeModel() {
   };
 }
 
-test("large repositories receive a complete ranked subject inventory without arbitrary limits", () => {
+test("large repositories receive a bounded diversified proposal", () => {
   const curriculum = planCurriculum(largeModel());
   assert.equal(curriculum.repositorySize, "large");
-  assert.ok(curriculum.topics.length > 150); // Ceilings are removed, so it can be 305
+  assert.ok(curriculum.topics.length <= 18);
+  assert.ok(curriculum.candidateSummary.available > curriculum.topics.length);
+  assert.equal(curriculum.candidateSummary.filtered, curriculum.candidateSummary.rejected);
+  assert.ok(curriculum.candidateSummary.folded >= 0);
   assert.equal(curriculum.topics[0].focus, "customer checkout");
   assert.ok(curriculum.topics.every((topic) => topic.learnerOutcome && topic.evidencePaths));
+  assert.ok(curriculum.topics.every((topic) => topic.kind !== "dependency"));
+  assert.ok(curriculum.topics.every((topic) => !/test-results/i.test(topic.focus)));
+  assert.ok(curriculum.topics.every((topic) => topic.focus !== "app/features"));
   assert.equal(curriculum.role, "propose");
   assert.ok(curriculum.nextAsks.some((item) => item.do === "approve-curriculum-shortlist"));
   assert.ok(curriculum.topics[0].signalClass === "user");
@@ -64,6 +83,16 @@ test("large repositories receive a complete ranked subject inventory without arb
   const markdown = renderCurriculumMarkdown(curriculum);
   assert.match(markdown, /focused topics/); // Don't match the exact number, it varies
   assert.match(markdown, /Purpose and critical workflows/);
+});
+
+test("batch-only planning returns exactly the requested lesson batch", () => {
+  const curriculum = planCurriculum(largeModel(), { batchOnly: true, batchSize: 3 });
+  assert.equal(curriculum.delivery.mode, "batch-only");
+  assert.equal(curriculum.topics.length, 3);
+  assert.deepEqual(
+    curriculum.delivery.sessionBatch,
+    curriculum.topics.map((topic) => topic.id),
+  );
 });
 
 test("written curriculum topics become lesson links", () => {

@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "vite-plus/test";
 import { buildTrajectoryGate, shouldReaskSessionSetup } from "../../../src/dialogue/trajectory.js";
+import { checkTrajectoryGate } from "../../../src/dialogue/trajectory.js";
 
 test("session 2 does not re-ask purpose when gate has purposeDone", () => {
   const gate = {
@@ -35,6 +36,23 @@ test("purpose skipReason counts as settled", () => {
     }),
   };
   const decision = shouldReaskSessionSetup(gate, { hasStudyList: true });
+  assert.equal(decision.reaskPurpose, false);
+  assert.equal(decision.reaskStudyList, false);
+});
+
+test("persisted lesson-save trajectory wrappers resume as complete", () => {
+  const persisted = {
+    gate: buildTrajectoryGate({ mode: "fast", purposeDone: true, verifyDone: null }),
+    savedAt: "2026-08-08T00:00:00.000Z",
+    source: "lesson-save",
+    topicId: "topic-chat",
+  };
+  const check = checkTrajectoryGate(persisted);
+  const decision = shouldReaskSessionSetup(persisted, {
+    hasStudyList: true,
+    curriculumTopicCount: 3,
+  });
+  assert.equal(check.pathComplete, true);
   assert.equal(decision.reaskPurpose, false);
   assert.equal(decision.reaskStudyList, false);
 });

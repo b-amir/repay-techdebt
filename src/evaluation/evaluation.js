@@ -91,3 +91,88 @@ export function curriculumCoversFocus(curriculum, matchFocus) {
   const blob = curriculum.topics.map((t) => `${t.focus ?? ""} ${t.title ?? ""}`).join("\n");
   return new RegExp(matchFocus, "i").test(blob);
 }
+
+function evidenceSnippet(markdown, pattern) {
+  const match = String(markdown).match(pattern);
+  if (!match) return null;
+  return match[0].replace(/\s+/g, " ").trim().slice(0, 180);
+}
+
+/** Detect teaching behaviors rather than rewarding headings or isolated keywords. */
+export function inspectLessonBehaviors(markdown) {
+  const text = String(markdown);
+  const citations = [...text.matchAll(/\b[\w./-]+\.[A-Za-z0-9]+:[1-9]\d*\b/g)].map(
+    (match) => match[0],
+  );
+  const sections = [...text.matchAll(/^##\s+(.+)$/gm)].map((match) => match[1]);
+  const evidence = {
+    prediction: evidenceSnippet(
+      text,
+      /(?:predict|before (?:you )?(?:read|run|continue)|what (?:do you think|happens if))[^\n.!?]*[?.!]/i,
+    ),
+    trace: evidenceSnippet(
+      text,
+      /(?:start (?:at|with)|then (?:follow|open|trace)|next[, ]|flows? (?:to|through)|step \d)[^\n.!?]*[.!?]/i,
+    ),
+    contrast: evidenceSnippet(
+      text,
+      /(?:not\s+[^\n.]{3,80}\s+but|common (?:mistake|assumption)|instead of|the difference (?:is|between))[^\n.!?]*[.!?]/i,
+    ),
+    decisionRule: evidenceSnippet(
+      text,
+      /(?:if\s+[^\n.]{3,100}\s+then|when\s+[^\n.]{3,100}\s+(?:use|prefer|choose|treat)|rule(?: of thumb)?\s*:)[^\n.!?]*[.!?]/i,
+    ),
+    learnerJob: evidenceSnippet(
+      text,
+      /(?:try|modify|change|debug|test|trace|open)\s+[^\n.]{8,160}(?:verify|assert|expect|observe|explain|write|run)[^\n.!?]*[.!?]/i,
+    ),
+  };
+  return {
+    evidence,
+    observed: Object.fromEntries(Object.entries(evidence).map(([key, value]) => [key, !!value])),
+    citationCount: citations.length,
+    sectionCount: sections.length,
+  };
+}
+
+/** Deterministic, evidence-bearing report; not an independent semantic judge. */
+export function evaluateLessonBehaviors(markdown, quality, options = {}) {
+  const depth = options.depth ?? "balanced";
+  const behavior = inspectLessonBehaviors(markdown);
+  const observedCount = Object.values(behavior.observed).filter(Boolean).length;
+  const pedagogyNeeded = depth === "concise" ? 2 : depth === "deep" ? 4 : 3;
+  const pedagogy = Math.max(1, Math.min(5, 1 + Math.round((observedCount / 5) * 4)));
+  const actionSignals = [
+    behavior.observed.learnerJob,
+    behavior.observed.decisionRule,
+    behavior.citationCount >= 2,
+  ].filter(Boolean).length;
+  const actionability = Math.max(1, Math.min(5, 1 + actionSignals));
+  const hasCite = behavior.citationCount >= 2;
+  const dimensions = {
+    correctness: hasCite && quality.ok ? 5 : hasCite ? 3 : 1,
+    importance: behavior.observed.decisionRule || behavior.observed.contrast ? 5 : 3,
+    focus:
+      behavior.sectionCount >= 3 && behavior.sectionCount <= 8
+        ? 5
+        : behavior.sectionCount > 0
+          ? 3
+          : 1,
+    clarity: (quality.warnings?.length ?? 0) === 0 ? 5 : 3,
+    pedagogy,
+    actionability,
+  };
+  return {
+    judge: "deterministic-behavior-report",
+    note: "Reports observable teaching behaviors. It does not replace semantic or independent review.",
+    depth,
+    dimensions,
+    behavior,
+    calibration: {
+      pedagogyNeeded,
+      pedagogyObserved: observedCount,
+      pedagogyFloorMet: observedCount >= pedagogyNeeded,
+      actionabilityFloorMet: actionSignals >= 2,
+    },
+  };
+}

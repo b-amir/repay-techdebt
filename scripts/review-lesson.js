@@ -6,7 +6,8 @@ function help() {
   process.stdout.write(`Usage:
   node review-lesson.js <lesson.md> <judgment.json>
 
-Records an AI judgment for a lesson draft. The judgment JSON must have 'score' and 'reasoning'.
+Records a reviewer-supplied judgment; it does not invoke a reviewer.
+The JSON must identify reviewerProvenance as self, independent-agent, or human.
 `);
 }
 
@@ -18,7 +19,7 @@ export async function execute(argv) {
 
   const positional = argv.filter((arg) => !arg.startsWith("--"));
   if (positional.length !== 2) {
-    process.stderr.write("Expected a lesson markdown file and a judgment JSON file.\\n");
+    process.stderr.write("Expected a lesson markdown file and a judgment JSON file.\n");
     return 1;
   }
 
@@ -29,16 +30,18 @@ export async function execute(argv) {
     payload = JSON.parse(readFileSync(resolve(jsonPath), "utf8"));
     validateJudgmentPayload(payload);
   } catch (error) {
-    process.stderr.write(`Could not load judgment JSON: ${error.message}\\n`);
+    process.stderr.write(`Could not load judgment JSON: ${error.message}\n`);
     return 1;
   }
 
   try {
     await recordJudgment(resolve(lessonPath), payload);
-    process.stdout.write("AI judgment recorded successfully.\\n");
+    process.stdout.write(
+      `Judgment recorded (${payload.reviewerProvenance}). ${payload.reviewerProvenance === "self" ? "The score is advisory, not independent certification." : "Independent review provenance recorded."}\n`,
+    );
     return 0;
   } catch (error) {
-    process.stderr.write(`Failed to record judgment: ${error.message}\\n`);
+    process.stderr.write(`Failed to record judgment: ${error.message}\n`);
     return 1;
   }
 }

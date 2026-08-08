@@ -2,13 +2,15 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { verifyLessonCitations } from "../src/lessons/lesson-citation-check.js";
 import { formatTargetError, resolveTargetRoot } from "../src/foundations/targeting.js";
+import { assertClosedNextAsks } from "../src/dialogue/dialogue-envelope.js";
 
 function help() {
   process.stdout.write(`Usage:
   node check-lesson-evidence.js <target-root> <lesson.md> [--format json|text]
 
 Citation validity floor (B6): every path:line cite must resolve inside the target with a valid line.
-Does not check claim faithfulness — that is the agent sense step in bottleneck-checkpoints.md.
+Does not check evidence-anchor coverage or semantic meaning. Run check-lesson-faithfulness next,
+then perform the agent sense step in bottleneck-checkpoints.md.
 `);
 }
 
@@ -46,21 +48,23 @@ try {
     citationCount: result.citations.length,
     citations: result.citations,
     problems: result.problems,
-    nextAsks: result.ok
-      ? [
-          {
-            who: "agent",
-            do: "claim-decomposition-sense",
-            why: "citation-validity-passed",
-          },
-        ]
-      : [
-          {
-            who: "agent",
-            do: "fix-citations-or-rewrite",
-            why: "citation-validity-failed",
-          },
-        ],
+    nextAsks: assertClosedNextAsks(
+      result.ok
+        ? [
+            {
+              who: "script",
+              do: "check-evidence-anchors",
+              why: "citation-validity-passed",
+            },
+          ]
+        : [
+            {
+              who: "agent",
+              do: "fix-citations-or-rewrite",
+              why: "citation-validity-failed",
+            },
+          ],
+    ),
   };
   if (format === "text") {
     process.stdout.write(

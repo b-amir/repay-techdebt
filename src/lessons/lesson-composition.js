@@ -398,7 +398,9 @@ function relatedContext(model, focus) {
   let anchors = fileLike.filter((node) =>
     overlaps(terms, words(`${node.path ?? ""} ${node.name}`)),
   );
-  if (anchors.length === 0) {
+  // A named focus that finds no anchor is an evidence gap, not permission to
+  // silently substitute unrelated global hubs.
+  if (anchors.length === 0 && terms.size === 0) {
     const incoming = new Map();
     for (const edge of model.edges)
       incoming.set(edge.to, (incoming.get(edge.to) ?? 0) + (edge.confidence >= 0.7 ? 1 : 0));
@@ -456,20 +458,23 @@ function makeSignal(model, context, definition) {
   const independentSources = new Set(
     evidence.flatMap((item) => item.sources.map((source) => `${source.kind}:${source.path}`)),
   ).size;
-  const focusRelated =
-    !context.terms.size ||
+  const localEvidence =
     candidateNodes.some((node) => context.relatedIds.has(node.id)) ||
     candidateEdges.some(
       (edge) => context.relatedIds.has(edge.from) || context.relatedIds.has(edge.to),
     ) ||
     evidencePaths.some((path) => context.paths.has(path));
-  const authoritative = definition.authoritative(model, context, candidateNodes, candidateEdges);
+  const focusRelated = !context.terms.size || localEvidence;
+  const authoritative =
+    definition.authoritative(model, context, candidateNodes, candidateEdges) && focusRelated;
   const base = Math.min(55, candidateNodes.length * 8 + candidateEdges.length * 7);
   const diversity = Math.min(25, independentSources * 5);
-  const priorityScore = Math.min(
-    15,
-    priorityItems.reduce((sum, item) => sum + Math.max(0, item.score - 40) / 8, 0),
-  );
+  const priorityScore = focusRelated
+    ? Math.min(
+        15,
+        priorityItems.reduce((sum, item) => sum + Math.max(0, item.score - 40) / 8, 0),
+      )
+    : 0;
   const score = Math.min(
     100,
     Math.round(
@@ -584,22 +589,23 @@ const definitions = [
     nodes: (model, context) =>
       nodesMatching(model, (node) => {
         const value = words(`${node.path ?? ""} ${node.name}`);
+        const focusRelated = context.relatedIds.has(node.id) || !context.terms.size;
         return (
-          node.kind === "data-store" ||
-          (overlaps(
-            value,
-            new Set([
-              "data",
-              "database",
-              "db",
-              "model",
-              "schema",
-              "migration",
-              "repository",
-              "store",
-            ]),
-          ) &&
-            (context.relatedIds.has(node.id) || !context.terms.size))
+          focusRelated &&
+          (node.kind === "data-store" ||
+            overlaps(
+              value,
+              new Set([
+                "data",
+                "database",
+                "db",
+                "model",
+                "schema",
+                "migration",
+                "repository",
+                "store",
+              ]),
+            ))
         );
       }),
     edges: (model, context) =>
@@ -712,22 +718,23 @@ const definitions = [
     nodes: (model, context) =>
       nodesMatching(model, (node) => {
         const value = words(`${node.path ?? ""} ${node.name}`);
+        const focusRelated = context.relatedIds.has(node.id) || !context.terms.size;
         return (
-          ["deployment", "configuration"].includes(node.kind) ||
-          (overlaps(
-            value,
-            new Set([
-              "docker",
-              "kubernetes",
-              "helm",
-              "deploy",
-              "workflow",
-              "config",
-              "env",
-              "terraform",
-            ]),
-          ) &&
-            (context.relatedIds.has(node.id) || !context.terms.size))
+          focusRelated &&
+          (["deployment", "configuration"].includes(node.kind) ||
+            overlaps(
+              value,
+              new Set([
+                "docker",
+                "kubernetes",
+                "helm",
+                "deploy",
+                "workflow",
+                "config",
+                "env",
+                "terraform",
+              ]),
+            ))
         );
       }),
     edges: (model, context) =>

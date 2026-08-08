@@ -36,8 +36,42 @@ export function validateCurriculum(value, targetRoot) {
     topic.lessonPath = null;
     delete topic.writtenAt;
   }
+  const deliveryMode = value.delivery?.mode ?? "learning-path";
+  if (!new Set(["learning-path", "batch-only"]).has(deliveryMode))
+    throw new Error("Curriculum delivery mode must be learning-path or batch-only");
+  const suppliedLessonCount = Number(
+    value.delivery?.requestedLessonCount ?? Math.min(3, value.topics.length),
+  );
+  if (!Number.isInteger(suppliedLessonCount) || suppliedLessonCount < 1 || suppliedLessonCount > 5)
+    throw new Error("Curriculum requestedLessonCount must be an integer from 1 to 5");
+  const requestedLessonCount = suppliedLessonCount;
+  const topicIds = new Set(value.topics.map((topic) => topic.id));
+  const rawBatch =
+    value.delivery?.sessionBatch ??
+    value.topics.slice(0, requestedLessonCount).map((topic) => topic.id);
+  if (!Array.isArray(rawBatch)) throw new Error("Curriculum sessionBatch must be an array");
+  if (deliveryMode === "batch-only" && rawBatch.some((id) => !topicIds.has(id)))
+    throw new Error("Batch-only sessionBatch must reference kept topics");
+  if (deliveryMode === "batch-only" && value.topics.length !== requestedLessonCount)
+    throw new Error(
+      `Batch-only curriculum must contain exactly ${requestedLessonCount} topics; received ${value.topics.length}.`,
+    );
+  const requestedBatch = [...new Set(rawBatch.filter((id) => topicIds.has(id)))];
+  for (const topic of value.topics) {
+    if (requestedBatch.length >= requestedLessonCount) break;
+    if (!requestedBatch.includes(topic.id)) requestedBatch.push(topic.id);
+  }
+  value.delivery = {
+    mode: deliveryMode,
+    requestedLessonCount,
+    learningPathTopics: value.topics.map((topic) => topic.id),
+    sessionBatch: requestedBatch.slice(0, requestedLessonCount),
+  };
   const available = Number(value.scale?.availableCandidates ?? value.topics.length);
-  const required = Math.max(1, Math.min(3, Number.isFinite(available) ? available : 0));
+  const required =
+    deliveryMode === "batch-only"
+      ? requestedLessonCount
+      : Math.max(1, Math.min(3, Number.isFinite(available) ? available : 0));
   if (value.topics.length < required)
     throw new Error(
       `Whole-app curriculum needs at least ${required} kept topics; received ${value.topics.length}.`,
@@ -45,15 +79,16 @@ export function validateCurriculum(value, targetRoot) {
   if (value.topics.length > 150) throw new Error("Curriculum cannot exceed 150 focused topics");
   const modeledFiles = Number(value.coverage?.modeledFiles ?? 0);
   const ratio = available > 0 ? value.topics.length / available : 1;
-  if (value.topics.length > 40)
+  if (deliveryMode === "learning-path" && value.topics.length > 40)
     warnings.push(
       `Shortlist keeps ${value.topics.length} topics; review whether it is still curated.`,
     );
-  if (available > 0 && ratio > 0.8)
+  if (deliveryMode === "learning-path" && available > 0 && ratio > 0.8)
     warnings.push(`Shortlist keeps more than 80% of ${available} raw candidates.`);
-  if (available > 0 && ratio < 0.2)
+  if (deliveryMode === "learning-path" && available > 0 && ratio < 0.2)
     warnings.push(`Shortlist collapsed more than 80% of ${available} raw candidates.`);
   if (
+    deliveryMode === "learning-path" &&
     modeledFiles >= 1_000 &&
     available >= 60 &&
     new Set(value.topics.map((topic) => topic.chapter)).size < 5

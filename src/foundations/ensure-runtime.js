@@ -171,6 +171,7 @@ export async function ensureSkillRuntime(options) {
     report,
     installed: !!installResult,
     installSource: installResult?.installSource || "skipped-manifest-match",
+    packageManagerVersion: installResult?.packageManagerVersion ?? null,
     consent: await readRuntimeConsent(skillRoot),
     repayShim: shim,
   };

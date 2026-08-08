@@ -137,7 +137,9 @@ node <skill-root>/scripts/check-runtime.js --format json
 Bundled skill CLIs (`project-memory.js`, `view-lessons.js`, `teach-topic.js`) call
 `ensure-runtime` on start — they run `pnpm install` **inside `<skill-root>` only** when
 `node_modules` is missing (e.g. after skills.sh sync): `--ignore-scripts`, and
-`--frozen-lockfile` when `pnpm-lock.yaml` is present. Never installs into the target app.
+`--frozen-lockfile` when `pnpm-lock.yaml` is present. Bootstrap prefers the pnpm version pinned in
+the skill manifest through Corepack; it never retries an unlocked install. Never installs into the
+target app.
 Consent is recorded in user state or `<skill-root>/.repay-skill-runtime/`. Manual repair:
 `node <skill-root>/scripts/ensure-runtime.js`. Optional PATH shim for `repay` is **off**
 unless `REPAY_LINK_CLI=1` or `--link-cli`. Full model: `<skill-root>/docs/security.md`.
@@ -220,8 +222,13 @@ mini-curriculum (`buildTeachingCurriculum` → `save-curriculum`) so every lesso
 After purpose + retrieve hubs, run the curriculum **proposal**, then agent shortlist before save:
 
 ```text
-node <skill-root>/scripts/plan-curriculum.js <target-root> --format json
+node <skill-root>/scripts/plan-curriculum.js <target-root> --format json [--batch-size 3] [--batch-only]
 ```
+
+The normal proposal is a diversified maximum of 18 candidates. Use `--batch-only` when the user
+explicitly asks for exactly N fresh lessons and no broader roadmap. Default whole-app runs keep a
+learning path plus a 1–3 lesson session batch. Full candidate diagnostics are opt-in with
+`--include-catalog --output <outside-target-path>` and never belong in normal stdout.
 
 Approve/demote/fold/add topics (B3; corroborate `signalClass: naming-heuristic`). **Rewrite
 `title` + `learnerOutcome` from live source** — script labels are path-unique placeholders;
@@ -235,8 +242,9 @@ Fold same-flow micro-units into one kept outcome; demotions/folds require reason
 node <skill-root>/scripts/project-memory.js save-curriculum <target-root> --input <approved.json> --yes
 ```
 
-Write 1–3 lessons per run; resume from `INDEX.md`. Explain to first-timers: **3 lessons this
-session** keeps token use sane; the rest of the curriculum stays planned and is easy to continue.
+Write 1–3 lessons per run; resume from `INDEX.md`. In learning-path mode explain that the current
+batch keeps token use sane and name the actual pending count. In batch-only mode say the workbook
+contains exactly the requested batch; never claim that more topics remain planned.
 After the **third** saved lesson in a batch, or when the batch is complete with fewer than three
 topics, **must** open the viewer with
 `node <skill-root>/scripts/view-lessons.js <target-root> --open --lesson <rel-path>`
@@ -270,15 +278,19 @@ node <skill-root>/scripts/recheck-claims.js <target-root> [<lesson.md>]
 node <skill-root>/scripts/project-memory.js recheck-claims <target-root> [<lesson.md>] --format json
 ```
 
-Optional report-only bundle (floors + pedagogy proxies + rubric scores; not a save gate):
+Optional report-only bundle (floors + observable teaching behaviors; not an independent judge or
+save gate):
 
 ```text
 node <skill-root>/scripts/evaluate-lesson.js <target-root> <draft.md> --depth <concise|balanced|deep>
 ```
 
 5. **Agent B4b + B6 sense:** PRIMM moves without empty process headings; claim decomposition
-   (`CLAIMS:` with support yes|no|gap). Warnings are revise-or-explain prompts, never invisible
-   noise. ≤1 rewrite if quality, evidence, faithfulness, or sense failed.
+   (`CLAIMS:` with support yes|no|gap; multiple citations allowed). The deterministic checker
+   verifies citation windows and identifier anchors, not meaning. The agent must review semantic
+   support in natural prose. Record reviewer provenance as `self`, `independent-agent`, or `human`;
+   a self-review score is advisory. Warnings are revise-or-explain prompts, never invisible noise.
+   ≤1 rewrite if quality, evidence, faithfulness, or sense failed.
 6. **Script save** via `project-memory.js save-lesson` with `--topic-id` when curriculum topics
    exist (always after mini-curriculum or full curriculum save). Explicit `CLAIMS:` failures block
    save. On `lesson-saved`, when `viewer.openRecommended` is true, **must** run:

@@ -112,6 +112,23 @@ test("validateCurriculum accepts a deliberate shortlist instead of enforcing raw
   assert.ok(result.approvalWarnings.some((warning) => /fewer than five chapters/i.test(warning)));
 });
 
+test("batch-only curriculum suppresses learning-path breadth warnings", () => {
+  const topics = [topic(1), topic(2), topic(3)];
+  const value = curriculum(topics, {
+    coverage: { modeledFiles: 1_200 },
+    scale: { availableCandidates: 100 },
+    delivery: {
+      mode: "batch-only",
+      requestedLessonCount: 3,
+      learningPathTopics: topics.map((item) => item.id),
+      sessionBatch: topics.map((item) => item.id),
+    },
+  });
+  const result = validateCurriculum(value, TARGET_ROOT);
+  assert.equal(result.topics.length, 3);
+  assert.ok(!result.approvalWarnings.some((warning) => /80%|five chapters/i.test(warning)));
+});
+
 test("validateCurriculum keeps a small structural minimum for whole-app saves", () => {
   const value = curriculum([topic(1), topic(2)], {
     scale: { availableCandidates: 20 },

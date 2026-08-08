@@ -186,5 +186,16 @@ export function applyAgentApproval(curriculum, approval) {
     ...curriculum.scale,
     selectedTopics: curriculum.topics.filter((t) => t.status !== "demoted").length,
   };
+  if (curriculum.delivery) {
+    const keptIds = curriculum.topics
+      .filter((topic) => topic.status !== "demoted")
+      .map((topic) => topic.id);
+    const kept = new Set(keptIds);
+    curriculum.delivery = {
+      ...curriculum.delivery,
+      learningPathTopics: keptIds,
+      sessionBatch: (curriculum.delivery.sessionBatch ?? []).filter((id) => kept.has(id)),
+    };
+  }
   return curriculum;
 }

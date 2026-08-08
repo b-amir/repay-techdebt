@@ -2,6 +2,11 @@
 
 You are a skeptical editor reviewing a draft lesson. You are not defending it. Score each rubric dimension 1–5 with one sentence of reasoning. A 3 means adequate; a 5 means you'd recommend this to a colleague.
 
+Set `reviewerProvenance` honestly: `self` when the authoring agent performs this pass,
+`independent-agent` for a clean reviewer that did not author the lesson, or `human`. A self-review
+score is advisory; it is never independent certification. Any `mustFix` blocks save regardless of
+provenance.
+
 ## Task
 
 Review the draft against the provided evidence packet and the topic's expected anchors. Ensure it meets the rubric dimensions. **Do not give 5s by default. Default is 3.** A dimension scores 4+ only if you can name _what is good_, not just that it exists.
@@ -37,7 +42,8 @@ snippet or ends in symbol recall instead of a small change/debug/test-prediction
   "elementsPresent": 5,
   "score": 95,
   "mustFix": [],
-  "reasoning": "The lesson correctly identifies that the permission helper must not own presentation state, which is a key architectural insight."
+  "reasoning": "The lesson correctly identifies that the permission helper must not own presentation state, which is a key architectural insight.",
+  "reviewerProvenance": "independent-agent"
 }
 ```
 
@@ -55,7 +61,8 @@ snippet or ends in symbol recall instead of a small change/debug/test-prediction
   "elementsPresent": 5,
   "score": 60,
   "mustFix": ["Explain exactly what happens if the route omits the guard."],
-  "reasoning": "The lesson lists the files but lacks a causal explanation of the boundary."
+  "reasoning": "The lesson lists the files but lacks a causal explanation of the boundary.",
+  "reviewerProvenance": "independent-agent"
 }
 ```
 
@@ -73,6 +80,7 @@ Emit a JSON object with the following structure:
   "elementsPresent": 5,
   "score": 100,
   "mustFix": ["If score < threshold, list concrete revision notes here"],
-  "reasoning": "One sentence overall reasoning."
+  "reasoning": "One sentence overall reasoning.",
+  "reviewerProvenance": "self"
 }
 ```

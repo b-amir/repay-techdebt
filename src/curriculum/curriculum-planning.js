@@ -203,11 +203,15 @@ function entryImportance(path) {
 /**
  * @param {{ kind: string, focus: string, paths: string[], reasons: string[], importance?: number, relationCount?: number }} candidate
  */
-function makeCandidate({ kind, focus, paths, reasons, relationCount = 0 }) {
+function makeCandidate({ kind, focus, paths, reasons, relationCount = 0, importance = 50 }) {
   const evidencePaths = [...new Set(paths.filter(Boolean))].slice(0, 5);
 
   const rankResult = rankCandidate({ kind, focus, relationCount });
-  const finalImportance = Math.max(1, Math.min(100, rankResult.score));
+  const heuristicImportance = Number.isFinite(importance) ? importance : 50;
+  const finalImportance = Math.max(
+    1,
+    Math.min(100, Math.round(rankResult.score * 0.6 + heuristicImportance * 0.4)),
+  );
   const finalReasons = [
     ...reasons,
     ...rankResult.features.positive.map((p) => `(+) ${p.reason}`),
@@ -254,7 +258,116 @@ function directoryCandidates(files) {
     .map(([path, count]) => ({ path, count }));
 }
 
-export function planCurriculum(model) {
+const GENERIC_TOPIC_LABEL = new Set([
+  "application",
+  "app",
+  "core",
+  "components",
+  "features",
+  "modules",
+  "public",
+  "react",
+  "routes",
+  "shared",
+  "source",
+  "src",
+  "ui",
+]);
+
+function candidateNoiseReason(candidate) {
+  const focus = String(candidate.focus ?? "");
+  if (candidate.kind === "dependency") return "external-dependency-catalog";
+  if (focus === ".") return "repository-root-placeholder";
+  if (NON_PRODUCT.test(focus) && candidate.kind !== "test") return "non-product-path";
+  if (/(?:^|\/)(?:test-results?|playwright-report|reports?|snapshots?)(?:\/|$)/i.test(focus))
+    return "generated-test-artifact";
+  const label = displayName(focus).toLowerCase();
+  if (GENERIC_TOPIC_LABEL.has(label)) return "generic-structural-label";
+  if (
+    ["area", "boundary", "component"].includes(candidate.kind) &&
+    candidate.relationCount < 2 &&
+    label.split(/\s+/).length === 1
+  )
+    return "uncorroborated-structural-folder";
+  return null;
+}
+
+function sameCandidateFamily(left, right) {
+  if (left.chapter !== right.chapter) return false;
+  const a = String(left.focus)
+    .toLowerCase()
+    .replace(/\.[^./]+$/, "");
+  const b = String(right.focus)
+    .toLowerCase()
+    .replace(/\.[^./]+$/, "");
+  if (a === b) return true;
+  if (!(a.startsWith(`${b}/`) || b.startsWith(`${a}/`))) return false;
+  const leftEvidence = new Set(left.evidencePaths ?? []);
+  return (right.evidencePaths ?? []).some((path) => leftEvidence.has(path));
+}
+
+/** Return a small, explainable, chapter-diverse proposal for the agent. */
+export function selectCurriculumCandidates(ranked, limit = 18) {
+  const rejected = [];
+  const folded = [];
+  const eligible = [];
+  for (const candidate of ranked) {
+    const reason = candidateNoiseReason(candidate);
+    if (reason) {
+      rejected.push({ id: candidate.id, focus: candidate.focus, reason });
+      continue;
+    }
+    const prior = eligible.find((item) => sameCandidateFamily(item, candidate));
+    if (prior) {
+      prior.evidencePaths = [
+        ...new Set([...(prior.evidencePaths ?? []), ...(candidate.evidencePaths ?? [])]),
+      ].slice(0, 8);
+      folded.push({ id: candidate.id, intoTopicId: prior.id, reason: "same-focus-family" });
+      continue;
+    }
+    eligible.push(candidate);
+  }
+
+  const selected = [];
+  const selectedIds = new Set();
+  const chapterCounts = new Map();
+  for (const candidate of eligible) {
+    if (selected.length >= limit) break;
+    const count = chapterCounts.get(candidate.chapter) ?? 0;
+    if (count >= 4) continue;
+    selected.push(candidate);
+    selectedIds.add(candidate.id);
+    chapterCounts.set(candidate.chapter, count + 1);
+  }
+  for (const candidate of eligible) {
+    if (selected.length >= limit) break;
+    if (selectedIds.has(candidate.id)) continue;
+    selected.push(candidate);
+    selectedIds.add(candidate.id);
+  }
+
+  return {
+    selected,
+    summary: {
+      available: ranked.length,
+      eligible: eligible.length,
+      returned: selected.length,
+      filtered: rejected.length,
+      rejected: rejected.length,
+      folded: folded.length,
+      rejectionReasons: Object.fromEntries(
+        [...new Set(rejected.map((item) => item.reason))].map((reason) => [
+          reason,
+          rejected.filter((item) => item.reason === reason).length,
+        ]),
+      ),
+      rejectedExamples: rejected.slice(0, 8),
+      foldedExamples: folded.slice(0, 8),
+    },
+  };
+}
+
+export function planCurriculum(model, options = {}) {
   const fileNodes = model.nodes.filter(
     (node) =>
       node.path &&
@@ -447,8 +560,20 @@ export function planCurriculum(model) {
       a.focus.localeCompare(b.focus),
   );
 
-  let selected = buildStudyOrder(ranked);
+  const requestedLimit = Number(options.limit ?? 18);
+  const proposalLimit = Number.isFinite(requestedLimit)
+    ? Math.max(1, Math.min(50, Math.trunc(requestedLimit)))
+    : 18;
+  const selection = selectCurriculumCandidates(ranked, proposalLimit);
+  let selected = buildStudyOrder(selection.selected);
   selected = applyLearnerProfile(selected, model.profile.learnerProfile);
+
+  const requestedBatchSize = Number(options.batchSize ?? 3);
+  const batchSize = Number.isFinite(requestedBatchSize)
+    ? Math.max(1, Math.min(5, Math.trunc(requestedBatchSize)))
+    : 3;
+  const deliveryMode = options.batchOnly === true ? "batch-only" : "learning-path";
+  if (deliveryMode === "batch-only") selected = selected.slice(0, batchSize);
 
   selected.forEach((topic, index) => {
     topic.rank = index + 1;
@@ -510,8 +635,19 @@ export function planCurriculum(model) {
       availableCandidates: ranked.length,
       selectedTopics: selected.length,
     },
+    candidateSummary: {
+      ...selection.summary,
+      returned: selected.length,
+    },
+    delivery: {
+      mode: deliveryMode,
+      requestedLessonCount: batchSize,
+      learningPathTopics: selected.map((topic) => topic.id),
+      sessionBatch: selected.slice(0, batchSize).map((topic) => topic.id),
+    },
     coverage: model.coverage,
     topics: selected,
+    ...(options.includeCatalog === true ? { candidateCatalog: ranked } : {}),
     unresolved: model.profile.uncertainties,
     ...dialogue,
   };
@@ -524,7 +660,9 @@ export function renderCurriculumMarkdown(curriculum) {
     "",
     `This workbook contains **${curriculum.topics.length} focused ${curriculum.topics.length === 1 ? "topic" : "topics"}**. ${written} ${written === 1 ? "lesson is" : "lessons are"} written. Start with the highest-ranked topics, or choose any topic whose outcome matches the change you need to make.`,
     "",
-    "Each lesson teaches one mental model. The index is intentionally broader than the lesson set so you can choose what to learn next without regenerating the repository analysis.",
+    curriculum.delivery?.mode === "batch-only"
+      ? "Each lesson teaches one mental model. This workbook contains only the explicitly requested batch."
+      : "Each lesson teaches one mental model. The index is intentionally broader than the current lesson batch so you can choose what to learn next without regenerating the repository analysis.",
     "",
   ];
   const chapters = [...new Set(curriculum.topics.map((topic) => topic.chapter))];

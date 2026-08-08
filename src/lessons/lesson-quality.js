@@ -26,6 +26,10 @@ function wordCount(markdown) {
     .filter(Boolean).length;
 }
 
+/**
+ * @param {string} markdown
+ * @param {{ depth?: string, expectedEvidencePaths?: string[], subject?: string }} [options]
+ */
 export function inspectLesson(
   markdown,
   { depth = "balanced", expectedEvidencePaths = [], subject } = {},

@@ -10,4 +10,5 @@ export const PASSING_JUDGMENT = {
   mustFix: [],
   reasoning: "Strong lesson with evidence fit and a genuine insight.",
   reviewerRole: "skeptical-editor",
+  reviewerProvenance: "independent-agent",
 };

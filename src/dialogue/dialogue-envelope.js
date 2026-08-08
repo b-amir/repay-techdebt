@@ -19,10 +19,28 @@ export const CLOSED_NEXT_ASK_DOS = Object.freeze([
   "accept-partial-scope-or-narrow",
   "graphify-or-serena-retrieve",
   "verify-selected-leads-in-source",
+  "check-evidence-anchors",
+  "review-claim-semantics",
+  "fix-citations-or-rewrite",
+  "rewrite-unsupported-claims",
+  "review-behavior-report-then-save",
+  "fix-floor-errors",
   "unsupported-shrink-or-refuse",
 ]);
 
 const CLOSED_NEXT_ASK_DO_SET = new Set(CLOSED_NEXT_ASK_DOS);
+
+/** Validate direct script handoffs that do not need a full dialogue envelope. */
+export function assertClosedNextAsks(nextAsks) {
+  for (const item of nextAsks ?? []) {
+    if (!item || !CLOSED_NEXT_ASK_DO_SET.has(item.do)) {
+      throw new Error(
+        `nextAsks.do "${item?.do ?? "missing"}" not in CLOSED_NEXT_ASK_DOS — update contract + constant first`,
+      );
+    }
+  }
+  return nextAsks;
+}
 
 function coverageStatus(coverage) {
   if (!coverage) return "unknown";
@@ -124,13 +142,7 @@ export function buildDialogueEnvelope({
   });
 
   const closedNextAsks = dedupe(nextAsks, (item) => `${item.who}:${item.do}:${item.why ?? ""}`);
-  for (const item of closedNextAsks) {
-    if (!CLOSED_NEXT_ASK_DO_SET.has(item.do)) {
-      throw new Error(
-        `nextAsks.do "${item.do}" not in CLOSED_NEXT_ASK_DOS — update contract + constant first`,
-      );
-    }
-  }
+  assertClosedNextAsks(closedNextAsks);
 
   return {
     role,
