@@ -44,6 +44,7 @@ test("CLOSED_NEXT_ASK_DOS is frozen closed set used by envelope", () => {
     "approve-curriculum-shortlist",
     "accept-partial-scope-or-narrow",
     "graphify-or-serena-retrieve",
+    "verify-selected-leads-in-source",
     "unsupported-shrink-or-refuse",
   ]);
   assert.deepEqual(new Set(CLOSED_NEXT_ASK_DOS), expected);

@@ -1344,6 +1344,18 @@ async function saveCurriculum(targetRoot, options) {
     outputRoot: workbook.root,
     index: workbook.lessonIndex,
     topicCount: input.topics.length,
+    warnings: input.approvalWarnings ?? [],
+    nextAsks:
+      input.approvalWarnings?.length > 0
+        ? [
+            {
+              who: "agent",
+              do: "approve-curriculum-shortlist",
+              why: "curriculum-save-warnings",
+              question: "Revise the warned shortlist copy/grain or record why it should remain.",
+            },
+          ]
+        : [],
   });
 }
 
@@ -1655,6 +1667,7 @@ async function saveLesson(targetRoot, options) {
       file: lessonRel,
       writtenLessonCount: writtenCount,
       pendingTopicCount: pendingCount,
+      warnings: quality.warnings ?? [],
       draftCleanup: draftCleanup.cleaned
         ? `draft-cleaned: ${inputPath}`
         : `draft-cleanup-skipped: ${draftCleanup.reason}`,

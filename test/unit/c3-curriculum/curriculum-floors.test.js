@@ -7,6 +7,7 @@ import assert from "node:assert/strict";
 import { test } from "vite-plus/test";
 import { validateCurriculum } from "../../../src/curriculum/approve-curriculum.js";
 import { isOmnibusTopic, findOmnibusTopics } from "../../../src/curriculum/curriculum-policy.js";
+import { titleFor, outcomeFor } from "../../../src/curriculum/curriculum-planning.js";
 
 const TARGET_ROOT = "/tmp/repay-c3-target";
 
@@ -100,14 +101,117 @@ test("validateCurriculum rejects a repeated focus", () => {
   assert.throws(() => validateCurriculum(value, TARGET_ROOT), /repeats the focus focus-1/);
 });
 
-test("validateCurriculum enforces the anti-compression topic floor", () => {
-  // 3 topics but the planner claims 12 available candidates on a small repo → requires 12.
+test("validateCurriculum accepts a deliberate shortlist instead of enforcing raw candidate count", () => {
   const value = curriculum([topic(1), topic(2), topic(3)], {
-    scale: { availableCandidates: 12 },
+    coverage: { modeledFiles: 1_200 },
+    scale: { availableCandidates: 100 },
   });
-  assert.throws(
-    () => validateCurriculum(value, TARGET_ROOT),
-    /require at least 12.*omnibus lessons/,
+  const result = validateCurriculum(value, TARGET_ROOT);
+  assert.equal(result.topics.length, 3);
+  assert.ok(result.approvalWarnings.some((warning) => /collapsed more than 80%/i.test(warning)));
+  assert.ok(result.approvalWarnings.some((warning) => /fewer than five chapters/i.test(warning)));
+});
+
+test("validateCurriculum keeps a small structural minimum for whole-app saves", () => {
+  const value = curriculum([topic(1), topic(2)], {
+    scale: { availableCandidates: 20 },
+  });
+  assert.throws(() => validateCurriculum(value, TARGET_ROOT), /at least 3 kept topics/);
+});
+
+test("topic decisions require reasons and fold evidence into the kept topic", () => {
+  const source = topic(1, { evidencePaths: ["src/wrapper.js"] });
+  const target = topic(2, { evidencePaths: ["src/flow.js"] });
+  const third = topic(3);
+  const fourth = topic(4);
+  const value = curriculum([source, target, third, fourth], {
+    agentApproval: {
+      approvedAt: "2026-01-01T00:00:00Z",
+      purposeStatus: "accepted",
+      topicDecisions: {
+        [source.id]: {
+          action: "fold",
+          intoTopicId: target.id,
+          reason: "Same learner outcome and failure mode",
+        },
+      },
+    },
+  });
+
+  const result = validateCurriculum(value, TARGET_ROOT);
+  assert.deepEqual(
+    result.topics.map((item) => item.id),
+    [target.id, third.id, fourth.id],
+  );
+  assert.deepEqual(result.topics[0].evidencePaths, ["src/flow.js", "src/wrapper.js"]);
+  assert.equal(result.scale.selectedTopics, 3);
+
+  const reasonless = curriculum([topic(1), topic(2), topic(3)], {
+    agentApproval: {
+      approvedAt: "2026-01-01T00:00:00Z",
+      purposeStatus: "accepted",
+      topicDecisions: { [topic(1).id]: { action: "demote", reason: "" } },
+    },
+  });
+  assert.throws(() => validateCurriculum(reasonless, TARGET_ROOT), /decision reason/i);
+});
+
+test("topic decisions reject missing fold targets", () => {
+  const source = topic(1);
+  const value = curriculum([source, topic(2), topic(3)], {
+    agentApproval: {
+      approvedAt: "2026-01-01T00:00:00Z",
+      purposeStatus: "accepted",
+      topicDecisions: {
+        [source.id]: {
+          action: "fold",
+          intoTopicId: "topic-ffffffffffff",
+          reason: "Same flow",
+        },
+      },
+    },
+  });
+  assert.throws(() => validateCurriculum(value, TARGET_ROOT), /fold target.*does not exist/i);
+});
+
+test("unchanged planner title and outcome produce visible approval warnings", () => {
+  const focus = "app/domains/chat/store/types.ts";
+  const planned = topic(1, {
+    kind: "module",
+    focus,
+    title: titleFor("module", focus),
+    learnerOutcome: outcomeFor("module", focus),
+  });
+  const value = curriculum([planned, topic(2), topic(3)]);
+  const result = validateCurriculum(value, TARGET_ROOT);
+  assert.ok(result.approvalWarnings.some((warning) => /unchanged planner title/i.test(warning)));
+  assert.ok(result.approvalWarnings.some((warning) => /unchanged planner outcome/i.test(warning)));
+
+  const booleanBypass = curriculum(
+    [
+      topic(1, {
+        kind: "module",
+        focus,
+        title: titleFor("module", focus),
+        learnerOutcome: outcomeFor("module", focus),
+      }),
+      topic(2),
+      topic(3),
+    ],
+    {
+      agentApproval: {
+        approvedAt: "2026-01-01T00:00:00Z",
+        purposeStatus: "accepted",
+        placeholderReasons: { [planned.id]: { title: true, learnerOutcome: true } },
+      },
+    },
+  );
+  const bypassResult = validateCurriculum(booleanBypass, TARGET_ROOT);
+  assert.ok(
+    bypassResult.approvalWarnings.some((warning) => /unchanged planner title/i.test(warning)),
+  );
+  assert.ok(
+    bypassResult.approvalWarnings.some((warning) => /unchanged planner outcome/i.test(warning)),
   );
 });
 
@@ -152,7 +256,7 @@ test("validateCurriculum caps focused topics at 150", () => {
   assert.throws(() => validateCurriculum(value, TARGET_ROOT), /cannot exceed 150 focused topics/);
 });
 
-test("large-repository curriculum must span at least five chapters", () => {
+test("large-repository chapter concentration is a warning, not a save failure", () => {
   const topics = Array.from({ length: 60 }, (_, i) =>
     topic(i + 1, { chapter: ["billing", "shipping", "auth", "infra"][i % 4] }),
   );
@@ -160,10 +264,8 @@ test("large-repository curriculum must span at least five chapters", () => {
     coverage: { modeledFiles: 1_000 },
     scale: { availableCandidates: 60 },
   });
-  assert.throws(
-    () => validateCurriculum(value, TARGET_ROOT),
-    /at least five distinct learning chapters/,
-  );
+  const result = validateCurriculum(value, TARGET_ROOT);
+  assert.ok(result.approvalWarnings.some((warning) => /fewer than five chapters/i.test(warning)));
 
   // Same scale, five chapters → passes
   const diverse = Array.from({ length: 60 }, (_, i) =>

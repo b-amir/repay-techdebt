@@ -79,11 +79,14 @@ export async function runTopicWorkflow(target, options) {
     ];
 
     try {
-      await exec(process.execPath, args);
+      const saved = await exec(process.execPath, args);
+      const payload = JSON.parse(saved.stdout);
       return {
         status: "complete",
         topicId: topic.id,
         reason: "Lesson saved successfully.",
+        warnings: payload.warnings ?? evaluation.warnings ?? [],
+        viewer: payload.viewer ?? null,
       };
     } catch (e) {
       return {

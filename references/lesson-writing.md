@@ -20,6 +20,10 @@ Script titles are path placeholders. Agent owns final INDEX + lesson titles:
 4. Lesson `title` frontmatter = `H1` = INDEX link text.
 5. After rename, skim chapter: three shared stems → rewrite.
 
+Before keeping a topic, ask what the learner can change or debug. Fold wrappers, re-exports,
+constant tables, and same-flow helpers into the owning outcome unless they introduce a distinct
+failure mode, blast radius, or trust decision. Scanner rows are candidate evidence, not a syllabus.
+
 Default size:
 
 - concise: 250–650 words;
@@ -71,13 +75,23 @@ permission decision happens” or “Why the cache is invalidated twice.” Do n
 machinery as headings: `Predict`, `Read`, `Run`, `Investigate`, `Modify`, and `Make` are internal
 moves, not an outline. Avoid `Overview`, `Details`, and `Conclusion` when a specific heading exists.
 
+Declare the three mechanically required roles in frontmatter so visible headings can stay specific:
+
+```yaml
+sectionRoles:
+  workedPath: Where the permission decision happens
+  pitfall: Why hiding the button is not authorization
+  check: Debug a direct-route bypass
+```
+
 Explain cause and consequence explicitly: because, therefore, which means, or as a result. End a
 section on the consequence the reader should remember, not on a stray implementation detail.
 
 ## Evidence belongs beside the claim
 
 Use two to four source files in a normal lesson. Cite project-relative paths and line numbers. Show
-only the code needed for the mental model. After a snippet, explain what the language/runtime does
+at least one small verified fenced snippet from the primary path—not Mermaid alone. After a snippet,
+explain what the language/runtime does
 and why that behavior matters here. A filename, an analyzer score, or a generic framework rule is
 not proof. Before persistence, every citation must resolve to a current file and valid line in the
 explicit target, and at least one citation must match the curriculum topic's evidence anchors.
@@ -110,7 +124,8 @@ Before saving:
 4. Remove repetition, throat-clearing, generic best practices, and AI-flavored filler such as
    “delve,” “seamlessly,” or “game-changer.”
 5. Check that the opening promises a concrete outcome and every section fulfills it.
-6. Check that the ending asks for one useful act of recall, tracing, debugging, modification, or design challenge. Provide private rubric or answer guidance.
+6. Check that the ending is a small modify, debug, run/predict, or named-test assertion job. Recall
+   alone does not demonstrate transfer. Provide private rubric or answer guidance.
 7. Ensure the lesson establishes clear motivation, teaches a causal mental model, anticipates at least one misconception, and manages cognitive load appropriately.
 8. Run `check-lesson-quality.js`; fix every error. Treat warnings as revision prompts, not noise.
 9. Ensure your draft will pass the AI reviewer. See `references/lesson-reviewer.md` for the rubric.

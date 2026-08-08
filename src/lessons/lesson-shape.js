@@ -177,28 +177,44 @@ export function inspectLessonShape(markdown, opts = {}) {
   });
   if (!mapXor.ok) errors.push(...mapXor.errors);
 
-  const hasHeading = (hints) => headings.some((h) => hints.some((re) => re.test(h)));
+  const sections = {
+    workedPath: resolveRoleSection({
+      markdown: body || markdown,
+      headings,
+      declaredHeading: craft.sectionRoles.workedPath,
+      hints: DEFAULT_PATH_SECTIONS.find((s) => s.id === "worked-path").headingHints,
+      role: "workedPath",
+      fallbackError:
+        "Lesson needs a worked-path section (walk the path / mechanism / in code / trace).",
+      errors,
+    }),
+    pitfall: resolveRoleSection({
+      markdown: body || markdown,
+      headings,
+      declaredHeading: craft.sectionRoles.pitfall,
+      hints: DEFAULT_PATH_SECTIONS.find((s) => s.id === "pitfall").headingHints,
+      role: "pitfall",
+      fallbackError: "Lesson needs a pitfall/contrast section (what breaks, trap, wrong model).",
+      errors,
+    }),
+    check: resolveRoleSection({
+      markdown: body || markdown,
+      headings,
+      declaredHeading: craft.sectionRoles.check,
+      hints: DEFAULT_PATH_SECTIONS.find((s) => s.id === "check-yourself").headingHints,
+      role: "check",
+      fallbackError:
+        "Lesson needs a Check yourself / try-it section that names a real file or symbol.",
+      errors,
+    }),
+  };
 
-  if (!hasHeading(DEFAULT_PATH_SECTIONS.find((s) => s.id === "worked-path").headingHints)) {
-    errors.push(
-      "Lesson needs a worked-path section (walk the path / mechanism / in code / trace).",
-    );
-  }
-  if (!hasHeading(DEFAULT_PATH_SECTIONS.find((s) => s.id === "pitfall").headingHints)) {
-    errors.push("Lesson needs a pitfall/contrast section (what breaks, trap, wrong model).");
-  }
-  if (!hasHeading(DEFAULT_PATH_SECTIONS.find((s) => s.id === "check-yourself").headingHints)) {
-    errors.push("Lesson needs a Check yourself / try-it section that names a real file or symbol.");
-  } else {
+  if (sections.check) {
     // Check-yourself must name a path-like token or known primary path
-    const checkSection = extractSection(
-      body || markdown,
-      /check yourself|try it|your turn|exercise|challenge/i,
-    );
     const pathLike =
       /`[^`]+\/[^`]+`|\b[\w.-]+\.(?:js|ts|tsx|jsx|py|go|rs|java|kt|rb|php|cs)\b|\b[\w-]+\/[\w./-]+/i;
-    const primaryHit = craft.primaryPaths.some((p) => checkSection.includes(p));
-    if (!pathLike.test(checkSection) && !primaryHit) {
+    const primaryHit = craft.primaryPaths.some((p) => sections.check.includes(p));
+    if (!pathLike.test(sections.check) && !primaryHit) {
       errors.push("Check-yourself must name a real file or symbol from this repo.");
     }
   }
@@ -210,8 +226,33 @@ export function inspectLessonShape(markdown, opts = {}) {
     subject,
     craft,
     headings,
+    sections,
     sectionContract: DEFAULT_PATH_SECTIONS,
   };
+}
+
+function resolveRoleSection({
+  markdown,
+  headings,
+  declaredHeading,
+  hints,
+  role,
+  fallbackError,
+  errors,
+}) {
+  if (declaredHeading) {
+    if (!headings.includes(declaredHeading)) {
+      errors.push(`Declared ${role} heading does not exist: ${declaredHeading}`);
+      return "";
+    }
+    return extractSectionByHeading(markdown, declaredHeading);
+  }
+  const matchedHeading = headings.find((heading) => hints.some((regex) => regex.test(heading)));
+  if (!matchedHeading) {
+    errors.push(fallbackError);
+    return "";
+  }
+  return extractSectionByHeading(markdown, matchedHeading);
 }
 
 /**
@@ -254,13 +295,13 @@ export function checkMapXor(input = {}) {
 
 /**
  * @param {string} markdown
- * @param {RegExp} headingRe
+ * @param {string} heading
  */
-function extractSection(markdown, headingRe) {
+function extractSectionByHeading(markdown, heading) {
   const parts = String(markdown).split(/^##\s+/m);
   for (const part of parts) {
-    const first = part.split("\n")[0] ?? "";
-    if (headingRe.test(first)) return part;
+    const first = (part.split("\n")[0] ?? "").trim();
+    if (first === heading) return part;
   }
   return "";
 }

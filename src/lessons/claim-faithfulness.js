@@ -2,21 +2,41 @@ import { readFile, realpath } from "node:fs/promises";
 import { resolve } from "node:path";
 import { extractLessonCitations } from "./lesson-citation-check.js";
 
-const CLAIMS_BLOCK = /(?:^|\n)CLAIMS:\s*\n((?:[ \t]*\d+\.\s*.+\n?)+)/i;
+const CLAIMS_HEADER = /(?:^|\n)CLAIMS:\s*(?:\n|$)/i;
 const CLAIM_LINE =
   /^\s*\d+\.\s*"([^"]+)"\s*—\s*([^\s—]+?\.[A-Za-z0-9]+:[1-9]\d*)\s*—\s*support:\s*(yes|no|gap)\s*(?:—\s*state:\s*(\w+))?/im;
 
 /**
  * Parse explicit CLAIMS: blocks from bottleneck B6 sense step.
- * @returns {{ claim: string, citation: string, support: string, state: string|null }[]}
+ * @param {{ detailed?: boolean }} [options]
+ * @returns {Array<{ claim: string, citation: string, support: string, state: string|null }> | { present: boolean, claims: Array<{ claim: string, citation: string, support: string, state: string|null }>, malformedLines: string[] }}
  */
-export function parseClaimsBlock(markdown) {
-  const block = String(markdown).match(CLAIMS_BLOCK);
-  if (!block) return [];
+export function parseClaimsBlock(markdown, options = {}) {
+  const detailed = parseClaimsBlockDetailed(markdown);
+  return options.detailed ? detailed : detailed.claims;
+}
+
+function parseClaimsBlockDetailed(markdown) {
+  const text = String(markdown);
+  const header = text.match(CLAIMS_HEADER);
+  if (!header) return { present: false, claims: [], malformedLines: [] };
+  const remainder = text.slice((header.index ?? 0) + header[0].length);
   const claims = [];
-  for (const line of block[1].split(/\n/)) {
+  const malformedLines = [];
+  let sawEntry = false;
+  for (const line of remainder.split(/\n/)) {
+    if (!line.trim()) continue;
+    if (!/^\s*\d+\.\s*/.test(line)) {
+      if (sawEntry) break;
+      malformedLines.push(line.trim());
+      break;
+    }
+    sawEntry = true;
     const match = line.match(CLAIM_LINE);
-    if (!match) continue;
+    if (!match) {
+      malformedLines.push(line.trim());
+      continue;
+    }
     claims.push({
       claim: match[1].trim(),
       citation: match[2].trim(),
@@ -24,7 +44,8 @@ export function parseClaimsBlock(markdown) {
       state: match[4]?.toLowerCase() ?? null,
     });
   }
-  return claims;
+  if (!sawEntry && malformedLines.length === 0) malformedLines.push("(no numbered claims)");
+  return { present: true, claims, malformedLines };
 }
 
 function significantTokens(text) {

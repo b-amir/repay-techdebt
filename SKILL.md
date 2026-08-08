@@ -223,10 +223,11 @@ After purpose + retrieve hubs, run the curriculum **proposal**, then agent short
 node <skill-root>/scripts/plan-curriculum.js <target-root> --format json
 ```
 
-Approve/demote/add topics (B3; corroborate `signalClass: naming-heuristic`). **Rewrite
+Approve/demote/fold/add topics (B3; corroborate `signalClass: naming-heuristic`). **Rewrite
 `title` + `learnerOutcome` from live source** — script labels are path-unique placeholders;
 agent judgment makes INDEX non-repetitive (B3 title rules in `bottleneck-checkpoints.md`).
-Complete B4a order check. Persist only with `agentApproval` including
+Fold same-flow micro-units into one kept outcome; demotions/folds require reasons in
+`agentApproval.topicDecisions`. Complete B4a order check. Persist only with `agentApproval` including
 `purposeStatus: accepted|unresolved`, `approvedAt`, `corroboratedTopicIds`, and
 `acceptedPartialScope` when coverage is partial:
 
@@ -250,7 +251,9 @@ topics, **must** open the viewer with
    complete B5 (verify ≤3 anchors).
 2. Read `templates/lesson-format.md`, `references/lesson-composition.md`,
    `references/lesson-writing.md`, and B4b/B6 in `references/bottleneck-checkpoints.md`.
-3. **Agent draft** one topic, 3–8 clear sections, path:line citations, honest evidence language.
+3. **Agent draft** one topic, 3–8 topic-specific sections declared through `sectionRoles`, at least
+   one verified source fence, path:line citations, honest evidence language, and a modify/debug/test
+   job ending.
 4. **Script check:**
 
 ```text
@@ -274,7 +277,8 @@ node <skill-root>/scripts/evaluate-lesson.js <target-root> <draft.md> --depth <c
 ```
 
 5. **Agent B4b + B6 sense:** PRIMM moves without empty process headings; claim decomposition
-   (`CLAIMS:` with support yes|no|gap). ≤1 rewrite if quality, evidence, faithfulness, or sense failed.
+   (`CLAIMS:` with support yes|no|gap). Warnings are revise-or-explain prompts, never invisible
+   noise. ≤1 rewrite if quality, evidence, faithfulness, or sense failed.
 6. **Script save** via `project-memory.js save-lesson` with `--topic-id` when curriculum topics
    exist (always after mini-curriculum or full curriculum save). Explicit `CLAIMS:` failures block
    save. On `lesson-saved`, when `viewer.openRecommended` is true, **must** run:

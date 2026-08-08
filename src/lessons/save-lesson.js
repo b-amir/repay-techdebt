@@ -4,7 +4,7 @@ import { verifyLessonCitations } from "./lesson-citation-check.js";
 import { inspectLesson } from "./lesson-quality.js";
 import { hasPassingJudgment } from "./lesson-judgment.js";
 import { parseLessonFrontmatter, craftFieldsFromFrontmatter } from "./lesson-frontmatter.js";
-import { inspectLessonShape, checkMapXor } from "./lesson-shape.js";
+import { checkMapXor } from "./lesson-shape.js";
 import { inspectUsefulnessFloors } from "./usefulness-floors.js";
 import { checkDiagramGate } from "./diagram-gate.js";
 import { checkSubjectPathGate, checkAntiClone, checkPrPrimaryPaths } from "./subject-path-gate.js";
@@ -18,15 +18,15 @@ import { checkPolyglotHonesty, checkAbsenceHonesty } from "./polyglot-honesty.js
  * @returns {Promise<{ ok: boolean, quality: object, faithfulness: object, trajectory?: object, craft?: object }>}
  */
 export async function evaluateLessonForSave(targetRoot, content, options = {}) {
-  const quality = inspectLesson(content, {
-    depth: options.depth ?? "balanced",
-    expectedEvidencePaths: options.expectedEvidencePaths ?? [],
-  });
-
   const { frontmatter } = parseLessonFrontmatter(content);
   const craftFields = craftFieldsFromFrontmatter(frontmatter);
   const subject =
     options.subject ?? craftFields.subject ?? options.topic?.subject ?? options.topic?.kind;
+  const quality = inspectLesson(content, {
+    depth: options.depth ?? "balanced",
+    expectedEvidencePaths: options.expectedEvidencePaths ?? [],
+    subject,
+  });
   const hasMapAnswers =
     options.hasMapAnswers === true ||
     (typeof craftFields.mapAnswers === "string" && craftFields.mapAnswers.trim().length > 0);
@@ -63,11 +63,7 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
   };
 
   if (options.skipCraftFloors !== true) {
-    craft.shape = inspectLessonShape(content, { subject });
-    if (!craft.shape.ok) {
-      quality.ok = false;
-      quality.errors.push(...craft.shape.errors);
-    }
+    craft.shape = quality.shape;
 
     craft.mapXor = checkMapXor({
       subject,
@@ -208,6 +204,7 @@ export async function runTeachFloors(targetRoot, markdown, options = {}) {
   const quality = inspectLesson(markdown, {
     depth,
     expectedEvidencePaths: options.expectedEvidencePaths ?? [],
+    subject: options.subject,
   });
   const citations = await verifyLessonCitations(targetRoot, quality.citations);
   if (citations.problems.length > 0) {
@@ -227,10 +224,7 @@ export async function runTeachFloors(targetRoot, markdown, options = {}) {
   }
 
   // Shape is report-only here; durable save enforces craft via evaluateLessonForSave.
-  const shape = inspectLessonShape(markdown, { subject: options.subject });
-  if (!shape.ok) {
-    quality.warnings = [...(quality.warnings ?? []), ...shape.errors];
-  }
+  const shape = quality.shape;
 
   return {
     floorOk: quality.ok,

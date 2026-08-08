@@ -10,7 +10,7 @@ Human-authored craft anchors for repay-techdebt.
 | --------------- | ----------------------------------------- | ---------------------------------------------------------- |
 | **A**           | Flow/path lesson **with** structure map   | [`a-path-with-map/lesson.md`](./a-path-with-map/lesson.md) |
 | **B**           | Single-file/symbol deep dive; map skipped | [`b-deep-dive/lesson.md`](./b-deep-dive/lesson.md)         |
-| **Craft pairs** | ≥3 good/bad openers + check-yourself      | [`craft-pairs.md`](./craft-pairs.md)                       |
+| **Craft pairs** | Curriculum + lesson good/bad decisions    | [`craft-pairs.md`](./craft-pairs.md)                       |
 | **Target tree** | Citation target for A/B (`billing/*`)     | [`target/billing/`](./target/billing/)                     |
 
 Related eval mini-lesson (CLAIMS block only; **not** a craft golden):  
@@ -20,7 +20,7 @@ Related eval mini-lesson (CLAIMS block only; **not** a craft golden):
 
 1. Open **A** for path + mermaid map + multi-file check-yourself.
 2. Open **B** for deep dive + `skipReasons.map` in frontmatter.
-3. Skim **craft-pairs** before drafting any new lesson opener or closing check.
+3. Skim **craft-pairs** before shortlisting or drafting a lesson.
 4. Resolve citations against **`target/`** as `targetRoot` (paths inside lessons are project-relative: `billing/capture.js`, `billing/settlement.js`).
 
 ## Frontmatter slots used (draft contract preview)
@@ -32,6 +32,7 @@ Related eval mini-lesson (CLAIMS block only; **not** a craft golden):
 | `mapAnswers`      | set (structure question answered) | omitted          |
 | `skipReasons.map` | omitted                           | set (why no map) |
 | `primaryPaths`    | capture + settlement              | settlement       |
+| `sectionRoles`    | topic-specific worked/pitfall/job | same             |
 
 Xor rule (`mapAnswers` **or** `skipReasons.map` on architecture/flow/structure) is enforced in Phase **1.2** — fixtures already model the happy shapes.
 
@@ -49,7 +50,7 @@ Shared craft density:
 - Hook states mechanism + consequence in first screenful.
 - One worked path through real paths/lines; small snippets only.
 - At most one mermaid map (A only), with `accTitle` / `accDescr` and **What this shows:**.
-- Check-yourself names real files/symbols and is a do-thing (open/find/trace), not trivia.
+- Ending is a small change/debug/test-prediction job on real files, not symbol recall.
 - Takeaway one-liner at end.
 
 Default-path “~5–10 min” product claim matches A; B is the shorter deep-dive sibling.

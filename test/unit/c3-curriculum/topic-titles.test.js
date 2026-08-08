@@ -86,8 +86,7 @@ test("planned curriculum index has unique labels and no stamp openers", () => {
   ];
   for (const [index, path] of paths.entries()) {
     nodes.push({ id: `file:${index}`, kind: "file", name: path.split("/").pop(), path });
-    if (index > 0)
-      edges.push({ kind: "imports", from: `file:${index}`, to: `file:${index - 1}` });
+    if (index > 0) edges.push({ kind: "imports", from: `file:${index}`, to: `file:${index - 1}` });
   }
   const curriculum = planCurriculum({
     generatedAt: "2026-08-01T00:00:00.000Z",
@@ -118,5 +117,7 @@ test("planned curriculum index has unique labels and no stamp openers", () => {
   const markdown = renderCurriculumMarkdown(curriculum);
   assert.ok(!/Trace the data lifecycle through Types/i.test(markdown));
   assert.ok(!/Understand the role of Index/i.test(markdown));
-  assert.ok(curriculum.topics.every((t) => !/Provisional|Agent:\s*rewrite/i.test(t.learnerOutcome)));
+  assert.ok(
+    curriculum.topics.every((t) => !/Provisional|Agent:\s*rewrite/i.test(t.learnerOutcome)),
+  );
 });

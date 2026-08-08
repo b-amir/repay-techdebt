@@ -38,6 +38,19 @@ CLAIMS:
   assert.deepEqual(parseClaimsBlock("no block"), []);
 });
 
+test("parseClaimsBlock detailed mode reports malformed visible claim entries", () => {
+  const result = parseClaimsBlock(
+    `CLAIMS:
+1. "valid claim" — src/a.ts:1 — support: yes
+2. "bad separators" - src/b.ts:1 - support: yes
+`,
+    { detailed: true },
+  );
+  assert.equal(result.present, true);
+  assert.equal(result.claims.length, 1);
+  assert.deepEqual(result.malformedLines, ['2. "bad separators" - src/b.ts:1 - support: yes']);
+});
+
 async function fixture() {
   const dir = await mkdtemp(resolve(tmpdir(), "repay-c4-"));
   await mkdir(resolve(dir, "billing"), { recursive: true });

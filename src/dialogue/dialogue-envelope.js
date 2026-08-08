@@ -18,6 +18,7 @@ export const CLOSED_NEXT_ASK_DOS = Object.freeze([
   "approve-curriculum-shortlist",
   "accept-partial-scope-or-narrow",
   "graphify-or-serena-retrieve",
+  "verify-selected-leads-in-source",
   "unsupported-shrink-or-refuse",
 ]);
 

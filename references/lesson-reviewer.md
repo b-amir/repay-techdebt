@@ -6,6 +6,10 @@ You are a skeptical editor reviewing a draft lesson. You are not defending it. S
 
 Review the draft against the provided evidence packet and the topic's expected anchors. Ensure it meets the rubric dimensions. **Do not give 5s by default. Default is 3.** A dimension scores 4+ only if you can name _what is good_, not just that it exists.
 
+Inventory is not insight. Score `insight` ≤2 when the lesson mainly lists files, exports, or API
+surface without one non-obvious causal claim. Add `mustFix` when the lesson lacks a verified source
+snippet or ends in symbol recall instead of a small change/debug/test-prediction job.
+
 ## Context
 
 **Draft:**

@@ -328,7 +328,7 @@ See §4. Then loop 1–3 lessons per run; resume from `INDEX.md`.
 ```mermaid
 flowchart TD
   A[plan-curriculum.js] --> B[Proposal JSON + signalClass + nextAsks]
-  B --> C[Agent SHORTLIST keep/demote/add]
+  B --> C[Agent SHORTLIST keep/demote/fold/add + rewrite]
   C --> D[Stamp agentApproval]
   D --> E{validateAgentApproval}
   E -->|no agentApproval| E1[Fail: proposal only]
@@ -339,7 +339,9 @@ flowchart TD
   E -->|ok| F{--yes?}
   F -->|no| F1[consent-required exit 2]
   F -->|yes| G{validateCurriculum extras}
-  G -->|topic count / IDs / chapters fail| G1[Throw exit 1]
+  G -->|minimal count / decisions / IDs fail| G1[Throw exit 1]
+  G -->|compression / chapters / placeholders| G2[Save with visible warnings]
+  G2 --> H
   G -->|ok| H{Secretlint}
   H -->|fail| H1[secret-risk exit 2]
   H -->|ok| I[Write curriculum.json + INDEX.md]
@@ -368,6 +370,10 @@ Omnibus regex (title/focus/learnerOutcome): phrases like “whole app”, “ent
   "purposeStatus": "accepted | unresolved",
   "corroboratedTopicIds": ["topic-…"],
   "demotedTopicIds": [],
+  "topicDecisions": {
+    "topic-…": { "action": "demote | fold", "intoTopicId": "topic-…", "reason": "…" }
+  },
+  "placeholderReasons": {},
   "addedTopicIds": [],
   "acceptedPartialScope": null | true | "<reason>",
   "note": null
@@ -384,23 +390,26 @@ Checked in order; first failure wins:
 2. `approvedAt` non-empty string.
 3. `purposeStatus ∈ {accepted, unresolved}`.
 4. If coverage is partial (`truncated === true` OR `status ∈ {partial, scoped-analysis}`) → require `acceptedPartialScope`.
-5. After removing `demotedTopicIds`: no omnibus topics.
-6. After demotions: every `naming-heuristic` topic (default if `signalClass` missing) must be in `corroboratedTopicIds` **or** `topic.corroborated === true`.
+5. Decision IDs/actions/targets are valid; demotions/folds carry reasons; fold evidence joins the kept target.
+6. After decisions and legacy `demotedTopicIds`: no omnibus topics.
+7. Every remaining `naming-heuristic` topic (default if `signalClass` missing) must be in `corroboratedTopicIds` **or** `topic.corroborated === true`.
 
 ### 4.4 Save curriculum extras (`validateCurriculum`)
 
-| Condition                                                  | Branch                                         |
-| ---------------------------------------------------------- | ---------------------------------------------- |
-| `schemaVersion !== 1` or no `topics[]`                     | Throw                                          |
-| `target.root` ≠ requested target                           | Throw                                          |
-| Topic IDs not unique `topic-[a-f0-9]{12}`                  | Throw                                          |
-| Missing title/focus/learnerOutcome/chapter/evidencePaths   | Throw                                          |
-| Duplicate focuses                                          | Throw                                          |
-| Topic count &lt; min(expectedMinimum, availableCandidates) | Throw — “do not compress into omnibus lessons” |
-| Topics &gt; 150                                            | Throw                                          |
-| modeledFiles ≥ 1000 and available ≥ 60 and chapters &lt; 5 | Throw                                          |
+| Condition                                                | Branch             |
+| -------------------------------------------------------- | ------------------ |
+| `schemaVersion !== 1` or no `topics[]`                   | Throw              |
+| `target.root` ≠ requested target                         | Throw              |
+| Topic IDs not unique `topic-[a-f0-9]{12}`                | Throw              |
+| Missing title/focus/learnerOutcome/chapter/evidencePaths | Throw              |
+| Duplicate focuses                                        | Throw              |
+| Kept topics &lt; max(1, min(3, availableCandidates))     | Throw              |
+| Topics &gt; 150                                          | Throw              |
+| &gt;40 topics, &gt;80% keep/collapse, or narrow chapters | Save with warnings |
+| Unchanged planner title/outcome without reason           | Save with warnings |
 
-Expected minimum topics: modeledFiles ≥1000 → 60; ≥100 → 25; else 12 (capped by available candidates).
+Raw candidates are inventory, not a curriculum-size requirement. The agent owns the shortlist;
+scripts require deliberate decision records and surface extreme compression/retention for review.
 
 Partial coverage after save: forbids whole-app **absence** claims unless `acceptedPartialScope` was set.
 

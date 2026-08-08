@@ -70,7 +70,8 @@ conclusions must not imply observed production behavior. See `runtime-evidence.m
 node <skill-root>/scripts/plan-curriculum.js <target-root> --format json
 ```
 
-**Agent turn:** SHORTLIST approve/demote/add; set `purposeStatus` to `accepted` or `unresolved`;
+**Agent turn:** SHORTLIST approve/demote/fold/add; rewrite kept titles/outcomes; record reasoned
+`agentApproval.topicDecisions`; set `purposeStatus` to `accepted` or `unresolved`;
 corroborate `naming-heuristic` topics into `agentApproval.corroboratedTopicIds`. Set
 `acceptedPartialScope` when coverage is partial. Save only with that block present:
 
@@ -84,6 +85,6 @@ Focused/PR modes skip this phase unless the user asks for a workbook.
 
 1. `plan-lesson.js` — advisory composition; complete B5 verify after retrieve.
 2. Agent drafts from verified anchors (B4b).
-3. `check-lesson-quality.js` + `check-lesson-evidence.js` (+ secrets as needed).
-4. Agent B4b/B6 sense (PRIMM moves + claim decomposition); ≤1 rewrite.
+3. `check-lesson-quality.js` + `check-lesson-evidence.js` (+ secrets as needed); take warnings.
+4. Agent B4b/B6 sense (source fence + change/debug ending + claim decomposition); ≤1 rewrite.
 5. Save per memory policy; end with maintainer-only notes (gaps, skips, next concepts) — never a first-run tool ledger dump.

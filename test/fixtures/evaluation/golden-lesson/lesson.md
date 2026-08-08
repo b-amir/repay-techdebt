@@ -1,3 +1,14 @@
+---
+subject: code-mechanics
+primaryPaths:
+  - billing/capture.js
+  - billing/settlement.js
+sectionRoles:
+  workedPath: Follow the call
+  pitfall: Why the boundary matters
+  check: Change it safely
+---
+
 ## What you will learn
 
 You will learn how `capturePayment` hands work to `settle` so money movement stays one path. This matters because a broken settle call drops funds without a clear error at the capture boundary.
@@ -16,7 +27,9 @@ Splitting capture from settle lets you change settlement policy without rewritin
 
 ## Change it safely
 
-Try a modify challenge: add a guard in settle that rejects non-positive amounts, then predict what capture returns when amount is zero. Private rubric: settle should throw before returning settled status; capture should surface that error.
+Try a modify challenge: add a guard in `billing/settlement.js` that rejects non-positive amounts,
+then predict what capture returns when amount is zero. Private rubric: settle should throw before
+returning settled status; capture should surface that error.
 
 ## Recap
 

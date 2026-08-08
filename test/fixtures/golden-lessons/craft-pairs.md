@@ -1,9 +1,60 @@
-# Craft example pairs (openers + check-yourself)
+# Craft example pairs (curriculum + lessons)
 
 Stealable good/bad pairs for agents drafting lessons. **Not a scored rubric.**  
 Load with golden fixtures A and B before drafting (see [README.md](./README.md)).
 
 Subjects below use the mini target under `target/billing/` so examples stay concrete.
+
+---
+
+## Curriculum grain and titles
+
+### Pair 0 — one outcome vs scanner rows
+
+**Bad**
+
+> `Capture exports`, `Settlement constants`, and `Billing index` become three lessons because the
+> scanner returned three files.
+
+**Why bad:** File count became curriculum. The learner still has only one job: change the
+capture-to-settlement contract safely.
+
+**Good**
+
+> **How capture hands a validated order to settlement** — evidence:
+> `billing/capture.js`, `billing/settlement.js`, and the billing entrypoint.
+
+**Why good:** One outcome owns all evidence needed for the change. Fold the re-export/index into the
+topic instead of teaching a twin lesson.
+
+### Pair 0b — thin file demotion vs a justified exception
+
+**Bad keep**
+
+> **Understand the role of billing/index.js** — it exports `capturePayment`.
+
+**Why bad:** Export existence is not a mental model or a distinct failure mode.
+
+**Good keep exception**
+
+> **Why the public billing entrypoint is the compatibility boundary** — changing this thin export
+> breaks every package consumer even though the file has three lines.
+
+**Why good:** Thinness is not the decision. A distinct blast radius and trust/compatibility boundary
+justify the topic.
+
+### Pair 0c — placeholder copy vs mechanism copy
+
+**Bad**
+
+> **Billing Capture** — Change Billing Capture safely: what it owns and what depends on it.
+
+**Good**
+
+> **Where capture rejects incomplete orders before settlement** — Debug whether a failed payment was
+> rejected at the input guard or returned without settlement status.
+
+**Why good:** The title names the decision; the outcome names a job.
 
 ---
 
@@ -53,7 +104,7 @@ Subjects below use the mini target under `target/billing/` so examples stay conc
 
 ---
 
-## Check-yourself (closing challenge)
+## Closing job
 
 ### Pair 4 — do-thing on real symbols vs trivia quiz
 
@@ -65,9 +116,10 @@ Subjects below use the mini target under `target/billing/` so examples stay conc
 
 **Good**
 
-> Open `billing/capture.js` and `billing/settlement.js`. Point at the line where capture refuses a missing order id, and the line where status becomes `"settled"`.
+> A valid capture returns no `status`. Open `billing/capture.js` and `billing/settlement.js`, predict
+> which function can cause that symptom, and write the assertion you would add before changing it.
 
-**Why good:** Physical find/trace in real paths; private answer keys to line numbers.
+**Why good:** The learner uses the handoff model to debug a symptom and define proof before editing.
 
 ### Pair 5 — winnable one-step check vs essay prompt
 
@@ -79,6 +131,7 @@ Subjects below use the mini target under `target/billing/` so examples stay conc
 
 **Good**
 
-> In `billing/settlement.js`, name the three properties `settle` returns, and one behavior this function does **not** perform (validate order, persist, or reject non-positive amounts).
+> Rename `status` to `state` on paper in `billing/settlement.js`. Predict the caller failure, then
+> propose the smallest compatibility return shape and the assertion that proves it.
 
-**Why good:** Small, answerable, anchored to the snippet just taught.
+**Why good:** Small, answerable, anchored to the taught contract, and ends in a safe-change job.

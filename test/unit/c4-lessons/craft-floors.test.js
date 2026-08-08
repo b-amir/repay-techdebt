@@ -29,6 +29,7 @@ import {
 } from "../../../src/lessons/polyglot-honesty.js";
 import { parseLessonFrontmatter } from "../../../src/lessons/lesson-frontmatter.js";
 import { evaluateLessonForSave } from "../../../src/lessons/save-lesson.js";
+import { inspectLesson } from "../../../src/lessons/lesson-quality.js";
 import { buildTrajectoryGate } from "../../../src/dialogue/trajectory.js";
 import { recordJudgment } from "../../../src/lessons/lesson-judgment.js";
 import { PASSING_JUDGMENT } from "../../helpers/passing-judgment.js";
@@ -85,6 +86,15 @@ test("golden A passes shape + usefulness + map xor + diagram with inventory", as
   });
   assert.equal(diagram.ok, true, diagram.errors.join("; "));
   assert.ok(diagram.blockCount === 1);
+  const quality = inspectLesson(md, { depth: "balanced" });
+  assert.equal(quality.ok, true, quality.errors.join("; "));
+  assert.equal(
+    quality.warnings.some((warning) =>
+      /fenced code|recall-only|existence\/export-shaped/i.test(warning),
+    ),
+    false,
+    quality.warnings.join("; "),
+  );
 });
 
 test("golden B passes with map skip", async () => {
@@ -95,6 +105,15 @@ test("golden B passes with map skip", async () => {
   const useful = inspectUsefulnessFloors(md, { depth: "concise" });
   assert.equal(useful.ok, true, useful.errors.join("; "));
   assert.ok(USEFULNESS_FLOORS.source.includes("golden-lessons"));
+  const quality = inspectLesson(md, { depth: "concise" });
+  assert.equal(quality.ok, true, quality.errors.join("; "));
+  assert.equal(
+    quality.warnings.some((warning) =>
+      /fenced code|recall-only|existence\/export-shaped/i.test(warning),
+    ),
+    false,
+    quality.warnings.join("; "),
+  );
 });
 
 test("default-path missing required section fails shape", () => {
@@ -115,6 +134,67 @@ Hi
   const shape = inspectLessonShape(md);
   assert.equal(shape.ok, false);
   assert.ok(shape.errors.some((e) => /worked-path|pitfall|Check yourself|hook/i.test(e)));
+});
+
+test("topic-specific headings satisfy shape through declared section roles", () => {
+  const md = `---
+subject: code-mechanics
+primaryPaths:
+  - src/capture.ts
+sectionRoles:
+  workedPath: Where capture hands settlement off
+  pitfall: The false-success state
+  check: Debug a missing settled status
+---
+
+# Capture handoff
+
+This hook explains the settlement handoff because changing its return shape can hide a successful payment status.
+
+## Where capture hands settlement off
+
+Open \`src/capture.ts\` and follow the call into settlement.
+
+## The false-success state
+
+Removing the returned status makes the caller report success without the state it expects.
+
+## Debug a missing settled status
+
+Change \`src/capture.ts\`, run its named test, and predict which assertion fails.
+`;
+  const shape = inspectLessonShape(md);
+  assert.equal(shape.ok, true, shape.errors.join("; "));
+  assert.match(shape.sections.check, /predict which assertion fails/);
+});
+
+test("declared section roles must name real H2 headings", () => {
+  const md = `---
+subject: code-mechanics
+primaryPaths:
+  - src/capture.ts
+sectionRoles:
+  workedPath: Missing heading
+  pitfall: The false-success state
+  check: Debug a missing settled status
+---
+
+This opening has enough words because it explains the concrete mechanism and consequence to the learner.
+
+## Some other mechanism
+Open \`src/capture.ts\`.
+
+## The false-success state
+Wrong state.
+
+## Debug a missing settled status
+Change \`src/capture.ts\`.
+`;
+  const shape = inspectLessonShape(md);
+  assert.equal(shape.ok, false);
+  assert.ok(shape.errors.some((error) => /declared workedPath heading/i.test(error)));
+  const quality = inspectLesson(md, { depth: "concise" });
+  assert.ok(quality.errors.some((error) => /declared workedPath heading/i.test(error)));
 });
 
 test("diagram rejects unknown inventory paths", () => {

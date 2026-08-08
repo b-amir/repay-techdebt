@@ -92,6 +92,7 @@ try {
       `${floorOk ? "PASS" : "FAIL"} floors; faithfulness=${faithfulness.ok ? "ok" : "issues"}\\n`,
     );
     for (const item of quality.errors) process.stdout.write(`- ${item}\\n`);
+    for (const item of quality.warnings) process.stdout.write(`- warning: ${item}\\n`);
   } else process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
   if (!floorOk) process.exitCode = 2;
 } catch (error) {

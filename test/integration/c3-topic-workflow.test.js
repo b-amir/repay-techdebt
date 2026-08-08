@@ -181,6 +181,7 @@ test(
       const result2 = JSON.parse(stdout2);
       assert.equal(result2.status, "complete", JSON.stringify(result2, null, 2));
       assert.equal(result2.topicId, "topic-123456789abc");
+      assert.ok(result2.warnings.some((warning) => /non-Mermaid fenced code/i.test(warning)));
     } finally {
       await rm(directory, { recursive: true, force: true });
     }

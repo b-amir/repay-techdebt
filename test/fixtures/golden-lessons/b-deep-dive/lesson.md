@@ -10,11 +10,15 @@ skipReasons:
   map: >-
     Single helper and return object; no multi-module structure question that a
     diagram would answer better than the snippet.
+sectionRoles:
+  workedPath: Read the whole mechanism
+  pitfall: What breaks if you “simplify” it
+  check: Safely evolve the return contract
 ---
 
 # What settle actually returns
 
-`settle` looks tiny, but **its return object is the contract capture relies on**. If you change the fields or the `"settled"` string without checking callers, capture still “succeeds” while downstream code looks for missing keys. After this lesson you can open `billing/settlement.js` and describe the return shape from memory.
+`settle` looks tiny, but **its return object is the contract capture relies on**. If you change the fields or the `"settled"` string without checking callers, capture still “succeeds” while downstream code looks for missing keys. After this lesson you can predict and test the caller impact of changing that return shape.
 
 ## Why the helper is separate
 
@@ -59,10 +63,14 @@ Capture still returns successfully, but anything that reads `.status` or `.order
 
 That change invents a second status without updating callers or tests. The lesson is not “never evolve status” — it is “the return object _is_ the contract,” so edit it as a contract.
 
-## Check yourself
+## Safely evolve the return contract
 
-In `billing/settlement.js`, name the three properties on the object `settle` returns, and name one thing this function does **not** do (for example: validate the order, write a database row, or throw on bad amount).
+Suppose you must rename `status` to `state` in `billing/settlement.js`. Before editing, write the
+assertion you expect a `capturePayment` caller to fail. Then name the smallest compatibility change
+that lets old callers keep reading `.status` while new callers migrate to `.state`.
 
-Private answer: properties `orderId`, `amount`, `status`; it does not validate order presence, does not persist, and does not reject non-positive amounts in this fixture.
+Private answer: first assert that capture’s result currently has `.status === "settled"`. During the
+migration, return both `status: "settled"` and `state: "settled"`, update callers, then remove the old
+field in a separate verified change. The helper still does not validate or persist.
 
 **If you remember one thing:** settle’s return object is the settlement — change those fields and you change capture’s result.

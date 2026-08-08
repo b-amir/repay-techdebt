@@ -115,7 +115,7 @@ function stripQuotes(value) {
 
 /**
  * @param {Record<string, unknown>} fm
- * @returns {{ mapAnswers: string | null, skipReasons: { map?: string, purpose?: string, verify?: string }, subject: string | null, primaryPaths: string[], shape: string | null }}
+ * @returns {{ mapAnswers: string | null, skipReasons: { map?: string, purpose?: string, verify?: string }, subject: string | null, primaryPaths: string[], shape: string | null, sectionRoles: { workedPath?: string, pitfall?: string, check?: string } }}
  */
 export function craftFieldsFromFrontmatter(fm) {
   const skipRaw = fm.skipReasons && typeof fm.skipReasons === "object" ? fm.skipReasons : {};
@@ -140,5 +140,11 @@ export function craftFieldsFromFrontmatter(fm) {
       ? [fm.primaryPaths]
       : [];
   const shape = typeof fm.shape === "string" ? fm.shape.trim() : null;
-  return { mapAnswers, skipReasons, subject, primaryPaths, shape };
+  const rolesRaw = fm.sectionRoles && typeof fm.sectionRoles === "object" ? fm.sectionRoles : {};
+  const sectionRoles = {};
+  for (const key of ["workedPath", "pitfall", "check"]) {
+    const value = /** @type {any} */ (rolesRaw)[key];
+    if (typeof value === "string" && value.trim()) sectionRoles[key] = value.trim();
+  }
+  return { mapAnswers, skipReasons, subject, primaryPaths, shape, sectionRoles };
 }

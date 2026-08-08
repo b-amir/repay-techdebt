@@ -1,6 +1,6 @@
 import { resolve } from "node:path";
 import { validateAgentApproval } from "./curriculum-approval.js";
-import { REPO_SIZE_THRESHOLDS } from "./repo-scale.js";
+import { titleFor, outcomeFor } from "./curriculum-planning.js";
 
 /**
  * Validate a curriculum proposal for persistence (approval + structural floors).
@@ -14,9 +14,10 @@ export function validateCurriculum(value, targetRoot) {
   const approvalCheck = validateAgentApproval(value);
   if (!approvalCheck.ok) throw new Error(approvalCheck.error);
   value.topics = approvalCheck.topics;
+  const warnings = [...(approvalCheck.warnings ?? [])];
   const ids = new Set();
   const focuses = new Set();
-  for (const topic of value.topics) {
+  for (const [index, topic] of value.topics.entries()) {
     if (!/^topic-[a-f0-9]{12}$/.test(topic.id) || ids.has(topic.id))
       throw new Error("Curriculum topic IDs must be unique planner-generated IDs");
     ids.add(topic.id);
@@ -30,32 +31,57 @@ export function validateCurriculum(value, targetRoot) {
       throw new Error(`Curriculum topic ${topic.id} is incomplete`);
     if (focuses.has(topic.focus)) throw new Error(`Curriculum repeats the focus ${topic.focus}`);
     focuses.add(topic.focus);
+    topic.rank = index + 1;
     topic.status = "planned";
     topic.lessonPath = null;
     delete topic.writtenAt;
   }
-  const modeledFiles = Number(value.coverage?.modeledFiles ?? 0);
-  const expectedMinimum =
-    modeledFiles >= REPO_SIZE_THRESHOLDS.MEDIUM
-      ? 60
-      : modeledFiles >= REPO_SIZE_THRESHOLDS.SMALL
-        ? 25
-        : 12;
   const available = Number(value.scale?.availableCandidates ?? value.topics.length);
-  const required = Math.min(expectedMinimum, available);
+  const required = Math.max(1, Math.min(3, Number.isFinite(available) ? available : 0));
   if (value.topics.length < required)
     throw new Error(
-      `Curriculum has ${value.topics.length} topics; ${modeledFiles} modeled files and ${available} candidates require at least ${required}. Do not compress the repository into omnibus lessons.`,
+      `Whole-app curriculum needs at least ${required} kept topics; received ${value.topics.length}.`,
     );
   if (value.topics.length > 150) throw new Error("Curriculum cannot exceed 150 focused topics");
+  const modeledFiles = Number(value.coverage?.modeledFiles ?? 0);
+  const ratio = available > 0 ? value.topics.length / available : 1;
+  if (value.topics.length > 40)
+    warnings.push(
+      `Shortlist keeps ${value.topics.length} topics; review whether it is still curated.`,
+    );
+  if (available > 0 && ratio > 0.8)
+    warnings.push(`Shortlist keeps more than 80% of ${available} raw candidates.`);
+  if (available > 0 && ratio < 0.2)
+    warnings.push(`Shortlist collapsed more than 80% of ${available} raw candidates.`);
   if (
-    modeledFiles >= REPO_SIZE_THRESHOLDS.MEDIUM &&
+    modeledFiles >= 1_000 &&
     available >= 60 &&
     new Set(value.topics.map((topic) => topic.chapter)).size < 5
-  )
-    throw new Error(
-      "A large-repository curriculum must cover at least five distinct learning chapters",
+  ) {
+    warnings.push(
+      "Large-repository shortlist spans fewer than five chapters; confirm purpose is narrow.",
     );
+  }
+
+  const placeholderReasons = value.agentApproval?.placeholderReasons ?? {};
+  const hasReason = (reason) => typeof reason === "string" && reason.trim().length > 0;
+  for (const topic of value.topics) {
+    if (!topic.kind || !topic.focus) continue;
+    if (
+      topic.title === titleFor(topic.kind, topic.focus) &&
+      !hasReason(placeholderReasons[topic.id]?.title)
+    ) {
+      warnings.push(`Topic ${topic.id} keeps the unchanged planner title placeholder.`);
+    }
+    if (
+      topic.learnerOutcome === outcomeFor(topic.kind, topic.focus) &&
+      !hasReason(placeholderReasons[topic.id]?.learnerOutcome)
+    ) {
+      warnings.push(`Topic ${topic.id} keeps the unchanged planner outcome placeholder.`);
+    }
+  }
+  value.scale = { ...value.scale, selectedTopics: value.topics.length };
+  value.approvalWarnings = [...new Set(warnings)];
   return value;
 }
 

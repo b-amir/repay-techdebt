@@ -1,4 +1,6 @@
 import { extractLessonCitations } from "./lesson-citation-check.js";
+import { parseClaimsBlock } from "./claim-faithfulness.js";
+import { inspectLessonShape } from "./lesson-shape.js";
 
 const DEPTH_RANGES = {
   concise: [250, 650],
@@ -24,7 +26,10 @@ function wordCount(markdown) {
     .filter(Boolean).length;
 }
 
-export function inspectLesson(markdown, { depth = "balanced", expectedEvidencePaths = [] } = {}) {
+export function inspectLesson(
+  markdown,
+  { depth = "balanced", expectedEvidencePaths = [], subject } = {},
+) {
   if (!DEPTH_RANGES[depth]) throw new Error("depth must be concise, balanced, or deep");
   const headings = [...markdown.matchAll(/^##\s+(.+)$/gm)].map((match) => match[1].trim());
   const evidence = extractLessonCitations(markdown);
@@ -126,6 +131,56 @@ export function inspectLesson(markdown, { depth = "balanced", expectedEvidencePa
     );
   if (!/\b(?:because|therefore|so that|which means|as a result)\b/i.test(markdown))
     warnings.push("Add at least one explicit cause-and-consequence explanation.");
+
+  const nonMermaidFence = [...markdown.matchAll(/^```([^\n`]*)\n[\s\S]*?^```/gm)].some(
+    (match) => match[1].trim().split(/\s+/)[0]?.toLowerCase() !== "mermaid",
+  );
+  if (!nonMermaidFence) {
+    warnings.push(
+      "Add at least one verified non-Mermaid fenced code snippet from the primary path.",
+    );
+  }
+
+  const shape = inspectLessonShape(markdown, { subject });
+  for (const error of shape.errors) {
+    if (!errors.includes(error)) errors.push(error);
+  }
+  for (const warning of shape.warnings) {
+    if (!warnings.includes(warning)) warnings.push(warning);
+  }
+  const checkSection = shape.sections.check;
+  if (
+    checkSection &&
+    !/\b(?:modify|change|debug|fix|predict|run|assert|expect|break|remove|add|replace)\b/i.test(
+      checkSection,
+    )
+  ) {
+    warnings.push(
+      "Check section appears recall-only; end with a modify, debug, run, or prediction job.",
+    );
+  }
+
+  const claimBlock = parseClaimsBlock(markdown, { detailed: true });
+  if (claimBlock.malformedLines.length > 0) {
+    errors.push(
+      `Malformed CLAIMS entries must use the documented numbered format: ${claimBlock.malformedLines.slice(0, 3).join(" | ")}`,
+    );
+  }
+  if (claimBlock.claims.length > 5) {
+    warnings.push(
+      `Lesson has ${claimBlock.claims.length} parsed CLAIMS; prefer at most 5 material claims.`,
+    );
+  }
+  const existenceClaims = claimBlock.claims.filter((item) =>
+    /\b(?:exports?|defines?|declares?|exists?|export\s+(?:function|const|class)|is\s+an?\s+(?:function|class|constant|type))\b/i.test(
+      item.claim,
+    ),
+  );
+  if (claimBlock.claims.length > 0 && existenceClaims.length / claimBlock.claims.length > 0.5) {
+    warnings.push(
+      "Most CLAIMS are existence/export-shaped; explain behavioral mechanisms instead.",
+    );
+  }
   return {
     ok: errors.length === 0,
     depth,
@@ -136,6 +191,7 @@ export function inspectLesson(markdown, { depth = "balanced", expectedEvidencePa
     citations: [...new Set(evidence)],
     errors,
     warnings,
+    shape,
   };
 }
 

@@ -45,8 +45,13 @@ questions (symbol/path/workflow).
 
 ## B3 — Lesson-worthy topics
 
-**Ask:** `SHORTLIST` keep/demote/add. Each keep: one sentence why it enables a safe change.
+**Ask:** `SHORTLIST` keep/demote/fold/add. Each keep: one sentence why it enables a safe change.
 Corroborate naming-heuristic IDs or demote.
+
+The proposal is candidate inventory, not the curriculum. Demote/fold thin wrappers, pure re-exports,
+constant allowlists, and same-flow micro-helpers unless a distinct failure mode, blast radius, or
+trust decision makes one lesson worthwhile. One learner outcome = one topic; a fold keeps one topic
+and unions the related `evidencePaths`.
 
 **Titles (agent judgment):** plan-curriculum `title` / `learnerOutcome` are path-unique
 placeholders. Before save-curriculum / teach, rewrite kept rows from live source:
@@ -57,6 +62,10 @@ placeholders. Before save-curriculum / teach, rewrite kept rows from live source
 - Prefer `How X does Y` / consequence lines when evidence allows. Keep product context on
   generic basenames (`Chat store types`, not `Types`).
 - Sense check: skim INDEX — each line stands alone; three shared stems → rewrite.
+
+Record each demotion/fold in `agentApproval.topicDecisions` with a reason; a fold also names
+`intoTopicId`. Exact planner title/outcome matches and extreme shortlist compression are warnings:
+revise them or record a reason, never treat silence as approval.
 
 **Floor:** `agentApproval` + corroboration gate (existing). No hard title regex on save —
 taste is the agent's job.
@@ -71,8 +80,9 @@ hand-written, not stamped.
 **Ask:** Is study order purpose → flow → ownership → mechanism? Split/demote omnibus topics.
 Re-check title diversity after demotions (B3 title rules).
 
-**Floor:** topic count / chapter diversity on save; omnibus titles (`whole app` / `complete overview`)
-rejected by `agentApproval` validation.
+**Floor:** at least a minimal kept shortlist, valid decision IDs/reasons, and no omnibus titles
+(`whole app` / `complete overview`). Raw candidate count and chapter diversity are warnings, not
+hard taste gates.
 
 **Sense:** each outcome is one skill; INDEX is skimmable without identical sentence stems.
 
@@ -80,8 +90,18 @@ rejected by `agentApproval` validation.
 
 ## B4b — Lesson craft (PRIMM moves)
 
-**Ask:** Draft one topic. Self-check predict hook, investigate-from-citations, concrete modify
-challenge, transfer recap—without empty PRIMM headings.
+**Ask:** Draft one topic. Self-check predict hook, investigate-from-citations, concrete modify/debug
+job, transfer recap—without empty PRIMM headings.
+
+| Craft decision | Pass                                                                      |
+| -------------- | ------------------------------------------------------------------------- |
+| Mental model   | One safe-change/debug job                                                 |
+| Worked path    | At least one small verified non-Mermaid code fence from a primary path    |
+| Pitfall        | Wrong model → concrete effect                                             |
+| Ending         | Modify, debug, run/predict, or named-test assertion—not symbol recall     |
+| Prove-it       | Test path + expected behavior, or omit                                    |
+| CLAIMS         | Prefer ≤5 material mechanism claims, not export inventory                 |
+| Headings       | Topic language declared with `sectionRoles`; do not clone a batch outline |
 
 **Floor:** `check-lesson-quality.js`.
 
@@ -113,7 +133,7 @@ node <skill-root>/scripts/check-lesson-faithfulness.js <target-root> <lesson.md>
 ```
 
 Every `path:line` must resolve inside the target with a valid line. Prefer an explicit `CLAIMS:`
-block; unsupported `support: yes` claims fail the faithfulness check (and block `save-lesson`).
+block; malformed numbered entries and unsupported `support: yes` claims block `save-lesson`.
 
 **Sense:** claim-vs-snippet support for those claims; optional report-only `evaluate-lesson.js`
 rubric proxies (not a CI gate).

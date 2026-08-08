@@ -628,13 +628,25 @@ test("discoverable workbook saves a curriculum first and links each lesson from 
     const tooSmall = JSON.parse(await readFile(curriculumPath, "utf8"));
     tooSmall.coverage.modeledFiles = 1200;
     tooSmall.scale.availableCandidates = 100;
+    tooSmall.topics = Array.from({ length: 3 }, (_, index) => ({
+      ...tooSmall.topics[0],
+      id: `topic-${(index + 10).toString(16).padStart(12, "0")}`,
+      title: `Curated mechanism ${index + 1}`,
+      focus: `src/mechanism-${index + 1}.ts`,
+      learnerOutcome: `Change mechanism ${index + 1} safely`,
+      signalClass: "graph-confirmed",
+      relationCount: 2,
+    }));
+    tooSmall.agentApproval.corroboratedTopicIds = [];
     await writeFile(tooSmallPath, `${JSON.stringify(tooSmall, null, 2)}\n`);
-    const refusedCurriculum = await run(
+    const reducedCurriculum = await run(
       ["save-curriculum", target, "--input", tooSmallPath, "--yes"],
       environment,
     );
-    assert.equal(refusedCurriculum.code, 1);
-    assert.match(refusedCurriculum.stderr, /require at least 60/);
+    assert.equal(reducedCurriculum.code, 0, reducedCurriculum.stderr);
+    const reducedPayload = JSON.parse(reducedCurriculum.stdout);
+    assert.ok(reducedPayload.warnings.some((warning) => /collapsed more than 80%/i.test(warning)));
+    assert.ok(reducedPayload.nextAsks.some((item) => item.do === "approve-curriculum-shortlist"));
     const savedCurriculum = await run(
       ["save-curriculum", target, "--input", curriculumPath, "--yes"],
       environment,
@@ -662,6 +674,10 @@ test("discoverable workbook saves a curriculum first and links each lesson from 
     assert.equal(savedLesson.code, 0, savedLesson.stderr);
     const result = JSON.parse(savedLesson.stdout);
     assert.equal(result.outputRoot, output);
+    assert.ok(
+      result.warnings.some((warning) => /non-Mermaid fenced code/i.test(warning)),
+      JSON.stringify(result, null, 2),
+    );
     assert.match(
       await readFile(resolve(output, "INDEX.md"), "utf8"),
       /\[Follow the request boundary\]\(lessons\//,

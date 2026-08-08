@@ -159,7 +159,7 @@ Script inventory ↔ Agent purpose
 Retrieve: graph hubs / critical workflows (agent questions)
 Agent: note what naming heuristics miss (DI, events, odd package names)
 Script: plan-curriculum.js … --format json (Inventory / Propose; titles = path placeholders)
-Agent: SHORTLIST approve/demote/add + **rewrite titles/outcomes from source** (Selection / taste)
+Agent: SHORTLIST approve/demote/fold/add + reasons + **rewrite titles/outcomes from source** (Selection / taste)
       — B3 title judgment in bottleneck-checkpoints.md
 Agent: stamp agentApproval on the rewritten curriculum JSON
 Script: project-memory.js save-curriculum … --input <approved.json> --yes (Save)
@@ -170,10 +170,13 @@ Agent: index + ledger; stop (resume next session)
 Naming-heuristic topics need agent corroboration (graph, source, docs, or user) via
 `agentApproval.corroboratedTopicIds` (or `topic.corroborated=true`) before save.
 Partial coverage requires `agentApproval.acceptedPartialScope`.
+Demotions/folds use `agentApproval.topicDecisions`; folds name a kept `intoTopicId`. Treat
+save-curriculum placeholder/compression warnings as revise-or-explain prompts.
 
 ## Semantic checklist (agent; after mechanical QA + evidence floor)
 
 - One topic / outcome — not an omnibus of scanner hits.
+- Can the learner safely change or debug something afterward? If no, `mustFix`.
 - At least one consumer↔dependency relationship **or** a named gap.
 - Material claims use honest evidence states in prose or ledger.
 - Run claim decomposition from `bottleneck-checkpoints.md` (B6).
@@ -181,6 +184,7 @@ Partial coverage requires `agentApproval.acceptedPartialScope`.
 - Sources listed with reliability rank; model prior not dressed as project fact.
 - If Graphify/Serena failed or was skipped, state which relation class is untrusted.
 - PRIMM moves present without empty Predict/Run/Investigate/Modify/Make headings.
+- A verified source fence appears in the worked path; the ending is a job, not symbol recall.
 
 ## Script catalog (roles)
 

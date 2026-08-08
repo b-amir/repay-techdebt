@@ -36,25 +36,25 @@ Never treat exit 2 as “try another product.” It is a **defined branch**.
 
 ## Format matrix (agent turns)
 
-| Script                                                 | Agent `--format`                       | Script default if omitted                          |
-| ------------------------------------------------------ | -------------------------------------- | -------------------------------------------------- |
-| `project-memory.js status`                             | `json`                                 | `table` (CLI `repay status`: TTY table / pipe json) |
-| `project-memory.js init` / mutations                   | `json`                                 | `json`                                             |
-| `project-memory.js doctor` / recheck-* / search-claims | `json` when parsing                    | table-ish for humans                               |
-| `check-runtime.js`                                     | `json`                                 | TTY `table` / non-TTY `json`                       |
-| `check-capabilities.js`                                | `json`                                 | TTY `table` / non-TTY `json`                       |
-| `profile-project.js`                                   | `json`                                 | `json`                                             |
-| `plan-analysis.js`                                     | **`summary-json`**                     | full `json` if omitted; never table for agents     |
-| `plan-curriculum.js`                                   | `json`                                 | `json`                                             |
-| `plan-lesson.js`                                       | `json`                                 | `json`                                             |
-| `build-program-model.js` / `query-program-model.js`    | `json`                                 | `json` (table only human paste)                    |
-| `find-patterns.js`                                     | `json`                                 | json envelope                                      |
-| `check-lesson-quality.js`                              | `json`                                 | `json`                                             |
-| `check-lesson-evidence.js` / faithfulness              | `json`                                 | `json`                                             |
-| `evaluate-lesson.js` / `recheck-claims.js`             | `json`                                 | `json`                                             |
-| `ensure-runtime.js`                                    | `json`                                 | `json`                                             |
-| `run-graphify.js` / tool wrappers                      | json envelopes                         | consent + AnalyzerResult                           |
-| `view-lessons.js`                                      | n/a (server)                           | open UI; not a proposal JSON                       |
+| Script                                                 | Agent `--format`    | Script default if omitted                           |
+| ------------------------------------------------------ | ------------------- | --------------------------------------------------- |
+| `project-memory.js status`                             | `json`              | `table` (CLI `repay status`: TTY table / pipe json) |
+| `project-memory.js init` / mutations                   | `json`              | `json`                                              |
+| `project-memory.js doctor` / recheck-* / search-claims | `json` when parsing | table-ish for humans                                |
+| `check-runtime.js`                                     | `json`              | TTY `table` / non-TTY `json`                        |
+| `check-capabilities.js`                                | `json`              | TTY `table` / non-TTY `json`                        |
+| `profile-project.js`                                   | `json`              | `json`                                              |
+| `plan-analysis.js`                                     | **`summary-json`**  | full `json` if omitted; never table for agents      |
+| `plan-curriculum.js`                                   | `json`              | `json`                                              |
+| `plan-lesson.js`                                       | `json`              | `json`                                              |
+| `build-program-model.js` / `query-program-model.js`    | `json`              | `json` (table only human paste)                     |
+| `find-patterns.js`                                     | `json`              | json envelope                                       |
+| `check-lesson-quality.js`                              | `json`              | `json`                                              |
+| `check-lesson-evidence.js` / faithfulness              | `json`              | `json`                                              |
+| `evaluate-lesson.js` / `recheck-claims.js`             | `json`              | `json`                                              |
+| `ensure-runtime.js`                                    | `json`              | `json`                                              |
+| `run-graphify.js` / tool wrappers                      | json envelopes      | consent + AnalyzerResult                            |
+| `view-lessons.js`                                      | n/a (server)        | open UI; not a proposal JSON                        |
 
 **Human CLI (`repay …`):** TTY → pretty table; non-TTY pipe → machine format for `plan`/`init`/`status`.  
 Still **not** the agent contract path — agents call scripts with explicit `--format`.
@@ -88,15 +88,15 @@ Without `--yes` → exit 2 `consent-required` (expected). With existing memory �
 
 ### `project-memory.js status`
 
-| `type` / `status`               | Exit | Action                                                |
-| ------------------------------- | ---- | ----------------------------------------------------- |
-| `first-run` / `not-initialized` | 0/2  | introduction wizard → init                            |
-| `status` / ready-ish + config   | 0    | continue shared head                                  |
-| `incomplete-memory` / `broken`  | 2    | ask repair/migrate; never silent overwrite            |
-| `incomplete-lesson-index`       | 2    | follow `requiredAction` (repair index)                |
-| `lesson-index-locked` / `artifact-index-locked` | 2 | stop; unlock only with approval               |
-| `unsafe-symlink`                | 2    | stop; ask user                                        |
-| competing stores                | 2    | pass `--storage private\|project-local\|team` or stop |
+| `type` / `status`                               | Exit | Action                                                |
+| ----------------------------------------------- | ---- | ----------------------------------------------------- |
+| `first-run` / `not-initialized`                 | 0/2  | introduction wizard → init                            |
+| `status` / ready-ish + config                   | 0    | continue shared head                                  |
+| `incomplete-memory` / `broken`                  | 2    | ask repair/migrate; never silent overwrite            |
+| `incomplete-lesson-index`                       | 2    | follow `requiredAction` (repair index)                |
+| `lesson-index-locked` / `artifact-index-locked` | 2    | stop; unlock only with approval                       |
+| `unsafe-symlink`                                | 2    | stop; ask user                                        |
+| competing stores                                | 2    | pass `--storage private\|project-local\|team` or stop |
 
 ### `project-memory.js init`
 
@@ -148,33 +148,34 @@ Install optional tools **only** after user consent; commands from `tool-integrat
 
 ### Save / quality / curriculum
 
-| `type` / outcome                                | Exit | Action                                         |
-| ----------------------------------------------- | ---- | ---------------------------------------------- |
-| `consent-required`                              | 2    | ask; `--yes` after approval                    |
-| `secret-risk`                                   | 2    | redact / rewrite; never save secrets           |
-| `workbook-linkage-required`                     | 2    | save-curriculum / mini-curriculum first        |
-| quality / faithfulness / evidence refuse        | 2    | fix draft once or refuse save                  |
-| path/trajectory incomplete                      | 2    | complete B path or refuse                      |
-| `lesson-saved`                                  | 0    | honor `viewer.openRecommended`; no raw JSON    |
-| `curriculum-saved`                              | 0    | continue lesson loop                           |
-| `artifact-saved` / `decision-recorded`          | 0    | continue                                       |
-| `reconfigured` / `memory-migrated` / clears     | 0/2  | follow `requiredAction`                        |
-| `target-error`                                  | 1    | fix roots                                      |
+| `type` / outcome                            | Exit | Action                                    |
+| ------------------------------------------- | ---- | ----------------------------------------- |
+| `consent-required`                          | 2    | ask; `--yes` after approval               |
+| `secret-risk`                               | 2    | redact / rewrite; never save secrets      |
+| `workbook-linkage-required`                 | 2    | save-curriculum / mini-curriculum first   |
+| quality / faithfulness / evidence refuse    | 2    | fix draft once or refuse save             |
+| path/trajectory incomplete                  | 2    | complete B path or refuse                 |
+| `lesson-saved`                              | 0    | take warnings; honor viewer; no raw JSON  |
+| `curriculum-saved`                          | 0    | revise/explain warnings, then lesson loop |
+| `artifact-saved` / `decision-recorded`      | 0    | continue                                  |
+| `reconfigured` / `memory-migrated` / clears | 0/2  | follow `requiredAction`                   |
+| `target-error`                              | 1    | fix roots                                 |
 
 ## Closed `nextAsks[].do` vocabulary
 
 Agents **must** map these to the mode path — not free invention.  
 Enforced in code: `CLOSED_NEXT_ASK_DOS` in `dialogue-envelope.js`.
 
-| `do`                             | Who    | Meaning                                |
-| -------------------------------- | ------ | -------------------------------------- |
-| `confirm-purpose`                | agent  | B0 ACCEPT \| UNRESOLVED                |
-| `plan-analysis`                  | script | run plan-analysis after purpose        |
-| `pick-retrieve-questions`        | agent  | ≤5 specific questions (focused/pr)     |
-| `approve-curriculum-shortlist`   | agent  | B3 SHORTLIST + agentApproval           |
-| `accept-partial-scope-or-narrow` | agent  | accept partial or narrow scope         |
-| `graphify-or-serena-retrieve`    | tool   | run preferred retrieve chain           |
-| `unsupported-shrink-or-refuse`   | agent  | hard overclaim — no “continue weaker?” |
+| `do`                              | Who    | Meaning                                |
+| --------------------------------- | ------ | -------------------------------------- |
+| `confirm-purpose`                 | agent  | B0 ACCEPT \| UNRESOLVED                |
+| `plan-analysis`                   | script | run plan-analysis after purpose        |
+| `pick-retrieve-questions`         | agent  | ≤5 specific questions (focused/pr)     |
+| `approve-curriculum-shortlist`    | agent  | B3 SHORTLIST + agentApproval           |
+| `accept-partial-scope-or-narrow`  | agent  | accept partial or narrow scope         |
+| `graphify-or-serena-retrieve`     | tool   | run preferred retrieve chain           |
+| `verify-selected-leads-in-source` | agent  | verify pattern leads in live source    |
+| `unsupported-shrink-or-refuse`    | agent  | hard overclaim — no “continue weaker?” |
 
 If a new `do` appears in JSON, handle via `requiredAction` / `why` text **inside the same
 mode path**. Do not start a second product workflow. Adding a new `do` requires updating

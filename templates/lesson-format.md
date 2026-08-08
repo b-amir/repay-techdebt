@@ -63,14 +63,16 @@ the complete required/optional section catalog. Do not force every lesson throug
 - Put the learner's goal and the most useful mental model first. Move evidence next to the claim it
   supports rather than adding a giant evidence dump.
 - Cite exact project-relative paths and line numbers. Include only small, verified, redacted code
-  excerpts.
+  excerpts, including at least one fenced source snippet from the primary path.
 - Use one diagram, table, or trace only when it makes a multi-part relationship materially easier
   to understand.
 - Weave PRIMM into the selected shape: invite a prediction, read the evidence, investigate the
   mechanism, propose a modification, and end with a small make-or-verify challenge. These are
   teaching moves, not mandatory headings.
 - Explain jargon at first use. Prefer short causal sentences and concrete names from this program.
-- End with a concrete check or challenge. Keep evidence gaps and the Tool Use Ledger at workbook
+- Give topic-specific H2s and map `workedPath`, `pitfall`, and `check` to them with frontmatter
+  `sectionRoles`; do not copy the checker’s fallback labels as an outline.
+- End with a concrete modify/debug/run-predict/named-test job, not a name-the-symbol quiz. Keep evidence gaps and the Tool Use Ledger at workbook
   level for a multi-lesson workbook instead of repeating administrative detail in every lesson.
 
 ## Final quality check
@@ -94,3 +96,4 @@ Before publishing, confirm:
 - [ ] **Worked-trace:** Verify there is a step-by-step trace of the flow or mechanism.
 - [ ] **Contrast:** Verify there is a comparison (e.g., buggy vs fixed code, or consequences of omitting a step).
 - [ ] **Takeaway:** Verify the lesson ends with a concluding sentence anchoring the most important insight.
+- [ ] **Transfer job:** Verify the learner changes, debugs, runs/predicts, or writes a named-test assertion.

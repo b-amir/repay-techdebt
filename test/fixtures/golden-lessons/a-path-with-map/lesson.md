@@ -11,6 +11,10 @@ mapAnswers: >-
   capturePayment is the only entry; it validates the order then calls settle.
   settle owns the settled status object. The map answers: who validates vs who
   records settlement?
+sectionRoles:
+  workedPath: Walk the path in code
+  pitfall: The pitfall people miss
+  check: Debug the handoff
 ---
 
 # How capture hands money work to settle
@@ -62,14 +66,17 @@ A common wrong mental model: “capture owns the whole payment, including status
 
 What goes wrong if you skip the id guard and call settle with garbage? Settle still returns a settled-shaped object with whatever id you passed — so capture’s guard is the only gate that keeps incomplete orders out of settlement.
 
-## Check yourself
+## Debug the handoff
 
-Open `billing/capture.js` and `billing/settlement.js`. Without scrolling the lesson:
+Imagine a caller reports a successful capture whose result has no `status`. Open
+`billing/capture.js` and `billing/settlement.js`, then:
 
-1. Point at the line where capture refuses to proceed without an order id.
-2. Point at the line where status becomes `"settled"`.
-3. Say in one sentence who owns validation vs who owns settlement status.
+1. Predict whether adding another guard in capture can restore the missing field.
+2. Change the return object on paper so `status` is restored without moving validation.
+3. Name the assertion you would add for `capturePayment` before making that edit.
 
-Private answer: (1) `billing/capture.js:5`, (2) `billing/settlement.js:3`, (3) capture validates; settle records status.
+Private answer: (1) no—the field originates at `billing/settlement.js:3`; (2) restore
+`status: "settled"` in settle’s returned object; (3) assert that a valid capture result contains
+`status === "settled"` while a missing id still throws at `billing/capture.js:5`.
 
 **If you remember one thing:** money status is not set in capture — capture only validates, then hands off to settle.
