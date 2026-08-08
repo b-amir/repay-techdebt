@@ -63,3 +63,12 @@ test("stripClaimsHtml removes CLAIMS blocks from lesson HTML", () => {
   assert.doesNotMatch(html, /CLAIMS/);
   assert.doesNotMatch(html, /claim/);
 });
+
+test("stripClaimsHtml removes escaped HTML-comment CLAIMS residue", () => {
+  const html = stripClaimsHtml(
+    '<p>Intro</p><p>&lt;!-- CLAIMS:</p>\n<ol>\n<li>"x" — a.ts:1 — support: yes — state: observed\n--&gt;</li>\n</ol><p>Outro</p>',
+  );
+  assert.match(html, /Intro/);
+  assert.match(html, /Outro/);
+  assert.doesNotMatch(html, /CLAIMS|support: yes|a\.ts:1/);
+});

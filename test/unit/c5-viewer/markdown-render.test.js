@@ -112,3 +112,57 @@ Tokens validated at the edge.
   assert.doesNotMatch(page, /mapAnswers|primaryPaths|subject:|shape:/);
   assert.match(page, /Learner outcome/);
 });
+
+test("prepareLessonMarkdown strips HTML comments and bare CLAIMS (agent evidence)", () => {
+  const source = `# Cookie door
+
+Remember the hop.
+
+<!-- note: agent only -->
+
+<!-- CLAIMS:
+1. "Browser enters via /bff/*" — app/routes.ts:8 — support: yes — state: observed
+2. "Origin fail-closed" — app/core/api/bff-proxy/origin.server.ts:7 — support: yes — state: observed
+-->
+
+\`\`\`html
+<!-- keep this fence comment -->
+\`\`\`
+
+CLAIMS:
+
+1. "Bare claim stays agent-only" — billing/capture.js:6 — support: yes — state: observed
+`;
+  const prepared = prepareLessonMarkdown(source);
+  assert.match(prepared.body, /Remember the hop/);
+  assert.match(prepared.body, /keep this fence comment/);
+  assert.doesNotMatch(prepared.body, /CLAIMS/);
+  assert.doesNotMatch(prepared.body, /Browser enters via/);
+  assert.doesNotMatch(prepared.body, /agent only/);
+  assert.doesNotMatch(prepared.body, /Bare claim stays/);
+
+  const page = renderLesson({
+    workbookTitle: "WB",
+    sidebar: {
+      chapters: [
+        {
+          title: "Core",
+          items: [{ lessonKey: "lessons/cookie.md", title: "Cookie door" }],
+        },
+      ],
+      counts: { done: 0, written: 1, planned: 0 },
+    },
+    title: prepared.title,
+    bodyHtml: renderMarkdown(prepared.body),
+    lessonKey: "lessons/cookie.md",
+    completed: false,
+    progress: {},
+    prev: null,
+    next: null,
+  });
+  assert.match(page, /Remember the hop/);
+  assert.match(page, /keep this fence comment/);
+  assert.doesNotMatch(page, /CLAIMS|Browser enters via|Bare claim stays|agent only/);
+  // Fence comments may render as escaped code; agent HTML comments must not.
+  assert.doesNotMatch(page, /note: agent only/);
+});

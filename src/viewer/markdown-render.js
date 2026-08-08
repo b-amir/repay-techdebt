@@ -114,6 +114,25 @@ md.renderer.rules.link_open = function hardenLink(tokens, idx, options, env, sel
 };
 
 /**
+ * Drop agent-only noise before markdown-it (html:false would otherwise escape
+ * HTML comments into visible text). Fenced code is preserved.
+ * @param {string} markdown
+ */
+export function stripAgentMetaMarkdown(markdown) {
+  const fences = [];
+  let text = String(markdown ?? "").replace(/```[\s\S]*?```/g, (block) => {
+    fences.push(block);
+    return `\0FENCE${fences.length - 1}\0`;
+  });
+  // HTML comments (CLAIMS ledger lives here in real workbooks).
+  text = text.replace(/<!--[\s\S]*?-->/g, "");
+  // Bare CLAIMS: block + consecutive numbered entries.
+  text = text.replace(/(?:^|\n)CLAIMS:\s*\n(?:[ \t]*\d+\.[^\n]*(?:\n|$))*/gi, "\n");
+  text = text.replace(/\0FENCE(\d+)\0/g, (_, i) => fences[Number(i)] ?? "");
+  return text.replace(/\n{3,}/g, "\n\n").trimEnd();
+}
+
+/**
  * @param {string} source
  * @param {{ targetRoot?: string }} [options]
  */
@@ -136,7 +155,8 @@ export function prepareLessonMarkdown(source) {
       : null;
   const title = extractTitle(body) ?? fmTitle;
   // Drop leading ATX H1; shell paints the title once.
-  const displayBody = body.replace(/^\s*#\s+.+\r?\n?/, "");
+  // Drop HTML comments + CLAIMS ledger — agent evidence, not learner prose.
+  const displayBody = stripAgentMetaMarkdown(body.replace(/^\s*#\s+.+\r?\n?/, ""));
   return { body: displayBody, title };
 }
 

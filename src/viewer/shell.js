@@ -424,25 +424,26 @@ function findContinueLesson(sidebar, progress) {
 }
 
 /**
- * Strip agent-facing CLAIMS blocks from lesson HTML — not shown to learners.
+ * Defense-in-depth: strip any CLAIMS residue that still made it into HTML
+ * (bare list, wrapped details, or html:false-escaped comment form).
+ * Prefer stripAgentMetaMarkdown in prepareLessonMarkdown — that is the main path.
  */
 export function stripClaimsHtml(html) {
   return String(html ?? "")
     .replace(/<details class="ds-claims">[\s\S]*?<\/details>/gi, "")
-    .replace(/<p>CLAIMS:\s*<\/p>\s*(?:<ol>[\s\S]*?<\/ol>|<ul>[\s\S]*?<\/ul>)?/gi, "");
+    .replace(/<p>CLAIMS:\s*<\/p>\s*(?:<ol>[\s\S]*?<\/ol>|<ul>[\s\S]*?<\/ul>)?/gi, "")
+    .replace(
+      /<p>&lt;!--\s*CLAIMS:[\s\S]*?(?:--&gt;\s*<\/p>|<ol>[\s\S]*?--&gt;<\/li>\s*<\/ol>)/gi,
+      "",
+    );
 }
 
 /**
- * Wrap a CLAIMS: paragraph (and the list that follows it) in a collapsed
- * <details> so it reads as secondary evidence, not plaque body. Best-effort.
- * @deprecated Viewer uses stripClaimsHtml instead; kept for tooling that may reuse it.
+ * @deprecated Prefer prepareLessonMarkdown (strips agent meta pre-render).
+ * Kept for tooling that still post-processes HTML.
  */
 export function wrapClaims(html) {
-  return html.replace(
-    /<p>CLAIMS:\s*<\/p>\s*(<ol>[\s\S]*?<\/ol>|<ul>[\s\S]*?<\/ul>)?/,
-    (match, list) =>
-      `<details class="ds-claims"><summary>Show claims</summary>${list ?? ""}</details>`,
-  );
+  return stripClaimsHtml(html);
 }
 
 /** Lessons often repeat the title as a markdown H1; strip it when the shell renders the title. */
