@@ -6,6 +6,70 @@ import { promisify } from "node:util";
 
 const exec = promisify(execFile);
 
+const DURABLE_TOPIC_FIELDS = [
+  "status",
+  "lessonPath",
+  "writtenAt",
+  "evidenceDigests",
+  "staleReasons",
+];
+
+/** Preserve written lessons and learner progress when an approved curriculum map is refreshed. */
+export function preserveCurriculumProgress(next, prior) {
+  if (!next || !Array.isArray(next.topics) || !prior || !Array.isArray(prior.topics)) return next;
+  const nextById = new Map(next.topics.map((topic) => [topic.id, topic]));
+  const durablePrior = prior.topics.filter((topic) => topic.lessonPath);
+
+  for (const previous of durablePrior) {
+    const current = nextById.get(previous.id);
+    if (current) {
+      for (const field of DURABLE_TOPIC_FIELDS) {
+        if (previous[field] !== undefined) current[field] = structuredClone(previous[field]);
+      }
+      continue;
+    }
+    const retained = structuredClone(previous);
+    retained.rank = next.topics.length + 1;
+    retained.retainedFromPriorCurriculum = true;
+    next.topics.push(retained);
+    nextById.set(retained.id, retained);
+
+    if (next.delivery?.learningPathTopics) {
+      next.delivery.learningPathTopics.push(retained.id);
+    }
+    const chapters = next.blueprint?.chapters;
+    if (Array.isArray(chapters)) {
+      let chapter = chapters.find((item) => item.title === retained.chapter);
+      if (!chapter) {
+        chapter = {
+          id: `chapter-retained-${chapters.length + 1}`,
+          title: retained.chapter ?? "Previously written lessons",
+          learnerCapability:
+            "Keep previously learned mechanisms available after curriculum refresh.",
+          prerequisiteChapterIds: [],
+          topicIds: [],
+          mechanismFamilies: [],
+          domainFamilies: [],
+        };
+        chapters.push(chapter);
+      }
+      if (!chapter.topicIds.includes(retained.id)) chapter.topicIds.push(retained.id);
+    }
+  }
+
+  next.learnerCompletion = {
+    ...next.learnerCompletion,
+    ...prior.learnerCompletion,
+  };
+  next.history = [...(prior.history ?? []), ...(next.history ?? [])];
+  if (next.scale) next.scale.selectedTopics = next.topics.length;
+  if (next.blueprint?.coverage) {
+    next.blueprint.coverage.topicCount = next.topics.length;
+    next.blueprint.coverage.chapterCount = next.blueprint.chapters?.length ?? 0;
+  }
+  return next;
+}
+
 export async function computeEvidenceDigests(targetRoot, evidencePaths) {
   const digests = {};
   for (const evidencePath of evidencePaths) {

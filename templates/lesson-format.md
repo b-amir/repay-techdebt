@@ -65,8 +65,9 @@ the complete required/optional section catalog. Do not force every lesson throug
   supports rather than adding a giant evidence dump.
 - Cite exact project-relative paths and line numbers. Include only small, verified, redacted code
   excerpts, including at least one fenced source snippet from the primary path.
-- Use one diagram, table, or trace only when it makes a multi-part relationship materially easier
-  to understand.
+- Follow the plan's `diagramIntent`. A `required` visual must be included; a `recommended` visual
+  may be omitted only with a topic-specific `diagramReason`; `omit` must not include Mermaid.
+  Diagrams use only verified nodes and edges, stay small, and must parse before save.
 - Weave PRIMM into the selected shape: invite a prediction, read the evidence, investigate the
   mechanism, propose a modification, and end with a small make-or-verify challenge. These are
   teaching moves, not mandatory headings.

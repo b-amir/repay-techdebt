@@ -13,7 +13,11 @@ test("composeMermaidBlock generates valid sequence diagram with accessibility ta
     type: "sequence",
     teachingQuestion: "Order of ops?",
     reason: "Because async",
-    nodes: ["User", "System"],
+    nodes: [
+      { id: "user", label: "User" },
+      { id: "system", label: "System" },
+    ],
+    edges: [{ from: "user", to: "system", label: "submits" }],
   };
 
   const result = composeMermaidBlock(intent);
@@ -29,7 +33,11 @@ test("composeMermaidBlock generates valid flowchart with accessibility tags", ()
     type: "flowchart",
     teachingQuestion: "Ownership?",
     reason: "Shows trust",
-    nodes: ["Client", "Server"],
+    nodes: [
+      { id: "client", label: "Client" },
+      { id: "server", label: "Server" },
+    ],
+    edges: [{ from: "client", to: "server", label: "calls" }],
   };
 
   const result = composeMermaidBlock(intent);

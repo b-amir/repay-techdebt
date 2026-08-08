@@ -102,15 +102,41 @@ function mechanismModel() {
   };
 }
 
-test("large repositories receive a bounded diversified proposal", () => {
+test("large repositories receive a complete learning path and a bounded session batch", () => {
   const curriculum = planCurriculum(largeModel());
   assert.equal(curriculum.repositorySize, "large");
-  assert.ok(curriculum.topics.length <= 18);
+  assert.ok(curriculum.topics.length >= 130);
+  assert.ok(curriculum.topics.length <= 150);
+  assert.equal(curriculum.delivery.sessionBatch.length, 3);
+  assert.equal(curriculum.delivery.learningPathTopics.length, curriculum.topics.length);
+  assert.ok(curriculum.blueprint.chapters.length >= 2);
+  assert.ok(
+    curriculum.blueprint.chapters.every(
+      (chapter) =>
+        chapter.learnerCapability &&
+        chapter.whyItMatters &&
+        Array.isArray(chapter.prerequisiteChapterIds) &&
+        Array.isArray(chapter.coveredWorkflows) &&
+        chapter.visualCoverage &&
+        Array.isArray(chapter.coverageGaps),
+    ),
+  );
+  assert.equal(curriculum.blueprint.coverage.topicCount, curriculum.topics.length);
   assert.ok(curriculum.candidateSummary.available > curriculum.topics.length);
   assert.equal(curriculum.candidateSummary.filtered, curriculum.candidateSummary.rejected);
   assert.ok(curriculum.candidateSummary.folded >= 0);
   assert.equal(curriculum.topics[0].focus, "customer checkout");
-  assert.ok(curriculum.topics.every((topic) => topic.learnerOutcome && topic.evidencePaths));
+  assert.ok(
+    curriculum.topics.every(
+      (topic) =>
+        topic.learnerOutcome &&
+        topic.evidencePaths &&
+        topic.applicationCapability &&
+        topic.separateLessonReason &&
+        ["required", "recommended", "omit"].includes(topic.diagramExpectation?.decision) &&
+        Array.isArray(topic.prerequisiteTopicIds),
+    ),
+  );
   assert.ok(curriculum.topics.every((topic) => topic.kind !== "dependency"));
   assert.ok(curriculum.topics.every((topic) => !/test-results/i.test(topic.focus)));
   assert.ok(curriculum.topics.every((topic) => topic.focus !== "app/features"));
@@ -127,7 +153,7 @@ test("large repositories receive a bounded diversified proposal", () => {
   assert.match(markdown, /Purpose and critical workflows/);
 });
 
-test("batch-only planning returns exactly the requested lesson batch", () => {
+test("explicit curriculum-only batch mode returns exactly the requested lesson batch", () => {
   const curriculum = planCurriculum(largeModel(), { batchOnly: true, batchSize: 3 });
   assert.equal(curriculum.delivery.mode, "batch-only");
   assert.equal(curriculum.topics.length, 3);

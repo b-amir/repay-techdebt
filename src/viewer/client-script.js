@@ -81,7 +81,7 @@ export const CLIENT_SCRIPT = `
     renderMermaid(false);
   }
 
-  var MERMAID_SRC = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js";
+  var MERMAID_SRC = "/assets/mermaid.min.js";
   var mermaidLoad = null;
 
   function ensureMermaid() {

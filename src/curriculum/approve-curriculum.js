@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 import { validateAgentApproval } from "./curriculum-approval.js";
 import { titleFor, outcomeFor } from "./curriculum-planning.js";
+import { inspectTitleSet } from "./title-review.js";
 
 /**
  * Validate a curriculum proposal for persistence (approval + structural floors).
@@ -15,6 +16,7 @@ export function validateCurriculum(value, targetRoot) {
   if (!approvalCheck.ok) throw new Error(approvalCheck.error);
   value.topics = approvalCheck.topics;
   const warnings = [...(approvalCheck.warnings ?? [])];
+  value.titleDiagnostics = inspectTitleSet(value.topics);
   const ids = new Set();
   const focuses = new Set();
   for (const [index, topic] of value.topics.entries()) {
@@ -106,7 +108,9 @@ export function validateCurriculum(value, targetRoot) {
       topic.title === titleFor(topic.kind, topic.focus) &&
       !hasReason(placeholderReasons[topic.id]?.title)
     ) {
-      warnings.push(`Topic ${topic.id} keeps the unchanged planner title placeholder.`);
+      throw new Error(
+        `Topic ${topic.id} keeps the planner title placeholder; the agent must author the final title or record a specific placeholderReasons title reason.`,
+      );
     }
     if (
       topic.learnerOutcome === outcomeFor(topic.kind, topic.focus) &&

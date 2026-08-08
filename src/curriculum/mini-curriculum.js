@@ -102,6 +102,7 @@ export function buildTeachingCurriculum({
     agentApproval: {
       approvedAt,
       purposeStatus,
+      titleReview: { reviewedAt: approvedAt, scope: "complete-curriculum" },
       note: origin ? `Recent teaching: ${origin}` : "Recent teaching subject(s).",
       corroboratedTopicIds: topics.map((topic) => topic.id),
       demotedTopicIds: [],

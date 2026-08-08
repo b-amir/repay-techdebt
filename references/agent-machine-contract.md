@@ -59,13 +59,21 @@ Never treat exit 2 as “try another product.” It is a **defined branch**.
 **Human CLI (`repay …`):** TTY → pretty table; non-TTY pipe → machine format for `plan`/`init`/`status`.  
 Still **not** the agent contract path — agents call scripts with explicit `--format`.
 
-`plan-curriculum.js` returns a bounded decision packet by default. Pass `--batch-size N
---batch-only` for an explicit exact-N request; the batch pays a transparent penalty for repeated
-mechanism/domain families, while `--focus` pins an explicit user choice. `proposal.alternates`
+`plan-curriculum.js` returns a complete supported learning map plus a bounded writing batch by
+default. `--batch-size N` changes only `delivery.sessionBatch`. Pass `--batch-only` as well only
+when the user explicitly limits the entire curriculum to exact N—not when they merely ask to write
+N lessons. The batch pays a transparent penalty for repeated mechanism/domain families, while
+`--focus` pins an explicit user choice. `proposal.alternates`
 contains up to nine ranked replacements and never becomes persisted curriculum automatically. Full
 candidate catalogs require `--format json --include-catalog --output <outside-target-path>`; they
 are never returned in normal stdout. The compact `candidateSummary` reports available, eligible,
 filtered/rejected, folded, returned, and selected family coverage.
+
+Before save, the agent invents final titles after reading the complete existing title set and
+records `agentApproval.titleReview = { reviewedAt, scope: "complete-curriculum" }`. Scripts may
+report exact or near similarity but must never propose, rank, rewrite, or select titles. Each
+remaining similar pair needs an agent-authored `{ topicIds, reason }` entry in
+`titleReview.retainedSimilarities`; otherwise rewrite it.
 
 ## Shared head (copy-paste sequence)
 

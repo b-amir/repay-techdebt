@@ -28,7 +28,10 @@ import {
 } from "../src/foundations/private-storage.js";
 import { resolveMemoryPaths } from "../src/foundations/memory-paths.js";
 import { formatKvPanel, green, red, yellow } from "../src/foundations/term.js";
-import { computeEvidenceDigests } from "../src/memory/curriculum-refresh.js";
+import {
+  computeEvidenceDigests,
+  preserveCurriculumProgress,
+} from "../src/memory/curriculum-refresh.js";
 import { readCurriculum, writeCurriculum } from "../src/memory/curriculum-store.js";
 import { renderCurriculumMarkdown } from "../src/curriculum/curriculum-planning.js";
 import { evaluateLessonForSave } from "../src/lessons/save-lesson.js";
@@ -74,7 +77,8 @@ function printHelp() {
   node project-memory.js save-curriculum <target-root> --input <curriculum.json> --yes
 
 Curriculum JSON must include agentApproval (approvedAt, purposeStatus accepted|unresolved,
-corroboratedTopicIds for naming-heuristic topics, acceptedPartialScope when coverage is partial).
+titleReview { reviewedAt, scope: complete-curriculum }, corroboratedTopicIds for naming-heuristic
+topics, acceptedPartialScope when coverage is partial).
 --yes alone is not an agent shortlist.
   node project-memory.js save-lesson <target-root> --topic-id <id> --title <title> --input <markdown-file> [--trajectory <gate.json>] [--subject <kind>] --yes
   node project-memory.js configure-output <target-root> --output-location sister|custom [--output-root <path>] --yes
@@ -163,6 +167,102 @@ function workbookPaths(memory, config) {
     lessonIndex:
       location === "private" ? resolve(root, "lessons", "index.md") : resolve(root, "INDEX.md"),
   };
+}
+
+async function writeIfMissing(path, content) {
+  if (await pathExists(path)) await requireSafePath(path, "file");
+  else await writeFile(path, content, "utf8");
+}
+
+async function ensureSafeDirectory(path) {
+  if (await pathExists(path)) await requireSafePath(path, "directory");
+  else await mkdir(path, { recursive: true });
+}
+
+async function restoreConfiguredEmptyState(targetRoot, paths, config) {
+  const workbook = workbookPaths(paths, config);
+  await ensureSafeDirectory(paths.root);
+  await ensureSafeDirectory(paths.lessons);
+  await ensureSafeDirectory(paths.artifacts);
+  await ensureSafeDirectory(resolve(paths.artifacts, "atlases"));
+  await ensureSafeDirectory(resolve(paths.artifacts, "snapshots"));
+  await ensureSafeDirectory(resolve(paths.artifacts, "notebooks"));
+  await Promise.all([
+    writeIfMissing(
+      paths.decisions,
+      "# Repay Tech Debt Decisions\n\n| Date | Scope | Decision | Reason |\n| --- | --- | --- | --- |\n",
+    ),
+    writeIfMissing(
+      paths.curriculum,
+      "# Learning Curriculum\n\nNo curriculum topics are planned yet.\n",
+    ),
+    writeIfMissing(
+      paths.curriculumData,
+      `${JSON.stringify(
+        {
+          schemaVersion: 1,
+          target: { root: targetRoot },
+          topics: [],
+          unresolved: [],
+          delivery: {
+            mode: "learning-path",
+            requestedLessonCount: 3,
+            learningPathTopics: [],
+            sessionBatch: [],
+          },
+        },
+        null,
+        2,
+      )}\n`,
+    ),
+    writeIfMissing(
+      paths.lessonIndex,
+      "# Saved Lessons\n\n| Date | Lesson | Scope |\n| --- | --- | --- |\n",
+    ),
+    writeIfMissing(
+      paths.artifactIndex,
+      `${JSON.stringify({ schemaVersion: 1, artifacts: [] }, null, 2)}\n`,
+    ),
+  ]);
+
+  await ensureSafeDirectory(workbook.root);
+  await ensureSafeDirectory(workbook.lessons);
+  await writeIfMissing(
+    workbook.lessonIndex,
+    workbook.location === "private"
+      ? "# Saved Lessons\n\n| Date | Lesson | Scope |\n| --- | --- | --- |\n"
+      : "# Learning index\n\nNo curriculum has been generated yet.\n",
+  );
+  if (workbook.location !== "private") {
+    await writeIfMissing(
+      resolve(workbook.root, "curriculum.json"),
+      `${JSON.stringify(
+        {
+          schemaVersion: 1,
+          target: { root: targetRoot },
+          topics: [],
+          unresolved: [],
+          delivery: {
+            mode: "learning-path",
+            requestedLessonCount: 3,
+            learningPathTopics: [],
+            sessionBatch: [],
+          },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    await writeIfMissing(
+      resolve(workbook.root, "README.md"),
+      renderWorkbookReadme({
+        targetRoot,
+        workbookRoot: workbook.root,
+        projectName: basename(targetRoot),
+      }),
+    );
+  }
+  return { memoryRoot: paths.root, workbookRoot: workbook.root };
 }
 
 async function requireSafePath(path, kind) {
@@ -1278,9 +1378,6 @@ async function saveCurriculum(targetRoot, options) {
   const paths = await resolveMemoryPaths(targetRoot, options);
   const { config } = await readConfig(paths);
   const workbook = workbookPaths(paths, config);
-  await requireSafePath(workbook.root, "directory");
-  await requireSafePath(workbook.lessons, "directory");
-  await requireSafePath(workbook.lessonIndex, "file");
   if (!options.yes) {
     emit({
       type: "consent-required",
@@ -1293,6 +1390,16 @@ async function saveCurriculum(targetRoot, options) {
     process.exitCode = 2;
     return;
   }
+  if (await pathExists(workbook.root)) await requireSafePath(workbook.root, "directory");
+  else await mkdir(workbook.root, { recursive: true });
+  if (await pathExists(workbook.lessons)) await requireSafePath(workbook.lessons, "directory");
+  else await mkdir(workbook.lessons, { recursive: true });
+  await writeIfMissing(
+    workbook.lessonIndex,
+    workbook.location === "private"
+      ? "# Saved Lessons\n\n| Date | Lesson | Scope |\n| --- | --- | --- | --- |\n"
+      : "# Learning index\n\nNo curriculum has been generated yet.\n",
+  );
   const input = validateCurriculum(
     JSON.parse(await readFile(await realpath(resolve(options.input)), "utf8")),
     targetRoot,
@@ -1301,17 +1408,7 @@ async function saveCurriculum(targetRoot, options) {
   if (await pathExists(paths.curriculumData)) {
     const { data: prior, revision } = await readCurriculum(paths.curriculumData);
     priorRevision = revision;
-    const completed = new Map(
-      (prior.topics ?? []).filter((topic) => topic.lessonPath).map((topic) => [topic.id, topic]),
-    );
-    for (const topic of input.topics) {
-      const existing = completed.get(topic.id);
-      if (existing)
-        Object.assign(topic, {
-          status: "written",
-          lessonPath: existing.lessonPath,
-        });
-    }
+    preserveCurriculumProgress(input, prior);
   }
   const markdown = renderCurriculumMarkdown(input);
   const checked = await secretCheck(markdown, workbook.lessonIndex);
@@ -1550,6 +1647,18 @@ async function saveLesson(targetRoot, options) {
   const title = options.title.replace(/\s+/g, " ").trim();
   const inputPath = await realpath(resolve(options.input));
   const body = await readFile(inputPath, "utf8");
+  if (topic?.title && topic.title !== title) {
+    throw new Error(
+      `Lesson title must match the agent-approved curriculum title exactly: ${topic.title}`,
+    );
+  }
+  const bodyWithoutFrontmatter = body.replace(/^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/, "");
+  const draftTitle = bodyWithoutFrontmatter.match(/^#\s+(.+)$/m)?.[1]?.trim();
+  if (draftTitle && draftTitle !== title) {
+    throw new Error(
+      `Draft H1 must match --title exactly; received “${draftTitle}” and “${title}”.`,
+    );
+  }
   // Keep YAML frontmatter at file start so craft fields parse; title goes after it.
   const content = assembleLessonMarkdown(title, body);
   let trajectoryGate = null;
@@ -1727,8 +1836,6 @@ async function repairIndex(targetRoot, options) {
   const paths = await resolveMemoryPaths(targetRoot, options);
   const { config } = await readConfig(paths);
   const workbook = workbookPaths(paths, config);
-  await requireSafePath(workbook.lessons, "directory");
-  await requireSafePath(workbook.lessonIndex, "file");
   if (!options.yes) {
     emit({
       type: "consent-required",
@@ -1738,6 +1845,19 @@ async function repairIndex(targetRoot, options) {
     });
     process.exitCode = 2;
     return;
+  }
+  if (await pathExists(workbook.root)) await requireSafePath(workbook.root, "directory");
+  else await mkdir(workbook.root, { recursive: true });
+  if (await pathExists(workbook.lessons)) await requireSafePath(workbook.lessons, "directory");
+  else await mkdir(workbook.lessons, { recursive: true });
+  if (await pathExists(workbook.lessonIndex)) await requireSafePath(workbook.lessonIndex, "file");
+  else {
+    await writeIfMissing(
+      workbook.lessonIndex,
+      workbook.location === "private"
+        ? "# Saved Lessons\n\n| Date | Lesson | Scope |\n| --- | --- | --- |\n"
+        : "# Learning index\n\nNo curriculum has been generated yet.\n",
+    );
   }
   await acquireLessonLock(paths);
   try {
@@ -2238,12 +2358,18 @@ async function runMaintenanceAction(targetRoot, options, { type, includeCache })
     return;
   }
   const result = await executeSkillMaintenance(plan);
+  let restored = null;
+  if (options["keep-config"] && ctx.config) {
+    const paths = await resolveMemoryPaths(targetRoot, options);
+    restored = await restoreConfiguredEmptyState(targetRoot, paths, ctx.config);
+  }
   emit({
     type: `${type}-completed`,
     status: "cleared",
     targetRoot,
     removed: result.removed,
     markerUpdates: result.markerUpdates,
+    restored,
     plan: summary,
   });
 }

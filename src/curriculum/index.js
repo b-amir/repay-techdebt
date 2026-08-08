@@ -26,6 +26,8 @@ export { buildTeachingCurriculum, TEACHING_CHAPTER } from "./mini-curriculum.js"
 
 export { resolveTopicSelector } from "./topic-resolve.js";
 
+export { inspectTitleSet, normalizeTitle } from "./title-review.js";
+
 export {
   emitSubjectCandidates,
   resolveSubjectPath,

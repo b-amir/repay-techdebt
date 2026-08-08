@@ -437,6 +437,26 @@ test("status detects saved lessons missing from the index", async () => {
   }
 });
 
+test("repair-index recreates missing derived lesson paths after consent", async () => {
+  const target = await mkdtemp(resolve(tmpdir(), "repay-techdebt-memory-repair-missing-"));
+  try {
+    await run(["init", target, "--sharing", "local", "--output-location", "private", "--yes"]);
+    const lessons = resolve(target, ".repay-techdebt", "lessons");
+    await rm(lessons, { force: true, recursive: true });
+
+    const consent = await run(["repair-index", target]);
+    assert.equal(consent.code, 2);
+    assert.equal(JSON.parse(consent.stdout).type, "consent-required");
+
+    const repaired = await run(["repair-index", target, "--yes"]);
+    assert.equal(repaired.code, 0, repaired.stderr);
+    assert.equal(JSON.parse(repaired.stdout).indexedLessons, 0);
+    assert.equal(await absent(resolve(lessons, "index.md")), false);
+  } finally {
+    await rm(target, { force: true, recursive: true });
+  }
+});
+
 test("status detects index entries whose lesson file is missing", async () => {
   const target = await mkdtemp(resolve(tmpdir(), "repay-techdebt-memory-dangling-"));
   try {
@@ -617,6 +637,10 @@ test("discoverable workbook saves a curriculum first and links each lesson from 
           agentApproval: {
             approvedAt: "2026-08-01T00:00:00.000Z",
             purposeStatus: "accepted",
+            titleReview: {
+              reviewedAt: "2026-08-01T00:00:00.000Z",
+              scope: "complete-curriculum",
+            },
             note: "test shortlist",
             corroboratedTopicIds: ["topic-123456789abc"],
             demotedTopicIds: [],

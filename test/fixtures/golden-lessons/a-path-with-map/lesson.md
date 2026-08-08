@@ -1,9 +1,10 @@
 ---
 id: capture-to-settle-path
-title: How capture hands money work to settle
+title: Capture Passes the Baton to Settle
 subject: flow
 shape: end-to-end-flow
 depth: balanced
+diagramDecision: required
 primaryPaths:
   - billing/capture.js
   - billing/settlement.js
@@ -17,7 +18,7 @@ sectionRoles:
   check: Debug the handoff
 ---
 
-# How capture hands money work to settle
+# Capture Passes the Baton to Settle
 
 When money moves in this billing slice, **one function validates the order and another records settlement**. If you only read `capturePayment`, you will miss where status becomes `"settled"`. After this lesson you can open two real files and point at the exact handoff.
 

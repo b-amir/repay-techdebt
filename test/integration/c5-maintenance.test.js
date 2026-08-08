@@ -54,6 +54,31 @@ test("clear-output dry-run then --yes removes initialized memory", async () => {
   }
 });
 
+test("clear-output --keep-config restores a ready empty workbook", async () => {
+  const target = await mkdtemp(resolve(tmpdir(), "repay-maint-keep-config-"));
+  try {
+    const init = await run(["init", target, "--sharing", "local", "--depth", "concise", "--yes"]);
+    assert.equal(init.code, 0, init.stderr);
+    const initialized = JSON.parse(init.stdout);
+
+    const cleared = await run(["clear-output", target, "--keep-config", "--yes"]);
+    assert.equal(cleared.code, 0, cleared.stderr);
+    const payload = JSON.parse(cleared.stdout);
+    assert.equal(payload.type, "clear-output-completed");
+    assert.equal(payload.restored.memoryRoot, initialized.memoryRoot);
+    assert.equal(payload.restored.workbookRoot, initialized.outputRoot);
+
+    const status = await run(["status", target, "--format", "json"]);
+    assert.equal(status.code, 0, status.stderr);
+    const ready = JSON.parse(status.stdout);
+    assert.equal(ready.status, "ready");
+    assert.equal(await absent(resolve(initialized.outputRoot, "INDEX.md")), false);
+    assert.equal(await absent(resolve(initialized.outputRoot, "curriculum.json")), false);
+  } finally {
+    await rm(target, { recursive: true, force: true });
+  }
+});
+
 test("reconfig updates lesson depth with consent", async () => {
   const target = await mkdtemp(resolve(tmpdir(), "repay-maint-reconfig-"));
   try {

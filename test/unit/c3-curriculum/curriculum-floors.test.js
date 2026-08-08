@@ -34,6 +34,10 @@ function curriculum(topics, overrides = {}) {
     agentApproval: {
       approvedAt: "2026-01-01T00:00:00Z",
       purposeStatus: "accepted",
+      titleReview: {
+        reviewedAt: "2026-01-01T00:00:00Z",
+        scope: "complete-curriculum",
+      },
     },
     topics,
     ...overrides,
@@ -69,6 +73,25 @@ test("validateCurriculum accepts a minimal corroborated shortlist and mutates st
     assert.equal(t.lessonPath, null);
     assert.equal(t.writtenAt, undefined);
   }
+});
+
+test("similar title diagnostics require an agent rewrite or retention reason", () => {
+  const topics = [
+    topic(1, { title: "The Queue at the Trust Boundary" }),
+    topic(2, { title: "Queue at the Trust Boundary Controls" }),
+    topic(3, { title: "Retries Become Duplicates" }),
+  ];
+  const unresolved = curriculum(structuredClone(topics));
+  assert.throws(() => validateCurriculum(unresolved, TARGET_ROOT), /rewrite or explain/i);
+
+  const retained = curriculum(structuredClone(topics));
+  retained.agentApproval.titleReview.retainedSimilarities = [
+    {
+      topicIds: [topics[0].id, topics[1].id],
+      reason: "Both lessons teach distinct controls at the same named trust boundary.",
+    },
+  ];
+  assert.ok(validateCurriculum(retained, TARGET_ROOT));
 });
 
 test("validateCurriculum rejects non-v1 / wrong-target input", () => {
@@ -145,6 +168,10 @@ test("topic decisions require reasons and fold evidence into the kept topic", ()
     agentApproval: {
       approvedAt: "2026-01-01T00:00:00Z",
       purposeStatus: "accepted",
+      titleReview: {
+        reviewedAt: "2026-01-01T00:00:00Z",
+        scope: "complete-curriculum",
+      },
       topicDecisions: {
         [source.id]: {
           action: "fold",
@@ -167,6 +194,10 @@ test("topic decisions require reasons and fold evidence into the kept topic", ()
     agentApproval: {
       approvedAt: "2026-01-01T00:00:00Z",
       purposeStatus: "accepted",
+      titleReview: {
+        reviewedAt: "2026-01-01T00:00:00Z",
+        scope: "complete-curriculum",
+      },
       topicDecisions: { [topic(1).id]: { action: "demote", reason: "" } },
     },
   });
@@ -179,6 +210,10 @@ test("topic decisions reject missing fold targets", () => {
     agentApproval: {
       approvedAt: "2026-01-01T00:00:00Z",
       purposeStatus: "accepted",
+      titleReview: {
+        reviewedAt: "2026-01-01T00:00:00Z",
+        scope: "complete-curriculum",
+      },
       topicDecisions: {
         [source.id]: {
           action: "fold",
@@ -191,7 +226,7 @@ test("topic decisions reject missing fold targets", () => {
   assert.throws(() => validateCurriculum(value, TARGET_ROOT), /fold target.*does not exist/i);
 });
 
-test("unchanged planner title and outcome produce visible approval warnings", () => {
+test("unchanged planner title is blocked until the agent authors it or records a reason", () => {
   const focus = "app/domains/chat/store/types.ts";
   const planned = topic(1, {
     kind: "module",
@@ -200,9 +235,7 @@ test("unchanged planner title and outcome produce visible approval warnings", ()
     learnerOutcome: outcomeFor("module", focus),
   });
   const value = curriculum([planned, topic(2), topic(3)]);
-  const result = validateCurriculum(value, TARGET_ROOT);
-  assert.ok(result.approvalWarnings.some((warning) => /unchanged planner title/i.test(warning)));
-  assert.ok(result.approvalWarnings.some((warning) => /unchanged planner outcome/i.test(warning)));
+  assert.throws(() => validateCurriculum(value, TARGET_ROOT), /planner title placeholder/i);
 
   const booleanBypass = curriculum(
     [
@@ -219,17 +252,21 @@ test("unchanged planner title and outcome produce visible approval warnings", ()
       agentApproval: {
         approvedAt: "2026-01-01T00:00:00Z",
         purposeStatus: "accepted",
+        titleReview: {
+          reviewedAt: "2026-01-01T00:00:00Z",
+          scope: "complete-curriculum",
+        },
         placeholderReasons: { [planned.id]: { title: true, learnerOutcome: true } },
       },
     },
   );
-  const bypassResult = validateCurriculum(booleanBypass, TARGET_ROOT);
-  assert.ok(
-    bypassResult.approvalWarnings.some((warning) => /unchanged planner title/i.test(warning)),
-  );
-  assert.ok(
-    bypassResult.approvalWarnings.some((warning) => /unchanged planner outcome/i.test(warning)),
-  );
+  assert.throws(() => validateCurriculum(booleanBypass, TARGET_ROOT), /planner title placeholder/i);
+
+  booleanBypass.agentApproval.placeholderReasons[planned.id] = {
+    title: "The project uses this exact product term, so changing it would reduce clarity.",
+    learnerOutcome: "The source-defined outcome is already precise.",
+  };
+  assert.ok(validateCurriculum(booleanBypass, TARGET_ROOT));
 });
 
 test("validateCurriculum forbids omnibus topics at save time", () => {
@@ -257,6 +294,10 @@ test("naming-heuristic topics need corroboration before save", () => {
     agentApproval: {
       approvedAt: "2026-01-01T00:00:00Z",
       purposeStatus: "accepted",
+      titleReview: {
+        reviewedAt: "2026-01-01T00:00:00Z",
+        scope: "complete-curriculum",
+      },
       corroboratedTopicIds: [speculative.id],
     },
   });

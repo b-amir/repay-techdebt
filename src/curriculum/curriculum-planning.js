@@ -7,6 +7,7 @@ import { buildStudyOrder } from "./curriculum-graph.js";
 import { applyLearnerProfile } from "./learner-profile.js";
 import { findOmnibusTopics } from "./curriculum-policy.js";
 import { repoSize } from "./repo-scale.js";
+import { inspectTitleSet } from "./title-review.js";
 
 const NON_PRODUCT =
   /(^|\/)(?:test|tests|__tests__|spec|specs|fixtures|mocks|scripts|tools|docs?|examples?|generated|dist|build|coverage|vendor|node_modules|storybook-static|\.storybook|\.react-router|e2e)(\/|$)/i;
@@ -157,6 +158,105 @@ function learningStageFor(chapter) {
   return "2. foundational";
 }
 
+const CHAPTER_CAPABILITIES = {
+  "Purpose and critical workflows":
+    "Connect application behavior to the user and business outcomes it serves.",
+  "Entrypoints and user journeys":
+    "Trace external input from an entrypoint to the result a user observes.",
+  "Architecture and ownership":
+    "Place a change in the component that owns the relevant responsibility and contract.",
+  "Data, state, and external contracts":
+    "Follow data ownership, state transitions, and contracts without creating drift.",
+  "Trust, identity, and permissions":
+    "Change protected behavior without weakening authentication or authorization boundaries.",
+  "User-facing features and interactions":
+    "Modify product interactions while preserving their visible states and accessibility.",
+  "Reliability and operations":
+    "Diagnose runtime failure and change operational behavior with a recovery path.",
+  "Verification and change safety":
+    "Use executable behavior contracts to make and verify a safe change.",
+  "Dependencies and ecosystem":
+    "Change an external dependency while preserving the application contract around it.",
+  "Core modules and mechanics":
+    "Reason about load-bearing implementation mechanisms and their blast radius.",
+};
+
+function curriculumDiagramExpectation({ kind, chapter, relationCount }) {
+  const visualChapter =
+    /journey|architecture|ownership|data|state|trust|permission|reliability/i.test(chapter);
+  if (relationCount >= 2 && (visualChapter || new Set(["workflow", "entrypoint"]).has(kind))) {
+    return {
+      decision: "required",
+      teachingQuestion: /data|state/i.test(chapter)
+        ? "Where does state change ownership or lifecycle phase?"
+        : "Which actors or responsibilities connect, and in what order?",
+      reason: "Verified relationships make order or ownership part of the lesson's mental model.",
+    };
+  }
+  if (relationCount >= 2) {
+    return {
+      decision: "recommended",
+      teachingQuestion: "Would a small relationship path replace substantial prose?",
+      reason: "The topic has enough verified relationships for a useful small visual.",
+    };
+  }
+  return {
+    decision: "omit",
+    teachingQuestion: "Is the local mechanism clearer in source and prose?",
+    reason: "The candidate does not yet have enough verified relationships for a meaningful graph.",
+  };
+}
+
+function buildCurriculumBlueprint(topics, unresolved = []) {
+  const orderedChapters = [...new Set(topics.map((topic) => topic.chapter))];
+  const chapterIds = new Map(
+    orderedChapters.map((chapter, index) => [
+      chapter,
+      `chapter-${String(index + 1).padStart(2, "0")}`,
+    ]),
+  );
+  const chapters = orderedChapters.map((chapter, index) => {
+    const chapterTopics = topics.filter((topic) => topic.chapter === chapter);
+    const earlier = orderedChapters
+      .slice(0, index)
+      .filter((candidate) => learningStageFor(candidate) < learningStageFor(chapter));
+    return {
+      id: chapterIds.get(chapter),
+      title: chapter,
+      learnerCapability:
+        CHAPTER_CAPABILITIES[chapter] ??
+        "Understand this application capability well enough to change it safely.",
+      whyItMatters: `${chapterTopics.length} verified curriculum topics depend on this capability in the analyzed application.`,
+      prerequisiteChapterIds: earlier.slice(-1).map((candidate) => chapterIds.get(candidate)),
+      topicIds: chapterTopics.map((topic) => topic.id),
+      coveredWorkflows: chapterTopics
+        .filter((topic) => new Set(["workflow", "entrypoint", "user"]).has(topic.kind))
+        .map((topic) => topic.focus),
+      mechanismFamilies: [...new Set(chapterTopics.map((topic) => topic.mechanismFamily))],
+      domainFamilies: [...new Set(chapterTopics.map((topic) => topic.domainFamily))],
+      visualCoverage: Object.fromEntries(
+        ["required", "recommended", "omit"].map((decision) => [
+          decision,
+          chapterTopics.filter((topic) => topic.diagramExpectation?.decision === decision).length,
+        ]),
+      ),
+      coverageGaps: [...unresolved].slice(0, 5),
+    };
+  });
+  return {
+    organizingPrinciple:
+      "Purpose and journeys → ownership and contracts → mechanisms → applied change safety",
+    chapters,
+    coverage: {
+      topicCount: topics.length,
+      chapterCount: chapters.length,
+      mechanismFamilies: [...new Set(topics.map((topic) => topic.mechanismFamily))],
+      domainFamilies: [...new Set(topics.map((topic) => topic.domainFamily))],
+      gaps: [...unresolved],
+    },
+  };
+}
+
 /** Generic mechanism families used to keep a small lesson batch from collapsing into one concern. */
 function mechanismFamilyFor(path, kind) {
   const value = String(path);
@@ -260,6 +360,12 @@ function makeCandidate({ kind, focus, paths, reasons, relationCount = 0, importa
     title: titleFor(kind, focus),
     focus,
     learnerOutcome: outcomeFor(kind, focus),
+    applicationCapability:
+      CHAPTER_CAPABILITIES[chapter] ??
+      "Reason about this application mechanism well enough to change it safely.",
+    separateLessonReason:
+      finalReasons[0] ?? "The mechanism has its own change boundary and evidence path.",
+    diagramExpectation: curriculumDiagramExpectation({ kind, chapter, relationCount }),
     importance: finalImportance,
     importanceReasons: [...new Set(finalReasons)].slice(0, 4),
     evidencePaths,
@@ -681,10 +787,11 @@ export function planCurriculum(model, options = {}) {
       a.focus.localeCompare(b.focus),
   );
 
-  const requestedLimit = Number(options.limit ?? 18);
+  const defaultLimit = range.size === "large" ? 150 : range.size === "medium" ? 60 : 24;
+  const requestedLimit = Number(options.limit ?? defaultLimit);
   const proposalLimit = Number.isFinite(requestedLimit)
-    ? Math.max(1, Math.min(50, Math.trunc(requestedLimit)))
-    : 18;
+    ? Math.max(1, Math.min(150, Math.trunc(requestedLimit)))
+    : defaultLimit;
   const selection = selectCurriculumCandidates(ranked, proposalLimit);
   let selected = buildStudyOrder(selection.selected);
   selected = applyLearnerProfile(selected, model.profile.learnerProfile);
@@ -711,6 +818,7 @@ export function planCurriculum(model, options = {}) {
         : index < Math.ceil(selected.length * 0.6)
           ? "core"
           : "deep-dive";
+    topic.prerequisiteTopicIds = [...(topic.prerequisites ?? [])];
   });
   const omnibus = findOmnibusTopics(selected);
   const dialogue = buildDialogueEnvelope({
@@ -753,6 +861,8 @@ export function planCurriculum(model, options = {}) {
         : []),
     ],
   });
+  const blueprint = buildCurriculumBlueprint(selected, model.profile.uncertainties);
+  const titleDiagnostics = inspectTitleSet(selected);
   return {
     schemaVersion: 1,
     generatedAt: model.generatedAt,
@@ -780,6 +890,8 @@ export function planCurriculum(model, options = {}) {
       learningPathTopics: selected.map((topic) => topic.id),
       sessionBatch: selected.slice(0, batchSize).map((topic) => topic.id),
     },
+    blueprint,
+    titleDiagnostics,
     coverage: model.coverage,
     topics: selected,
     ...(options.includeCatalog === true ? { candidateCatalog: ranked } : {}),
@@ -819,6 +931,7 @@ export function renderCurriculumMarkdown(curriculum) {
     }
     lines.push("");
   }
+  const unresolved = Array.isArray(curriculum.unresolved) ? curriculum.unresolved : [];
   lines.push(
     "## Coverage notes",
     "",
@@ -826,7 +939,9 @@ export function renderCurriculumMarkdown(curriculum) {
     "",
     "This index is a **proposal** until the agent approves the shortlist. Naming-heuristic topics need corroboration before save.",
     "",
-    ...curriculum.unresolved.map((item) => `- ${item}`),
+    ...(unresolved.length > 0
+      ? unresolved.map((item) => `- ${item}`)
+      : ["- No open coverage gaps recorded."]),
     "",
   );
   return `${lines.join("\n")}\n`;
@@ -843,6 +958,8 @@ export function curriculumDecisionSummary(curriculum) {
     scale: curriculum.scale,
     candidateSummary: curriculum.candidateSummary,
     delivery: curriculum.delivery,
+    blueprint: curriculum.blueprint,
+    titleDiagnostics: curriculum.titleDiagnostics,
     coverage: {
       status: coverage.status ?? (coverage.truncated ? "partial" : "complete"),
       modeledFiles: coverage.modeledFiles,

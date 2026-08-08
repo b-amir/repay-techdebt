@@ -56,6 +56,10 @@ test("validateCurriculum rejects missing approval and accepts corroborated short
   applyAgentApproval(approved, {
     approvedAt: "2026-08-02T00:00:00.000Z",
     purposeStatus: "accepted",
+    titleReview: {
+      reviewedAt: "2026-08-02T00:00:00.000Z",
+      scope: "complete-curriculum",
+    },
     corroboratedTopicIds: [],
     acceptedPartialScope: "fixture",
   });

@@ -88,10 +88,22 @@ export const lessonPlanSchema = z.object({
   diagramIntent: z
     .object({
       type: z.enum(["none", "flowchart", "sequence", "state", "er", "class"]),
+      decision: z.enum(["required", "recommended", "omit"]),
       teachingQuestion: z.string().optional(),
       reason: z.string().optional(),
-      nodes: z.array(z.string()).optional(),
-      edges: z.array(z.any()).optional(),
+      nodes: z.array(z.object({ id: z.string(), label: z.string() })).optional(),
+      edges: z
+        .array(
+          z.object({
+            from: z.string(),
+            to: z.string(),
+            label: z.string(),
+            evidenceIds: z.array(z.string()).optional(),
+          }),
+        )
+        .optional(),
+      evidenceIds: z.array(z.string()).optional(),
+      observedEdgeKinds: z.array(z.string()).optional(),
     })
     .optional(),
 });
@@ -1005,12 +1017,19 @@ export function planLesson(model, options = {}) {
   );
   const focusLabel = focus ?? context.anchors[0]?.path ?? model.profile.primaryArchetype;
 
-  const topicForDiagram = { chapter: shape.label };
+  const diagramNodeIds = new Set(context.relatedIds);
   const packetForDiagram = {
-    callers: signals.find((s) => s.id === "relationships")?.evidenceIds || [],
-    dependencies: context.anchors.flatMap((a) => a.evidenceIds || []),
-    stateEffects: signals.find((s) => s.id === "data-state")?.evidenceIds || [],
+    nodes: model.nodes.filter((node) => diagramNodeIds.has(node.id)),
+    edges: model.edges.filter(
+      (edge) =>
+        CONTEXT_EDGE_KINDS.has(edge.kind) &&
+        edge.confidence >= 0.7 &&
+        diagramNodeIds.has(edge.from) &&
+        diagramNodeIds.has(edge.to),
+    ),
+    focusNodeIds: context.anchors.map((anchor) => anchor.id),
   };
+  const topicForDiagram = { chapter: shape.label };
   const diagramIntent = selectDiagramType(topicForDiagram, packetForDiagram);
 
   return lessonPlanSchema.parse({
@@ -1041,12 +1060,20 @@ export function planLesson(model, options = {}) {
       "Verify every claim in live source and cite exact project-relative lines before teaching it.",
       "Treat optional sections as invitations to investigate, not proof of a defect or runtime behavior.",
       "Prefer clues that converge across files, relations, manifests, tests, configuration, tools, or confirmed memory.",
+      diagramIntent.decision === "required"
+        ? "Include the planned evidence-backed diagram and validate its Mermaid syntax before save."
+        : diagramIntent.decision === "recommended"
+          ? "Include the planned diagram when it reduces prose; otherwise record a concrete omission reason."
+          : "Do not add a decorative diagram; the verified mechanism is clearer in code and prose.",
     ],
   });
 }
 
 export function composeMermaidBlock(intent) {
-  if (!intent || intent.type === "none") return "";
+  if (!intent || intent.type === "none" || !intent.edges?.length) return "";
+
+  const nodeIds = new Map(intent.nodes.map((node, index) => [node.id, `N${index}`]));
+  const safeLabel = (value) => String(value).replaceAll('"', "'").replace(/[<>]/g, "");
 
   const lines = [
     "```mermaid",
@@ -1065,19 +1092,34 @@ export function composeMermaidBlock(intent) {
   ];
 
   if (intent.type === "sequence") {
-    // Basic sequence boilerplate
-    intent.nodes?.forEach((node) =>
-      lines.push(`    participant ${node.replace(/[^a-zA-Z0-9]/g, "")} as ${node}`),
+    intent.nodes.forEach((node) =>
+      lines.push(`    participant ${nodeIds.get(node.id)} as ${safeLabel(node.label)}`),
     );
-    if (intent.nodes && intent.nodes.length >= 2) {
-      const from = intent.nodes[0].replace(/[^a-zA-Z0-9]/g, "");
-      const to = intent.nodes[1].replace(/[^a-zA-Z0-9]/g, "");
-      lines.push(`    ${from}->>${to}: Interacts`);
-    }
+    intent.edges.forEach((edge) =>
+      lines.push(
+        `    ${nodeIds.get(edge.from)}->>${nodeIds.get(edge.to)}: ${safeLabel(edge.label)}`,
+      ),
+    );
   } else if (intent.type === "flowchart") {
-    intent.nodes?.forEach((node, i) => lines.push(`    N${i}["${node}"]`));
+    intent.nodes.forEach((node) =>
+      lines.push(`    ${nodeIds.get(node.id)}["${safeLabel(node.label)}"]`),
+    );
+    intent.edges.forEach((edge) =>
+      lines.push(
+        `    ${nodeIds.get(edge.from)} -->|${safeLabel(edge.label)}| ${nodeIds.get(edge.to)}`,
+      ),
+    );
+  } else if (intent.type === "state") {
+    intent.nodes.forEach((node) =>
+      lines.push(`    state "${safeLabel(node.label)}" as ${nodeIds.get(node.id)}`),
+    );
+    intent.edges.forEach((edge) =>
+      lines.push(
+        `    ${nodeIds.get(edge.from)} --> ${nodeIds.get(edge.to)}: ${safeLabel(edge.label)}`,
+      ),
+    );
   } else {
-    intent.nodes?.forEach((node) => lines.push(`    ${node.replace(/[^a-zA-Z0-9]/g, "")}`));
+    return "";
   }
 
   lines.push("```", "");

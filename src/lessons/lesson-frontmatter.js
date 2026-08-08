@@ -115,7 +115,7 @@ function stripQuotes(value) {
 
 /**
  * @param {Record<string, unknown>} fm
- * @returns {{ mapAnswers: string | null, skipReasons: { map?: string, purpose?: string, verify?: string }, subject: string | null, primaryPaths: string[], shape: string | null, sectionRoles: { workedPath?: string, pitfall?: string, check?: string } }}
+ * @returns {{ mapAnswers: string | null, skipReasons: { map?: string, purpose?: string, verify?: string }, subject: string | null, primaryPaths: string[], shape: string | null, sectionRoles: { workedPath?: string, pitfall?: string, check?: string }, diagramDecision: string | null, diagramReason: string | null }}
  */
 export function craftFieldsFromFrontmatter(fm) {
   const skipRaw = fm.skipReasons && typeof fm.skipReasons === "object" ? fm.skipReasons : {};
@@ -146,5 +146,22 @@ export function craftFieldsFromFrontmatter(fm) {
     const value = /** @type {any} */ (rolesRaw)[key];
     if (typeof value === "string" && value.trim()) sectionRoles[key] = value.trim();
   }
-  return { mapAnswers, skipReasons, subject, primaryPaths, shape, sectionRoles };
+  const diagramDecision =
+    typeof fm.diagramDecision === "string" && fm.diagramDecision.trim()
+      ? fm.diagramDecision.trim().toLowerCase()
+      : null;
+  const diagramReason =
+    typeof fm.diagramReason === "string" && fm.diagramReason.trim()
+      ? fm.diagramReason.trim()
+      : null;
+  return {
+    mapAnswers,
+    skipReasons,
+    subject,
+    primaryPaths,
+    shape,
+    sectionRoles,
+    diagramDecision,
+    diagramReason,
+  };
 }

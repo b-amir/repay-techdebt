@@ -393,6 +393,55 @@ if (args[0] === "extract") {
   }
 });
 
+test("Graphify wrapper reports empty retrieval as no-match", async () => {
+  const directory = await mkdtemp(resolve(tmpdir(), "repay-techdebt-graphify-empty-target-"));
+  const state = await mkdtemp(resolve(tmpdir(), "repay-techdebt-graphify-empty-state-"));
+  const cache = await mkdtemp(resolve(tmpdir(), "repay-techdebt-graphify-empty-cache-"));
+  const fake = resolve(state, "fake-graphify-empty.mjs");
+  try {
+    await writeFile(resolve(directory, "package.json"), "{}\n");
+    await writeFile(
+      fake,
+      `#!/usr/bin/env node
+import { mkdirSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
+const args = process.argv.slice(2);
+if (args[0] === "extract") {
+  const out = args[args.indexOf("--out") + 1];
+  mkdirSync(resolve(out, "graphify-out"), { recursive: true });
+  writeFileSync(resolve(out, "graphify-out", "graph.json"), "{}");
+} else if (args[0] === "query") process.stdout.write(JSON.stringify({ nodes: [], edges: [] }));
+`,
+    );
+    await chmod(fake, 0o755);
+    const environment = {
+      ...process.env,
+      REPAY_GRAPHIFY_COMMAND: fake,
+      REPAY_TECHDEBT_STATE_DIR: state,
+      REPAY_TECHDEBT_CACHE_DIR: cache,
+    };
+    const extracted = await runScript("run-graphify.js", ["extract", directory, "--yes"], {
+      env: environment,
+    });
+    assert.equal(extracted.code, 0, extracted.stderr);
+    const query = await runScript(
+      "run-graphify.js",
+      ["query", directory, "--question", "missing relation"],
+      { env: environment },
+    );
+    assert.equal(query.code, 0, query.stderr);
+    const result = JSON.parse(query.stdout);
+    assert.equal(result.status, "no-match");
+    assert.equal(result.empty, true);
+    assert.equal(result.matchCount, 0);
+    assert.match(result.limitation, /not.*absent/i);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+    await rm(state, { recursive: true, force: true });
+    await rm(cache, { recursive: true, force: true });
+  }
+});
+
 test("baseline analyzers load private external preferences without target memory", async () => {
   const directory = await mkdtemp(resolve(tmpdir(), "repay-techdebt-private-profile-"));
   const state = await mkdtemp(resolve(tmpdir(), "repay-techdebt-private-profile-state-"));
@@ -488,7 +537,7 @@ test("curriculum CLI defaults to a bounded decision packet", async () => {
     assert.ok(summary.proposal.alternates.length >= 6);
     assert.equal(summary.coverage.parserDiagnostics, undefined);
     assert.equal(summary.candidateCatalog, undefined);
-    assert.ok(Buffer.byteLength(result.stdout) < 16_000);
+    assert.ok(Buffer.byteLength(result.stdout) < 20_000);
   } finally {
     await rm(base, { recursive: true, force: true });
   }

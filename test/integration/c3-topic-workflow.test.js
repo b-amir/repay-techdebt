@@ -133,6 +133,10 @@ test(
         agentApproval: {
           approvedAt: "2026-08-01T00:00:00.000Z",
           purposeStatus: "unresolved",
+          titleReview: {
+            reviewedAt: "2026-08-01T00:00:00.000Z",
+            scope: "complete-curriculum",
+          },
           corroboratedTopicIds: ["topic-123456789abc"],
           demotedTopicIds: [],
           acceptedPartialScope: null,

@@ -17,6 +17,15 @@ export function extractMermaidBlocks(markdown) {
   return [...String(markdown ?? "").matchAll(MERMAID_RE)].map((m) => m[1]);
 }
 
+/** Mermaid sources with their one-based fence and source start lines. */
+export function extractMermaidBlocksWithLocations(markdown) {
+  const source = String(markdown ?? "");
+  return [...source.matchAll(MERMAID_RE)].map((match) => {
+    const fenceLine = source.slice(0, match.index).split("\n").length;
+    return { code: match[1], fenceLine, sourceLine: fenceLine + 1 };
+  });
+}
+
 /**
  * Pull path-like tokens from mermaid source (node labels / edge text).
  * @param {string} code

@@ -13,12 +13,17 @@ invalidation, and handwritten contract drift are four lessons, not four sections
 
 Script titles are path placeholders. Agent owns final INDEX + lesson titles:
 
-1. Read focus path (+ 1–2 anchors). Name mechanism, not folder genre.
-2. Prefer `How <subject> <verb phrase>` or a concrete consequence. Reject monotony: same stem
-   with only basename swapped (e.g. `Trace the data lifecycle through X` across a chapter).
-3. Product context on generic basenames (`Chat store types`, not `Types`).
-4. Lesson `title` frontmatter = `H1` = INDEX link text.
-5. After rename, skim chapter: three shared stems → rewrite.
+1. Read the focus path, its anchors, and every title already present in the curriculum.
+2. Invent a truthful, memorable title for this lesson's particular mechanism, decision, tension, or
+   consequence. No prefix, sentence template, programmed rotation, or preferred grammatical form
+   is required.
+3. Keep product context on generic basenames (`Chat store types`, not `Types`), but do not simply
+   substitute a new basename into an existing title's frame.
+4. Compare the candidate against the complete title set. Avoid repeated opening words, rhythms,
+   framing devices, and near-synonym rewrites that would make the index feel stamped out.
+5. Treat script similarity diagnostics as neutral comparison evidence. The agent—not the script—
+   decides whether and how to rewrite.
+6. Lesson `title` frontmatter = `H1` = INDEX link text.
 
 Before keeping a topic, ask what the learner can change or debug. Fold wrappers, re-exports,
 constant tables, and same-flow helpers into the owning outcome unless they introduce a distinct
@@ -96,7 +101,10 @@ and why that behavior matters here. A filename, an analyzer score, or a generic 
 not proof. Before persistence, every citation must resolve to a current file and valid line in the
 explicit target, and at least one citation must match the curriculum topic's evidence anchors.
 
-Use at most one diagram or table, and only when it clarifies a relationship prose would obscure.
+Follow the lesson plan's `diagramIntent`. Use a verified diagram when it materially clarifies a
+sequence, state transition, ownership boundary, or multi-part relationship; reduce it to the
+smallest useful subgraph. Omit it only with a topic-specific reason. Every Mermaid block must parse
+successfully before save.
 Put tool attempts, failures, fallbacks, and limitations in the workbook-level Tool Use Ledger; do
 not repeat the ledger in every short lesson.
 

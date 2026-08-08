@@ -73,7 +73,9 @@ node <skill-root>/scripts/plan-curriculum.js <target-root> --format summary-json
 **Agent turn:** compare the exact batch with bounded `proposal.alternates`, then SHORTLIST
 approve/replace/demote/fold/add; rewrite kept titles/outcomes; record reasoned
 `agentApproval.topicDecisions`; set `purposeStatus` to `accepted` or `unresolved`;
-corroborate `naming-heuristic` topics into `agentApproval.corroboratedTopicIds`. Set
+corroborate `naming-heuristic` topics into `agentApproval.corroboratedTopicIds`. Read every existing
+title, invent each final title without a prescribed formula, and record
+`agentApproval.titleReview` for the complete curriculum. Set
 `acceptedPartialScope` when coverage is partial. Save only with that block present:
 
 ```text

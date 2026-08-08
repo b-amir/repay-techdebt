@@ -7,6 +7,7 @@ import {
   isTopicCorroborated,
   requiresCorroboration,
 } from "./curriculum-policy.js";
+import { inspectTitleSet } from "./title-review.js";
 
 const PURPOSE_STATUSES = new Set(["accepted", "unresolved"]);
 
@@ -97,6 +98,16 @@ export function validateAgentApproval(curriculum) {
         "agentApproval.purposeStatus must be 'accepted' or 'unresolved' (B0 purpose checkpoint).",
     };
   }
+  if (
+    typeof approval.titleReview?.reviewedAt !== "string" ||
+    approval.titleReview?.scope !== "complete-curriculum"
+  ) {
+    return {
+      ok: false,
+      error:
+        "agentApproval.titleReview must record { reviewedAt, scope: 'complete-curriculum' } after the agent compares every title with the existing workbook.",
+    };
+  }
   const coverage = curriculum.coverage ?? {};
   const partial =
     coverage.truncated === true ||
@@ -117,6 +128,16 @@ export function validateAgentApproval(curriculum) {
     return { ok: false, error: error.message };
   }
   const topics = decisionResult.topics;
+  const titleDiagnostics = inspectTitleSet(topics);
+  if (titleDiagnostics.exactDuplicates.length > 0) {
+    return {
+      ok: false,
+      error: `Curriculum titles must be unique: ${titleDiagnostics.exactDuplicates
+        .slice(0, 4)
+        .map((item) => item.titles.join(" = "))
+        .join("; ")}`,
+    };
+  }
   const omnibus = findOmnibusTopics(topics);
   if (omnibus.length > 0) {
     return {
@@ -141,7 +162,45 @@ export function validateAgentApproval(curriculum) {
     };
   }
 
-  return { ok: true, topics, approval, warnings: decisionResult.warnings };
+  const retainedSimilarities = Array.isArray(approval.titleReview.retainedSimilarities)
+    ? approval.titleReview.retainedSimilarities
+    : [];
+  const retainedReasons = new Map(
+    retainedSimilarities
+      .filter(
+        (item) =>
+          Array.isArray(item?.topicIds) &&
+          item.topicIds.length === 2 &&
+          typeof item.reason === "string" &&
+          item.reason.trim(),
+      )
+      .map((item) => [[...item.topicIds].sort().join("\0"), item.reason.trim()]),
+  );
+  const unresolvedSimilarities = titleDiagnostics.similarPairs.filter(
+    (item) => !retainedReasons.has([...item.topicIds].sort().join("\0")),
+  );
+  if (unresolvedSimilarities.length > 0) {
+    return {
+      ok: false,
+      error: `Agent title review must rewrite or explain potentially repetitive titles: ${unresolvedSimilarities
+        .slice(0, 4)
+        .map((item) => item.titles.map((title) => `“${title}”`).join(" and "))
+        .join(
+          "; ",
+        )}. To retain a pair, add { topicIds, reason } to agentApproval.titleReview.retainedSimilarities.`,
+    };
+  }
+  const similarityWarnings = titleDiagnostics.similarPairs.map((item) => {
+    const reason = retainedReasons.get([...item.topicIds].sort().join("\0"));
+    return `Agent retained similar titles ${item.titles.map((title) => `“${title}”`).join(" and ")}: ${reason}`;
+  });
+  return {
+    ok: true,
+    topics,
+    approval,
+    titleDiagnostics,
+    warnings: [...decisionResult.warnings, ...similarityWarnings],
+  };
 }
 
 /** Apply demotions and stamp approval metadata onto a curriculum object (mutates). */
@@ -160,6 +219,7 @@ export function applyAgentApproval(curriculum, approval) {
     corroboration: approval.corroboration ?? {},
     addedTopicIds: approval.addedTopicIds ?? [],
     acceptedPartialScope: approval.acceptedPartialScope ?? null,
+    titleReview: approval.titleReview ?? null,
   };
   const demoted = new Set([
     ...curriculum.agentApproval.demotedTopicIds,

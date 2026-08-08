@@ -70,6 +70,10 @@ test("corroborated naming-heuristic topics can be approved", () => {
   applyAgentApproval(curriculum, {
     approvedAt: "2026-08-02T00:00:00.000Z",
     purposeStatus: "accepted",
+    titleReview: {
+      reviewedAt: "2026-08-02T00:00:00.000Z",
+      scope: "complete-curriculum",
+    },
     corroboratedTopicIds: ["topic-bbbbbbbbbbbb"],
     acceptedPartialScope: "scoped billing-core study",
   });
@@ -147,6 +151,10 @@ test("unconventional-layout fixture plans billing subjects and dialogue envelope
     applyAgentApproval(curriculum, {
       approvedAt: new Date().toISOString(),
       purposeStatus: "unresolved",
+      titleReview: {
+        reviewedAt: new Date().toISOString(),
+        scope: "complete-curriculum",
+      },
       corroboratedTopicIds: curriculum.topics
         .filter((topic) => topic.signalClass === "naming-heuristic")
         .map((topic) => topic.id),

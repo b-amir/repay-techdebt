@@ -6,12 +6,60 @@ import { tmpdir } from "node:os";
 import { resolve, join } from "node:path";
 import {
   computeEvidenceDigests,
+  preserveCurriculumProgress,
   refreshCurriculum,
 } from "../../../src/memory/curriculum-refresh.js";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
 const exec = promisify(execFile);
+
+test("curriculum refresh preserves written topics, stale evidence, and learner completion", () => {
+  const prior = {
+    topics: [
+      {
+        id: "kept",
+        title: "Kept",
+        chapter: "Core",
+        status: "stale",
+        lessonPath: "lessons/kept.md",
+        writtenAt: "2026-08-01T00:00:00.000Z",
+        evidenceDigests: { "src/kept.ts": "old" },
+        staleReasons: ["Evidence changed: src/kept.ts"],
+      },
+      {
+        id: "omitted",
+        title: "Omitted from the new scan",
+        chapter: "Legacy boundary",
+        status: "written",
+        lessonPath: "lessons/omitted.md",
+      },
+    ],
+    learnerCompletion: { kept: true, omitted: true },
+    history: [{ action: "save-lesson" }],
+  };
+  const next = {
+    topics: [{ id: "kept", title: "Renamed", chapter: "Core", status: "planned" }],
+    delivery: { learningPathTopics: ["kept"], sessionBatch: [] },
+    scale: { selectedTopics: 1 },
+    blueprint: {
+      chapters: [{ id: "core", title: "Core", topicIds: ["kept"] }],
+      coverage: { topicCount: 1, chapterCount: 1 },
+    },
+  };
+
+  preserveCurriculumProgress(next, prior);
+
+  assert.equal(next.topics[0].title, "Renamed");
+  assert.equal(next.topics[0].status, "stale");
+  assert.deepEqual(next.topics[0].staleReasons, ["Evidence changed: src/kept.ts"]);
+  assert.equal(next.topics[1].id, "omitted");
+  assert.equal(next.topics[1].retainedFromPriorCurriculum, true);
+  assert.deepEqual(next.delivery.learningPathTopics, ["kept", "omitted"]);
+  assert.deepEqual(next.learnerCompletion, { kept: true, omitted: true });
+  assert.equal(next.blueprint.coverage.topicCount, 2);
+  assert.equal(next.blueprint.coverage.chapterCount, 2);
+});
 
 test("refreshCurriculum detects stale lessons based on evidence file changes", async () => {
   const targetRoot = await mkdtemp(resolve(tmpdir(), "refresh-"));

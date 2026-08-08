@@ -11,10 +11,10 @@ import {
 
 function printHelp() {
   process.stdout.write(
-    "Usage: node check-snippet-secrets.js <target-project-directory> <file>\n\n",
+    "Usage: node check-snippet-secrets.js <target-project-directory> <application-source-file> [--format json|text]\n\n",
   );
   process.stdout.write(
-    "Scan a candidate lesson snippet and mask detected secret values in diagnostics.\n",
+    "Scan verified application source used by a lesson snippet and mask detected secret values in diagnostics.\n",
   );
 }
 
@@ -24,6 +24,13 @@ try {
     printHelp();
     process.exit(0);
   }
+  let format = "json";
+  const formatIndex = args.indexOf("--format");
+  if (formatIndex >= 0) {
+    format = args[formatIndex + 1];
+    args.splice(formatIndex, 2);
+  }
+  if (!new Set(["json", "text"]).has(format)) throw new Error("--format must be json or text");
   if (args.length > 2)
     throw new Error("Expected a target project directory and exactly one file path");
   const target = await resolveTargetRoot(args[0]);
@@ -58,18 +65,17 @@ try {
     terminalLink: false,
   });
   const result = await engine.executeOnContent({ content, filePath });
+  const payload = {
+    analyzer: "secretlint",
+    projectRoot: target.targetRoot,
+    file: relative(target.targetRoot, filePath).replaceAll("\\", "/"),
+    ok: result.ok,
+    diagnostics: result.output.trim(),
+  };
   process.stdout.write(
-    `${JSON.stringify(
-      {
-        analyzer: "secretlint",
-        projectRoot: target.targetRoot,
-        file: relative(target.targetRoot, filePath).replaceAll("\\", "/"),
-        ok: result.ok,
-        diagnostics: result.output.trim(),
-      },
-      null,
-      2,
-    )}\n`,
+    format === "text"
+      ? `${payload.ok ? "PASS" : "FAIL"}: ${payload.file}${payload.diagnostics ? `\n${payload.diagnostics}` : ""}\n`
+      : `${JSON.stringify(payload, null, 2)}\n`,
   );
   if (!result.ok) process.exitCode = 2;
 } catch (error) {

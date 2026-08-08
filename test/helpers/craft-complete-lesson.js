@@ -39,7 +39,10 @@ Open \`src/routes/admin.ts\` and \`src/auth/permission.ts\`. Trace one neighbori
 /** Same checked lesson, but a flow subject whose map answer lives only in frontmatter. */
 export function craftCompleteFlowLesson() {
   return craftCompleteConciseLesson()
-    .replace("subject: code-mechanics", "subject: flow")
+    .replace(
+      "subject: code-mechanics",
+      "subject: flow\ndiagramDecision: omit\ndiagramReason: The verified path has one delegation edge, so the ordered trace is clearer than a graph.",
+    )
     .replaceAll("src/routes/admin.ts", "src/entry/control.ts")
     .replaceAll("src/auth/permission.ts", "src/security/policy.ts")
     .replace(

@@ -87,12 +87,14 @@ export function inspectLesson(
   const mermaidBlocks = [...markdown.matchAll(/```mermaid\n([\s\S]*?)\n```/g)];
   for (const block of mermaidBlocks) {
     const code = block[1];
+    const sourceLines = code
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith("%%") && !/^acc(?:Title|Descr):/.test(line));
+    const diagramHeader = sourceLines[0] ?? "";
 
-    // Prohibited experimental/unsupported diagrams
     if (
-      /^\s*(pie|gitGraph|mindmap|sankey-beta|C4Context|C4Container|C4Component|C4Dynamic)/m.test(
-        code,
-      )
+      !/^(?:flowchart|sequenceDiagram|stateDiagram-v2|erDiagram|classDiagram)\b/.test(diagramHeader)
     ) {
       errors.push(
         "Lesson uses prohibited experimental Mermaid type. Use only flowchart, sequenceDiagram, stateDiagram-v2, erDiagram, or classDiagram.",
@@ -111,6 +113,38 @@ export function inspectLesson(
     const lines = code.split("\n").length;
     if (lines > 30) {
       errors.push("Mermaid diagram is too long (> 30 lines). Simplify or use prose.");
+    }
+    const relation =
+      /<\|--|--\|>|-->>|->>|-->|==>|-\.->|\|\|--o\{|o\{--\|\||\}o--\|\||\|\|--\|\||--/;
+    const nodes = new Set();
+    let edges = 0;
+    for (const line of sourceLines.slice(1)) {
+      const match = line.match(relation);
+      if (match) {
+        edges += 1;
+        const left = line
+          .slice(0, match.index)
+          .trim()
+          .match(/^([A-Za-z][\w-]*)/);
+        const rightSource = line
+          .slice((match.index ?? 0) + match[0].length)
+          .replace(/^\s*\|[^|]*\|\s*/, "");
+        const right = rightSource.match(/^([A-Za-z][\w-]*)/);
+        if (left) nodes.add(left[1]);
+        if (right) nodes.add(right[1]);
+      }
+      const declaration = line.match(/^(?:participant|actor|state|class)\s+([A-Za-z][\w-]*)/);
+      if (declaration) nodes.add(declaration[1]);
+    }
+    if (nodes.size > 8 || edges > 10) {
+      errors.push(
+        `Mermaid diagram exceeds the explanatory budget (${nodes.size} nodes, ${edges} edges; maximum 8 nodes and 10 edges). Reduce it to the smallest useful subgraph.`,
+      );
+    }
+    if (/\binteracts(?:\s+with)?\b/i.test(code)) {
+      errors.push(
+        "Mermaid relationships must name the verified action or transition; replace generic 'interacts' edges.",
+      );
     }
   }
 

@@ -9,6 +9,7 @@ import { inspectUsefulnessFloors } from "./usefulness-floors.js";
 import { checkDiagramGate } from "./diagram-gate.js";
 import { checkSubjectPathGate, checkAntiClone, checkPrPrimaryPaths } from "./subject-path-gate.js";
 import { checkPolyglotHonesty, checkAbsenceHonesty } from "./polyglot-honesty.js";
+import { validateMermaidSyntax } from "./mermaid-validation.js";
 
 /**
  * Mechanical floors for saving a lesson (trajectory + craft + quality + citations + faithfulness).
@@ -22,6 +23,16 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
   const craftFields = craftFieldsFromFrontmatter(frontmatter);
   const subject =
     options.subject ?? craftFields.subject ?? options.topic?.subject ?? options.topic?.kind;
+  const visualSubjects = new Set([
+    "architecture",
+    "architecture-orientation",
+    "change-impact",
+    "data-state",
+    "end-to-end-flow",
+    "flow",
+    "security-boundary",
+    "state-lifecycle",
+  ]);
   const quality = inspectLesson(content, {
     depth: options.depth ?? "balanced",
     expectedEvidencePaths: options.expectedEvidencePaths ?? [],
@@ -97,6 +108,33 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
     if (!craft.diagram.ok) {
       quality.ok = false;
       quality.errors.push(...craft.diagram.errors);
+    }
+    craft.diagram.syntax = await validateMermaidSyntax(content);
+    if (!craft.diagram.syntax.ok) {
+      quality.ok = false;
+      quality.errors.push(...craft.diagram.syntax.errors);
+    }
+    const decision = craftFields.diagramDecision;
+    if (visualSubjects.has(String(subject)) && !decision) {
+      quality.ok = false;
+      quality.errors.push(
+        "Visual lesson subjects must declare diagramDecision: required, recommended, or omit from the verified lesson plan.",
+      );
+    } else if (decision && !["required", "recommended", "omit"].includes(decision)) {
+      quality.ok = false;
+      quality.errors.push("diagramDecision must be required, recommended, or omit.");
+    } else if (decision === "required" && craft.diagram.blockCount === 0) {
+      quality.ok = false;
+      quality.errors.push("The verified lesson plan requires a diagram, but the draft has none.");
+    } else if (decision === "omit" && craft.diagram.blockCount > 0) {
+      quality.ok = false;
+      quality.errors.push("diagramDecision is omit, but the draft contains a Mermaid diagram.");
+    } else if (
+      (decision === "omit" || (decision === "recommended" && craft.diagram.blockCount === 0)) &&
+      !craftFields.diagramReason
+    ) {
+      quality.ok = false;
+      quality.errors.push("Omitting a planned visual needs a concrete diagramReason.");
     }
 
     craft.subjectPath = checkSubjectPathGate({
@@ -216,6 +254,11 @@ export async function runTeachFloors(targetRoot, markdown, options = {}) {
   if (citations.problems.length > 0) {
     quality.ok = false;
     quality.errors.push(...citations.problems);
+  }
+  quality.diagramSyntax = await validateMermaidSyntax(markdown);
+  if (!quality.diagramSyntax.ok) {
+    quality.ok = false;
+    quality.errors.push(...quality.diagramSyntax.errors);
   }
   const faithfulness = await assessClaimFaithfulness(targetRoot, markdown);
   if (options.strictFaithfulness && faithfulness.problems.length > 0) {

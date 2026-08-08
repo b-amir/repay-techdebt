@@ -56,19 +56,24 @@ and unions the related `evidencePaths`.
 **Titles (agent judgment):** plan-curriculum `title` / `learnerOutcome` are path-unique
 placeholders. Before save-curriculum / teach, rewrite kept rows from live source:
 
-- Name the mechanism or decision (symbol, screen, contract) — not folder genre or chapter.
-- Same chapter: do not reuse one sentence stem with only the basename swapped (classic fail:
-  `Trace the data lifecycle through X` × N, `Understand the role of X` × N).
-- Prefer `How X does Y` / consequence lines when evidence allows. Keep product context on
-  generic basenames (`Chat store types`, not `Types`).
-- Sense check: skim INDEX — each line stands alone; three shared stems → rewrite.
+- Read every existing curriculum title before inventing a new one.
+- Name the specific mechanism, decision, tension, or consequence—not a folder genre or chapter.
+- Use any grammatical form that fits. Do not follow a prescribed prefix, title formula, or
+  programmed rotation.
+- Avoid reusing opening words, rhythms, metaphors, or sentence frames with only a basename or
+  synonym swapped. Keep product context on generic basenames (`Chat store types`, not `Types`).
+- Use similarity diagnostics only to notice collisions. The agent owns the creative rewrite.
+- Sense check the complete INDEX: each title should stand alone and the collection should feel
+  deliberately authored.
 
 Record each demotion/fold in `agentApproval.topicDecisions` with a reason; a fold also names
 `intoTopicId`. Exact planner title/outcome matches and extreme shortlist compression are warnings:
 revise them or record a reason, never treat silence as approval.
 
-**Floor:** `agentApproval` + corroboration gate (existing). No hard title regex on save —
-taste is the agent's job.
+**Floor:** `agentApproval.titleReview.scope: complete-curriculum` + corroboration gate. Exact
+duplicates and unchanged planner placeholders block save. Similarity warnings never generate,
+rank, or select replacement titles—taste is the agent's job. Rewrite a flagged pair or record its
+topic IDs and a specific retention reason in `titleReview.retainedSimilarities`.
 
 **Sense:** shortlist ≠ scanner top-N; critical flow present when purpose known; INDEX reads
 hand-written, not stamped.
@@ -102,6 +107,7 @@ job, transfer recap—without empty PRIMM headings.
 | Prove-it       | Test path + expected behavior, or omit                                    |
 | CLAIMS         | Prefer ≤5 material mechanism claims, not export inventory                 |
 | Headings       | Topic language declared with `sectionRoles`; do not clone a batch outline |
+| Visual         | Follow `diagramIntent`; verified nodes/edges only; Mermaid must parse     |
 
 **Floor:** `check-lesson-quality.js`.
 

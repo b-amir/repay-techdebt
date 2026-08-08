@@ -89,6 +89,13 @@ test("Path traversal attempts on /lesson/ return 404", async () => {
       !body.includes("<script>alert(1)</script>"),
       "HTML script tags must not survive rendering",
     );
+
+    const mermaid = await makeRequest(server, {
+      path: "/assets/mermaid.min.js",
+      method: "GET",
+    });
+    assert.equal(mermaid.status, 200);
+    assert.match(mermaid.body, /mermaid/i);
   } finally {
     server.close();
     await rm(root, { recursive: true, force: true });

@@ -29,8 +29,14 @@ test("validation workflow keeps immutable actions and deterministic matrix behav
     manifest.devEngines.packageManager.version,
   );
   assert.ok(runSteps.includes("pnpm install --frozen-lockfile"));
-  assert.ok(runSteps.includes("vp check"));
-  assert.ok(runSteps.includes("vp test"));
+  assert.ok(runSteps.includes("pnpm exec vp check"));
+  assert.ok(runSteps.includes("pnpm exec vp run typecheck"));
+  assert.ok(runSteps.includes("pnpm exec vp run lint:orphans"));
+  assert.ok(runSteps.includes("pnpm exec vp test"));
+  assert.equal(
+    runSteps.some((step) => /^vp\s/u.test(step)),
+    false,
+  );
 });
 
 test("direct dependencies are exact and target content stays untrusted", async () => {

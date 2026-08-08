@@ -5,6 +5,7 @@
 import http from "node:http";
 import { readFile, readdir, realpath, stat, writeFile, rename, rm } from "node:fs/promises";
 import { basename, resolve, isAbsolute } from "node:path";
+import { fileURLToPath } from "node:url";
 import { isSameOrInside, skillRoot } from "../foundations/targeting.js";
 import { readCurriculum, writeCurriculum } from "../memory/curriculum-store.js";
 import { renderCurriculumMarkdown } from "../curriculum/curriculum-planning.js";
@@ -16,12 +17,20 @@ import { searchLessons } from "./search-lessons.js";
 import { searchWorkbookClaims } from "../lessons/claim-search.js";
 
 const CSS_PATH = resolve(skillRoot, "src", "viewer", "static", "viewer.css");
+const MERMAID_PATH = fileURLToPath(import.meta.resolve("mermaid/dist/mermaid.min.js"));
 let cssCache = null;
+let mermaidCache = null;
 
 async function loadCss() {
   if (cssCache) return cssCache;
   cssCache = await readFile(CSS_PATH, "utf8");
   return cssCache;
+}
+
+async function loadMermaid() {
+  if (mermaidCache) return mermaidCache;
+  mermaidCache = await readFile(MERMAID_PATH, "utf8");
+  return mermaidCache;
 }
 
 function send(res, status, type, body) {
@@ -172,6 +181,9 @@ export function createViewerServer({ workbook, now = defaultNow }) {
       }
       if (req.method === "GET" && pathname === "/assets/viewer.css") {
         return send(res, 200, "text/css; charset=utf-8", await loadCss());
+      }
+      if (req.method === "GET" && pathname === "/assets/mermaid.min.js") {
+        return send(res, 200, "text/javascript; charset=utf-8", await loadMermaid());
       }
       if (req.method === "GET" && pathname === "/api/search") {
         const q = url.searchParams.get("q") ?? "";

@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { inspectLesson } from "../src/lessons/lesson-quality.js";
+import { validateMermaidSyntax } from "../src/lessons/mermaid-validation.js";
 
 function help() {
   process.stdout.write(`Usage:
@@ -23,9 +24,15 @@ const value = (name, fallback) => {
 };
 try {
   if (!input) throw new Error("A lesson Markdown path is required");
-  const result = inspectLesson(await readFile(resolve(input), "utf8"), {
+  const markdown = await readFile(resolve(input), "utf8");
+  const result = inspectLesson(markdown, {
     depth: value("depth", "balanced"),
   });
+  result.diagramSyntax = await validateMermaidSyntax(markdown);
+  if (!result.diagramSyntax.ok) {
+    result.ok = false;
+    result.errors.push(...result.diagramSyntax.errors);
+  }
   if (value("format", "json") === "text") {
     process.stdout.write(
       `${result.ok ? "PASS" : "FAIL"}: ${result.wordCount} words, ${result.sectionCount} sections, ${result.evidenceCount} citations\n`,

@@ -230,28 +230,35 @@ After purpose + retrieve hubs, run the curriculum **proposal**, then agent short
 node <skill-root>/scripts/plan-curriculum.js <target-root> --format summary-json [--batch-size 3] [--batch-only] [--focus <path-or-topic>]
 ```
 
-The normal response is a bounded decision packet. In `--batch-only` mode, `topics` contains exactly
-the requested lesson count, diversified across mechanism/domain families when evidence permits;
-`proposal.alternates` provides up to nine ranked replacements and is never persisted as lessons.
-Use `--focus` to preserve an explicit user choice ahead of diversification. Default whole-app runs
-keep a learning path plus a 1–3 lesson session batch. Full candidate diagnostics are opt-in with
+The normal whole-app response plans the complete supported learning path first (up to 150 topics
+for a large repository) and separately names a 1–3 lesson writing batch. `--batch-size N` controls
+only that current writing batch. Use `--batch-only` only when the user explicitly says the entire
+curriculum should contain exactly N lessons; never infer it from “write N lessons.” In that explicit
+mode, `topics` contains exactly the requested count and `proposal.alternates` provides up to nine
+ranked replacements that are never persisted automatically. Use `--focus` to preserve an explicit
+user choice ahead of diversification. Full candidate diagnostics are opt-in with
 `--format json --include-catalog --output <outside-target-path>` and never belong in normal stdout.
 
 Approve/demote/fold/add topics (B3; corroborate `signalClass: naming-heuristic`). **Rewrite
-`title` + `learnerOutcome` from live source** — script labels are path-unique placeholders;
-agent judgment makes INDEX non-repetitive (B3 title rules in `bottleneck-checkpoints.md`).
+`title` + `learnerOutcome` from live source** — script labels are path-unique placeholders. Read
+every existing title, then invent a truthful, catchy title suited to that topic. Do not follow a
+required prefix, formula, or programmed rotation; avoid reusing existing openings, rhythms, and
+frames. Similarity diagnostics are comparison evidence only—the agent owns every creative choice.
 Fold same-flow micro-units into one kept outcome; demotions/folds require reasons in
 `agentApproval.topicDecisions`. Complete B4a order check. Persist only with `agentApproval` including
 `purposeStatus: accepted|unresolved`, `approvedAt`, `corroboratedTopicIds`, and
-`acceptedPartialScope` when coverage is partial:
+`titleReview: { reviewedAt, scope: "complete-curriculum" }`, plus `acceptedPartialScope` when
+coverage is partial. When a neutral similarity diagnostic remains after revision, add its two
+topic IDs and a specific reason to `titleReview.retainedSimilarities`:
 
 ```text
 node <skill-root>/scripts/project-memory.js save-curriculum <target-root> --input <approved.json> --yes
 ```
 
-Write 1–3 lessons per run; resume from `INDEX.md`. In learning-path mode explain that the current
-batch keeps token use sane and name the actual pending count. In batch-only mode say the workbook
-contains exactly the requested batch; never claim that more topics remain planned.
+Write 1–3 lessons per run from `delivery.sessionBatch`; resume from `INDEX.md`. In learning-path
+mode explain that the current batch keeps token use sane and name the actual pending count. In
+batch-only mode say the workbook contains exactly the requested batch; never claim that more topics
+remain planned.
 After the **third** saved lesson in a batch, or when the batch is complete with fewer than three
 topics, **must** open the viewer with
 `node <skill-root>/scripts/view-lessons.js <target-root> --open --lesson <rel-path>`
@@ -268,7 +275,8 @@ topics, **must** open the viewer with
    `references/lesson-writing.md`, and B4b/B6 in `references/bottleneck-checkpoints.md`.
 3. **Agent draft** one topic, 3–8 topic-specific sections declared through `sectionRoles`, at least
    one verified source fence, path:line citations, honest evidence language, and a modify/debug/test
-   job ending.
+   job ending. Follow the plan's `diagramIntent`: use verified nodes/edges, keep the subgraph small,
+   give omissions a topic-specific reason, and fix Mermaid syntax before save.
 4. **Script check:**
 
 ```text

@@ -104,6 +104,11 @@ function summarizeOutput(raw, { operation, budget = 80 } = {}) {
   const outputLineCount = text ? text.split(/\r?\n/).filter(Boolean).length : 0;
   const credibleCounts = [parsedItemCount, reportedCount].filter(Number.isFinite);
   const matchCount = credibleCounts.length > 0 ? Math.max(...credibleCounts) : null;
+  const explicitNoMatch =
+    /\b(?:no|zero|0)\s+(?:nodes?|matches?|results?|items?|paths?)\b|\b(?:not found|no path found|no matches found)\b/i.test(
+      text,
+    );
+  const empty = text.length === 0 || matchCount === 0 || explicitNoMatch;
   const maximumChars = operation === "query" ? 12_000 : 24_000;
   const truncated = text.length > maximumChars;
   const countUnknown = operation === "query" && text.length > 0 && matchCount === null;
@@ -122,6 +127,7 @@ function summarizeOutput(raw, { operation, budget = 80 } = {}) {
     parsedItemCount,
     reportedCount,
     outputLineCount,
+    empty,
     truncated,
     precision: broad
       ? "low"
@@ -299,14 +305,15 @@ try {
             {
               analyzer: "graphify",
               operation: action,
-              status: "succeeded",
+              status: summary.empty ? "no-match" : "succeeded",
               targetRoot: target.targetRoot,
               graphPath: paths.graphPath,
               targetWrites: [],
               attempts,
               ...summary,
-              limitation:
-                summary.precision === "low"
+              limitation: summary.empty
+                ? "Graphify returned no matching relationships. Do not treat this as evidence that the relationship is absent; use the bundled relation graph or verify live source."
+                : summary.precision === "low"
                   ? "Broad graph matches are leads only; use exact path/explain or the bundled relation graph."
                   : summary.precision === "unknown"
                     ? "Graph result count could not be established; treat the output as an unbounded lead and verify it in live source."

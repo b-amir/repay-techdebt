@@ -3,17 +3,28 @@ import assert from "node:assert/strict";
 import { test } from "vite-plus/test";
 import { selectDiagramType } from "../../../src/lessons/diagram-selection.js";
 
-test("selectDiagramType rejects overly dense diagrams", () => {
+test("selectDiagramType reduces an overly dense graph instead of discarding it", () => {
   const topic = { chapter: "boundaries" };
+  const nodes = Array.from({ length: 15 }, (_, index) => ({
+    id: `n${index}`,
+    path: `src/module-${index}.ts`,
+  }));
   const packet = {
-    callers: Array.from({ length: 15 }, () => "a"),
-    dependencies: Array.from({ length: 10 }, () => "b"),
-    stateEffects: [],
+    nodes,
+    edges: nodes.slice(1).map((node, index) => ({
+      from: "n0",
+      to: node.id,
+      kind: "imports",
+      evidenceIds: [`e${index}`],
+    })),
+    focusNodeIds: ["n0"],
   };
 
   const intent = selectDiagramType(topic, packet);
-  assert.equal(intent.type, "none");
-  assert.match(intent.reason, /too dense/i);
+  assert.equal(intent.type, "flowchart");
+  assert.ok(intent.nodes.length <= 8);
+  assert.ok(intent.edges.length <= 10);
+  assert.match(intent.reason, /reduced/i);
 });
 
 test("selectDiagramType selects sequence diagram for workflows", () => {
@@ -31,4 +42,5 @@ test("selectDiagramType returns none for simple isolated nodes", () => {
 
   const intent = selectDiagramType(topic, packet);
   assert.equal(intent.type, "none");
+  assert.equal(intent.decision, "omit");
 });

@@ -29,6 +29,7 @@ export { buildEvidencePacket } from "./lesson-evidence.js";
 export { buildLessonSpecification } from "./lesson-specification.js";
 
 export { selectDiagramType } from "./diagram-selection.js";
+export { validateMermaidSyntax } from "./mermaid-validation.js";
 
 export { parseLessonFrontmatter, craftFieldsFromFrontmatter } from "./lesson-frontmatter.js";
 
@@ -48,6 +49,7 @@ export { USEFULNESS_FLOORS, inspectUsefulnessFloors } from "./usefulness-floors.
 
 export {
   extractMermaidBlocks,
+  extractMermaidBlocksWithLocations,
   extractPathishNodes,
   inventoryPathSet,
   checkDiagramGate,

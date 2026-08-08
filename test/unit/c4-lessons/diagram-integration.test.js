@@ -45,4 +45,30 @@ flowchart TD
   `;
   const sidecarResult = inspectLesson(sidecar, { depth: "concise" });
   assert.ok(sidecarResult.errors.some((e) => e.includes("external image or diagram sidecars")));
+
+  const oversized = `
+## Section 1
+\`\`\`mermaid
+flowchart TD
+  accTitle: Oversized graph
+  accDescr: Too many relationships for one explanatory diagram
+  A-->B
+  B-->C
+  C-->D
+  D-->E
+  E-->F
+  F-->G
+  G-->H
+  H-->I
+\`\`\`
+**What this shows:** Too much at once.
+  `;
+  const oversizedResult = inspectLesson(oversized, { depth: "concise" });
+  assert.ok(oversizedResult.errors.some((e) => e.includes("explanatory budget")));
+
+  const genericEdge = noAcc
+    .replace("A-->B", 'A-->|"Interacts with"|B')
+    .replace("flowchart TD", "flowchart TD\n  accTitle: Generic\n  accDescr: Generic edge");
+  const genericResult = inspectLesson(genericEdge, { depth: "concise" });
+  assert.ok(genericResult.errors.some((e) => e.includes("generic 'interacts'")));
 });

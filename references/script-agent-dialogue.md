@@ -159,11 +159,11 @@ Script inventory ↔ Agent purpose
 Retrieve: graph hubs / critical workflows (agent questions)
 Agent: note what naming heuristics miss (DI, events, odd package names)
 Script: plan-curriculum.js … --format summary-json [--batch-size N] [--batch-only] [--focus <path-or-topic>]
-        (Inventory / bounded Propose; titles = path placeholders)
-Agent: compare the exact batch with proposal.alternates; SHORTLIST approve/replace/demote/fold/add
-       + reasons + **rewrite titles/outcomes from source** (Selection / taste)
-      — B3 title judgment in bottleneck-checkpoints.md
-Agent: stamp agentApproval on the rewritten curriculum JSON
+        (Inventory / complete learning map + bounded writing batch; titles = path placeholders)
+Agent: review the complete map and current batch; SHORTLIST approve/replace/demote/fold/add
+       + reasons + invent titles/outcomes from source (Selection / taste). Read the complete title
+       set first; use no required prefix, formula, or programmed rotation.
+Agent: stamp agentApproval, including complete-curriculum titleReview, on the rewritten JSON
 Script: project-memory.js save-curriculum … --input <approved.json> --yes (Save)
 Loop 1–3 lessons/run: plan-lesson (Propose) ↔ draft (Quality) ↔ check-lesson-quality (Mechanical QA) ↔ semantic (Quality judgment) ↔ save-lesson (Save)
 Agent: index + ledger; stop (resume next session)
@@ -174,7 +174,9 @@ Naming-heuristic topics need agent corroboration (graph, source, docs, or user) 
 Partial coverage requires `agentApproval.acceptedPartialScope`.
 Demotions/folds use `agentApproval.topicDecisions`; folds name a kept `intoTopicId`. Treat
 save-curriculum placeholder warnings as revise-or-explain prompts. Breadth/compression warnings
-apply only to learning-path mode, never an explicit batch-only request.
+apply only to learning-path mode, never an explicit batch-only request. `--batch-size` never
+shrinks the complete map; use `--batch-only` only when the user explicitly limits the entire
+curriculum, not merely the current lesson-writing request.
 Alternates are decision metadata only: moving one into the batch requires an explicit replacement,
 and unselected alternates must not be copied into the saved curriculum.
 

@@ -70,8 +70,8 @@ function parse(argv) {
       throw new Error(`--${name} must be a positive integer`);
   }
   if (options["batch-size"] > 5) throw new Error("--batch-size must be between 1 and 5");
-  if (options["candidate-limit"] > 50)
-    throw new Error("--candidate-limit must be between 1 and 50");
+  if (options["candidate-limit"] > 150)
+    throw new Error("--candidate-limit must be between 1 and 150");
   if (options["include-catalog"] && !options.output)
     throw new Error("--include-catalog requires --output so full diagnostics never flood stdout");
   return { targetInput: positional[0], options };

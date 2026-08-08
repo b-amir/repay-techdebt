@@ -322,6 +322,10 @@ test(
       curriculum.agentApproval = {
         approvedAt: "2026-08-08T00:00:00.000Z",
         purposeStatus: "accepted",
+        titleReview: {
+          reviewedAt: "2026-08-08T00:00:00.000Z",
+          scope: "complete-curriculum",
+        },
         corroboratedTopicIds: curriculum.topics.map((topic) => topic.id),
         demotedTopicIds: [],
         topicDecisions: {},

@@ -36,10 +36,10 @@ jobs:
       - name: Validate release
         run: node scripts/validate-release.js
       - name: Run formatting and lint checks
-        run: vp check
+        run: pnpm exec vp check
       - name: Run typecheck
-        run: vp run typecheck
+        run: pnpm exec vp run typecheck
       - name: Run orphans lint
-        run: vp run lint:orphans
+        run: pnpm exec vp run lint:orphans
       - name: Run tests
-        run: vp test
+        run: pnpm exec vp test
