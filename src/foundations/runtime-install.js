@@ -2,7 +2,6 @@
 // Install is skill-root only, --ignore-scripts, and --frozen-lockfile when lockfile present.
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
-import { auditSkillRuntime } from "./runtime-audit.js";
 import { getCacheDir } from "./user-dirs.js";
 import { mkdir, writeFile, readFile, readdir } from "node:fs/promises";
 import { resolve, join } from "node:path";
@@ -33,7 +32,11 @@ function runCommand(command, args, cwd, env = process.env) {
 async function getPinnedPnpmVersion(skillRoot) {
   try {
     const manifest = JSON.parse(await readFile(resolve(skillRoot, "package.json"), "utf8"));
-    return manifest.devEngines?.packageManager?.version || "11.18.0";
+    return (
+      manifest.devEngines?.packageManager?.version ||
+      String(manifest.packageManager ?? "").match(/^pnpm@(.+)$/u)?.[1] ||
+      "11.18.0"
+    );
   } catch {
     return "11.18.0";
   }
@@ -123,30 +126,11 @@ confirmModulesPurge=false
 }
 
 /**
- * Install bundled deps when missing. Safe to call before any npm package import.
+ * Compatibility entrypoint for bootstrap-first CLIs. Delegate to the linked
+ * runtime path so Vite+'s multi-document source lock is materialized before
+ * pnpm consumes it.
  */
 export async function bootstrapSkillRuntime(skillRoot, { install = true } = {}) {
-  let report = await auditSkillRuntime(skillRoot);
-  if (report.status === "ready") return { report, installed: false };
-  if (report.status === "unsupported-runtime") {
-    throw new RuntimeBootstrapError(
-      `Node ${report.node.current} is unsupported; require ${report.node.required}.`,
-      report,
-    );
-  }
-  if (!install) return { report, installed: false };
-
-  // Skill-root only; no package lifecycle scripts.
-  process.stderr.write(
-    "repay-techdebt: installing skill-root dependencies (pnpm --ignore-scripts; frozen lockfile when present). Never touches the target app.\n",
-  );
-  await runPackageInstall(skillRoot);
-  report = await auditSkillRuntime(skillRoot);
-  if (report.status !== "ready") {
-    throw new RuntimeBootstrapError(
-      "Skill dependencies are still missing after install. Run `node scripts/ensure-runtime.js` manually.",
-      report,
-    );
-  }
-  return { report, installed: true };
+  const { ensureSkillRuntime } = await import("./ensure-runtime.js");
+  return ensureSkillRuntime({ skillRoot, install });
 }

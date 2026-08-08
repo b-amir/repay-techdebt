@@ -8,6 +8,7 @@ const { values, positionals } = parseArgs({
     command: { type: "string" },
     workload: { type: "string" },
     timeout: { type: "string" },
+    "allow-env": { type: "string", multiple: true },
   },
   allowPositionals: true,
 });
@@ -24,6 +25,7 @@ async function run() {
     args: positionals,
     workload: values.workload || "unknown",
     durationMs: values.timeout ? parseInt(values.timeout, 10) : 30000,
+    envAllowlist: values["allow-env"] || [],
   };
 
   const result = await collectRuntimeEvidence(plan, values.consent || false);

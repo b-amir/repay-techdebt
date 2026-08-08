@@ -3,6 +3,8 @@ import { existsSync } from "node:fs";
 import { mkdir, rm, symlink, copyFile, readdir, lstat, readlink } from "node:fs/promises";
 import { getDataDir } from "./user-dirs.js";
 import { auditSkillRuntime } from "./runtime-audit.js";
+import { materializeRuntimeLock } from "./runtime-lock.js";
+import { materializeRuntimeManifest } from "./runtime-manifest.js";
 
 export async function ensureLinkedRuntime(skillRoot, hash, runInstallFn) {
   const dataDir = getDataDir();
@@ -13,8 +15,10 @@ export async function ensureLinkedRuntime(skillRoot, hash, runInstallFn) {
 
   let valid = false;
   if (existsSync(targetNodeModules)) {
-    // Copy the current package.json just in case we need to audit
-    await copyFile(resolve(skillRoot, "package.json"), resolve(targetDir, "package.json"));
+    await materializeRuntimeManifest(
+      resolve(skillRoot, "package.json"),
+      resolve(targetDir, "package.json"),
+    );
     const report = await auditSkillRuntime(targetDir);
     valid = report.status === "ready";
   }
@@ -22,9 +26,21 @@ export async function ensureLinkedRuntime(skillRoot, hash, runInstallFn) {
   let installResult = null;
   if (!valid) {
     // Copy manifest files to target directory
-    await copyFile(resolve(skillRoot, "package.json"), resolve(targetDir, "package.json"));
+    await materializeRuntimeManifest(
+      resolve(skillRoot, "package.json"),
+      resolve(targetDir, "package.json"),
+    );
     if (existsSync(resolve(skillRoot, "pnpm-lock.yaml"))) {
-      await copyFile(resolve(skillRoot, "pnpm-lock.yaml"), resolve(targetDir, "pnpm-lock.yaml"));
+      await materializeRuntimeLock(
+        resolve(skillRoot, "pnpm-lock.yaml"),
+        resolve(targetDir, "pnpm-lock.yaml"),
+      );
+    }
+    if (existsSync(resolve(skillRoot, "pnpm-workspace.yaml"))) {
+      await copyFile(
+        resolve(skillRoot, "pnpm-workspace.yaml"),
+        resolve(targetDir, "pnpm-workspace.yaml"),
+      );
     }
 
     // Run installation in the target directory

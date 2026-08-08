@@ -12,27 +12,34 @@ permissions:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v4
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      - name: Check out repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
-          version: 11
+          persist-credentials: false
+      - name: Install pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+        with:
+          version: 11.18.0
       - name: Use Node.js 22
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
           cache: "pnpm"
       - name: Install dependencies
-        run: pnpm install
-      - name: Run typecheck
-        run: pnpm typecheck
-      - name: Run orphans lint
-        run: pnpm lint:orphans
-      - name: Run tests
-        run: pnpm test
-      - name: Validate Release
+        run: pnpm install --frozen-lockfile
+      - name: Validate release
         run: node scripts/validate-release.js
+      - name: Run formatting and lint checks
+        run: vp check
+      - name: Run typecheck
+        run: vp run typecheck
+      - name: Run orphans lint
+        run: vp run lint:orphans
+      - name: Run tests
+        run: vp test

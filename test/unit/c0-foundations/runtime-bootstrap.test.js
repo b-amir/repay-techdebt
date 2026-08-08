@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { test } from "vite-plus/test";
 import { isDirectCliInvocation } from "../../../src/foundations/cli-entry.js";
-import { auditSkillRuntime } from "../../../src/foundations/runtime-audit.js";
+import { auditSkillRuntime, getSkillHashes } from "../../../src/foundations/runtime-audit.js";
 import { skillRoot } from "../../../src/foundations/targeting.js";
 
 test("isDirectCliInvocation matches realpath when argv is a symlink", async () => {
@@ -34,6 +34,25 @@ test("auditSkillRuntime reports ready when node_modules exists", async () => {
   assert.ok(report.packages.length > 0);
 });
 
+test("runtime identity changes when workspace install settings change", async () => {
+  const base = await mkdtemp(resolve(tmpdir(), "repay-runtime-hash-"));
+  try {
+    await writeFile(resolve(base, "package.json"), '{"dependencies":{"zod":"4.4.3"}}\n');
+    await writeFile(resolve(base, "pnpm-lock.yaml"), "lockfileVersion: '9.0'\n");
+    await writeFile(resolve(base, "pnpm-workspace.yaml"), "packages:\n  - .\n");
+    const before = await getSkillHashes(base);
+    await writeFile(
+      resolve(base, "pnpm-workspace.yaml"),
+      "packages:\n  - .\noverrides:\n  zod: 4.4.3\n",
+    );
+    const after = await getSkillHashes(base);
+    assert.notEqual(before.workspaceHash, after.workspaceHash);
+    assert.notEqual(before.runtimeHash, after.runtimeHash);
+  } finally {
+    await rm(base, { recursive: true, force: true });
+  }
+});
+
 test("bootstrapSkillRuntime is ready when node_modules exists", async () => {
   const { bootstrapSkillRuntime } = await import("../../../src/foundations/runtime-install.js");
   const result = await bootstrapSkillRuntime(skillRoot);
@@ -43,7 +62,10 @@ test("bootstrapSkillRuntime is ready when node_modules exists", async () => {
 
 test("ensureSkillRuntime skips PATH shim by default", async () => {
   const previous = process.env.REPAY_LINK_CLI;
+  const previousStateHome = process.env.XDG_STATE_HOME;
+  const stateHome = await mkdtemp(resolve(tmpdir(), "repay-runtime-state-"));
   delete process.env.REPAY_LINK_CLI;
+  process.env.XDG_STATE_HOME = stateHome;
   try {
     const { ensureSkillRuntime } = await import("../../../src/foundations/ensure-runtime.js");
     const result = await ensureSkillRuntime({ skillRoot, install: false });
@@ -53,12 +75,18 @@ test("ensureSkillRuntime skips PATH shim by default", async () => {
   } finally {
     if (previous === undefined) delete process.env.REPAY_LINK_CLI;
     else process.env.REPAY_LINK_CLI = previous;
+    if (previousStateHome === undefined) delete process.env.XDG_STATE_HOME;
+    else process.env.XDG_STATE_HOME = previousStateHome;
+    await rm(stateHome, { recursive: true, force: true });
   }
 });
 
 test("ensureSkillRuntime seals consent when runtime already ready", async () => {
   const previous = process.env.REPAY_LINK_CLI;
+  const previousStateHome = process.env.XDG_STATE_HOME;
+  const stateHome = await mkdtemp(resolve(tmpdir(), "repay-runtime-state-"));
   delete process.env.REPAY_LINK_CLI;
+  process.env.XDG_STATE_HOME = stateHome;
   try {
     const { ensureSkillRuntime } = await import("../../../src/foundations/ensure-runtime.js");
     const result = await ensureSkillRuntime({ skillRoot, install: false });
@@ -71,5 +99,8 @@ test("ensureSkillRuntime seals consent when runtime already ready", async () => 
   } finally {
     if (previous === undefined) delete process.env.REPAY_LINK_CLI;
     else process.env.REPAY_LINK_CLI = previous;
+    if (previousStateHome === undefined) delete process.env.XDG_STATE_HOME;
+    else process.env.XDG_STATE_HOME = previousStateHome;
+    await rm(stateHome, { recursive: true, force: true });
   }
 });

@@ -29,7 +29,7 @@ export async function readRuntimeConsent(skillRoot) {
     if (existsSync(manifestPath)) {
       const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
       const hashes = await getSkillHashes(skillRoot);
-      if (manifest.packageJsonHash !== hashes.packageJsonHash) {
+      if (manifest.runtimeHash !== hashes.runtimeHash) {
         return null;
       }
     }
@@ -83,7 +83,7 @@ export async function ensureSkillRuntime(options) {
   const { skillRoot, install = true, prune = false, linkCli = false } = options;
   const hashes = await getSkillHashes(skillRoot);
   const manifest = await readManifest();
-  const hashMatches = manifest && manifest.packageJsonHash === hashes.packageJsonHash;
+  const hashMatches = manifest && manifest.runtimeHash === hashes.runtimeHash;
   const shouldLink = linkCli === true || process.env.REPAY_LINK_CLI === "1";
 
   let report = await auditSkillRuntime(skillRoot);
@@ -111,7 +111,7 @@ export async function ensureSkillRuntime(options) {
           hint: "CLI available via node <skill-root>/bin/repay (set REPAY_LINK_CLI=1 to symlink onto PATH)",
         };
     if (prune) {
-      await pruneLinkedRuntimes(hashes.packageJsonHash);
+      await pruneLinkedRuntimes(hashes.runtimeHash);
     }
     return {
       report,
@@ -133,11 +133,7 @@ export async function ensureSkillRuntime(options) {
     throw new RuntimeBootstrapError("Skill dependencies are missing and install=false.", report);
   }
 
-  const installResult = await ensureLinkedRuntime(
-    skillRoot,
-    hashes.packageJsonHash,
-    runPackageInstall,
-  );
+  const installResult = await ensureLinkedRuntime(skillRoot, hashes.runtimeHash, runPackageInstall);
 
   if (installResult) {
     const pkg = JSON.parse(
@@ -151,7 +147,7 @@ export async function ensureSkillRuntime(options) {
   }
 
   if (prune) {
-    await pruneLinkedRuntimes(hashes.packageJsonHash);
+    await pruneLinkedRuntimes(hashes.runtimeHash);
   }
 
   report = await auditSkillRuntime(skillRoot);

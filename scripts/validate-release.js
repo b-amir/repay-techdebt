@@ -2,6 +2,7 @@
 import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { parse, parseAllDocuments } from "yaml";
+import { selectRuntimeLockDocument } from "../src/foundations/runtime-lock.js";
 
 function stable(value) {
   if (Array.isArray(value)) return value.map(stable);
@@ -51,7 +52,25 @@ export function validateReleaseLock(lockText, workspaceText) {
         "pnpm-lock.yaml overrides do not match pnpm-workspace.yaml; regenerate both with pinned pnpm",
     };
   }
-  return { ok: true, documentCount: documents.length, projectDocumentCount: 1 };
+  try {
+    const runtimeLock = selectRuntimeLockDocument(lockText);
+    const runtimeDocuments = parseAllDocuments(runtimeLock);
+    const runtimeErrors = runtimeDocuments.flatMap((document) => document.errors ?? []);
+    if (runtimeDocuments.length !== 1 || runtimeErrors.length > 0) {
+      return {
+        ok: false,
+        reason: "The materialized runtime lock must be one valid YAML document",
+      };
+    }
+  } catch (error) {
+    return { ok: false, reason: error.message };
+  }
+  return {
+    ok: true,
+    sourceDocumentCount: documents.length,
+    runtimeDocumentCount: 1,
+    projectDocumentCount: 1,
+  };
 }
 
 async function validateRelease() {
@@ -101,9 +120,8 @@ async function validateRelease() {
     failed = true;
   }
 
-  // 3. Verify the distributable lock and workspace settings agree. pnpm may
-  // prepend a package-manager dependency document; there must still be exactly
-  // one project dependency document carrying the effective overrides.
+  // 3. Verify the Vite+ source lock can materialize the single project lock
+  // consumed by pnpm during a clean skill-runtime installation.
   try {
     const [lockText, workspaceText] = await Promise.all([
       readFile(join(root, "pnpm-lock.yaml"), "utf8"),

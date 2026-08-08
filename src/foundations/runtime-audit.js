@@ -8,6 +8,7 @@ const manifestCache = new Map();
 export async function getSkillHashes(skillRoot) {
   const pkgPath = resolve(skillRoot, "package.json");
   const lockPath = resolve(skillRoot, "pnpm-lock.yaml");
+  const workspacePath = resolve(skillRoot, "pnpm-workspace.yaml");
   const packageJsonHash = crypto
     .createHash("sha256")
     .update(await readFile(pkgPath, "utf8"))
@@ -19,7 +20,18 @@ export async function getSkillHashes(skillRoot) {
       .update(await readFile(lockPath, "utf8"))
       .digest("hex");
   } catch {}
-  return { packageJsonHash, lockHash };
+  let workspaceHash = null;
+  try {
+    workspaceHash = crypto
+      .createHash("sha256")
+      .update(await readFile(workspacePath, "utf8"))
+      .digest("hex");
+  } catch {}
+  const runtimeHash = crypto
+    .createHash("sha256")
+    .update(JSON.stringify({ packageJsonHash, lockHash, workspaceHash }))
+    .digest("hex");
+  return { packageJsonHash, lockHash, workspaceHash, runtimeHash };
 }
 
 export async function auditSkillRuntime(skillRoot) {

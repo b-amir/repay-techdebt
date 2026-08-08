@@ -19,6 +19,10 @@ Before execution:
 5. ask the user unless the exact operation is already authorized;
 6. record the command, outcome, evidence, and limitation in maintainer notes only (never first-run chat).
 
+The collector starts commands with a minimal environment. If a workload genuinely needs an
+environment variable, authorize its **name** explicitly with `--allow-env <NAME>`; never put its
+value on the command line or in lesson output. Captured output is credential-redacted before use.
+
 ## Data Sources
 
 Prefer existing artifacts before new execution: test results, traces, profiles, benchmark history,

@@ -2,13 +2,27 @@
 import { test } from "vite-plus/test";
 import * as assert from "node:assert/strict";
 import { resolve, join } from "node:path";
-import { access, cp, mkdir, readdir, rm, writeFile, mkdtemp, readFile } from "node:fs/promises";
+import {
+  access,
+  cp,
+  lstat,
+  mkdir,
+  readdir,
+  rm,
+  symlink,
+  writeFile,
+  mkdtemp,
+  readFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { execa } from "execa";
 import { recordJudgment } from "../../src/lessons/lesson-judgment.js";
 import { craftCompleteConciseLesson } from "../helpers/craft-complete-lesson.js";
 import { completeTrajectoryGatePayload } from "../helpers/complete-trajectory-gate.js";
 import { PASSING_JUDGMENT } from "../helpers/passing-judgment.js";
+import { selectRuntimeLockDocument } from "../../src/foundations/runtime-lock.js";
+import { selectRuntimeManifest } from "../../src/foundations/runtime-manifest.js";
+import { getSkillHashes } from "../../src/foundations/runtime-audit.js";
 
 const SCRIPT_PATH = resolve(process.cwd(), "scripts", "validate-release.js");
 const PROJECT_MEMORY = resolve(process.cwd(), "scripts", "project-memory.js");
@@ -133,6 +147,95 @@ test("Validation accepts the repository's distributable lock shape", async () =>
   const result = await execa("node", [SCRIPT_PATH], { cwd: process.cwd(), reject: false });
   assert.equal(result.exitCode, 0, result.stderr);
 });
+
+test(
+  "the materialized runtime lock passes a real frozen pnpm install check",
+  { timeout: 30_000 },
+  async () => {
+    const directory = await mkdtemp(join(tmpdir(), "repay-runtime-lock-"));
+    try {
+      const packageText = await readFile(join(process.cwd(), "package.json"), "utf8");
+      const manifest = JSON.parse(packageText);
+      const lockText = await readFile(join(process.cwd(), "pnpm-lock.yaml"), "utf8");
+      await writeFile(
+        join(directory, "package.json"),
+        `${JSON.stringify(selectRuntimeManifest(manifest), null, 2)}\n`,
+        "utf8",
+      );
+      await cp(join(process.cwd(), "pnpm-workspace.yaml"), join(directory, "pnpm-workspace.yaml"));
+      await writeFile(
+        join(directory, "pnpm-lock.yaml"),
+        selectRuntimeLockDocument(lockText),
+        "utf8",
+      );
+
+      const version = manifest.devEngines.packageManager.version;
+      const result = await execa(
+        "corepack",
+        [
+          `pnpm@${version}`,
+          "install",
+          "--lockfile-only",
+          "--frozen-lockfile",
+          "--ignore-scripts",
+          "--offline",
+        ],
+        { cwd: directory, reject: false, env: { ...process.env, CI: "true" } },
+      );
+      assert.equal(result.exitCode, 0, result.stderr);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  "a copied skill starts project-memory before local node_modules exists",
+  { timeout: 30_000 },
+  async () => {
+    const directory = await mkdtemp(join(tmpdir(), "repay-clean-artifact-"));
+    const copiedSkill = join(directory, "skill");
+    try {
+      await mkdir(copiedSkill, { recursive: true });
+      for (const entry of [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "scripts",
+        "src",
+      ]) {
+        await cp(join(process.cwd(), entry), join(copiedSkill, entry), { recursive: true });
+      }
+      await assert.rejects(access(join(copiedSkill, "node_modules")));
+
+      const { runtimeHash } = await getSkillHashes(copiedSkill);
+      const dataHome = join(directory, "data");
+      const linkedRuntime = join(dataHome, "repay-techdebt", "runtime", runtimeHash);
+      await mkdir(linkedRuntime, { recursive: true });
+      await symlink(join(process.cwd(), "node_modules"), join(linkedRuntime, "node_modules"));
+
+      const result = await execa(
+        process.execPath,
+        [join(copiedSkill, "scripts", "project-memory.js"), "--help"],
+        {
+          cwd: copiedSkill,
+          reject: false,
+          env: {
+            ...process.env,
+            XDG_DATA_HOME: dataHome,
+            XDG_STATE_HOME: join(directory, "state"),
+            XDG_CACHE_HOME: join(directory, "cache"),
+          },
+        },
+      );
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.match(result.stdout, /Usage:/);
+      assert.equal((await lstat(join(copiedSkill, "node_modules"))).isSymbolicLink(), true);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  },
+);
 
 test("Validation rejects duplicate project dependency documents", async () => {
   const directory = await mkdtemp(join(tmpdir(), "release-lock-"));
