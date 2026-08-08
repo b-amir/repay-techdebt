@@ -158,9 +158,10 @@ under chapter **Recent teaching**.
 Script inventory ↔ Agent purpose
 Retrieve: graph hubs / critical workflows (agent questions)
 Agent: note what naming heuristics miss (DI, events, odd package names)
-Script: plan-curriculum.js … --format json [--batch-size N] [--batch-only]
+Script: plan-curriculum.js … --format summary-json [--batch-size N] [--batch-only] [--focus <path-or-topic>]
         (Inventory / bounded Propose; titles = path placeholders)
-Agent: SHORTLIST approve/demote/fold/add + reasons + **rewrite titles/outcomes from source** (Selection / taste)
+Agent: compare the exact batch with proposal.alternates; SHORTLIST approve/replace/demote/fold/add
+       + reasons + **rewrite titles/outcomes from source** (Selection / taste)
       — B3 title judgment in bottleneck-checkpoints.md
 Agent: stamp agentApproval on the rewritten curriculum JSON
 Script: project-memory.js save-curriculum … --input <approved.json> --yes (Save)
@@ -174,6 +175,8 @@ Partial coverage requires `agentApproval.acceptedPartialScope`.
 Demotions/folds use `agentApproval.topicDecisions`; folds name a kept `intoTopicId`. Treat
 save-curriculum placeholder warnings as revise-or-explain prompts. Breadth/compression warnings
 apply only to learning-path mode, never an explicit batch-only request.
+Alternates are decision metadata only: moving one into the batch requires an explicit replacement,
+and unselected alternates must not be copied into the saved curriculum.
 
 ## Semantic checklist (agent; after mechanical QA + evidence floor)
 

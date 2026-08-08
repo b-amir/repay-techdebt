@@ -67,10 +67,11 @@ conclusions must not imply observed production behavior. See `runtime-evidence.m
 ## Phase 7: curriculum approve (workbook only)
 
 ```text
-node <skill-root>/scripts/plan-curriculum.js <target-root> --format json
+node <skill-root>/scripts/plan-curriculum.js <target-root> --format summary-json
 ```
 
-**Agent turn:** SHORTLIST approve/demote/fold/add; rewrite kept titles/outcomes; record reasoned
+**Agent turn:** compare the exact batch with bounded `proposal.alternates`, then SHORTLIST
+approve/replace/demote/fold/add; rewrite kept titles/outcomes; record reasoned
 `agentApproval.topicDecisions`; set `purposeStatus` to `accepted` or `unresolved`;
 corroborate `naming-heuristic` topics into `agentApproval.corroboratedTopicIds`. Set
 `acceptedPartialScope` when coverage is partial. Save only with that block present:

@@ -6,7 +6,11 @@ export { isOmnibusTopic, findOmnibusTopics } from "./curriculum-policy.js";
 
 export { validateAgentApproval, applyAgentApproval } from "./curriculum-approval.js";
 
-export { planCurriculum, renderCurriculumMarkdown } from "./curriculum-planning.js";
+export {
+  planCurriculum,
+  renderCurriculumMarkdown,
+  curriculumDecisionSummary,
+} from "./curriculum-planning.js";
 
 export { rankCandidate } from "./curriculum-ranking.js";
 

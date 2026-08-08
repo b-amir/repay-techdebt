@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "name": "curriculum-selection",
+  "description": "Release fixture covering diversified selection and generated-source exclusion.",
+  "topics": [
+    { "id": "trust", "intent": "must-find", "matchFocus": "security|policy|identity" },
+    { "id": "request", "intent": "must-find", "matchFocus": "adapter|server" },
+    { "id": "state", "intent": "must-find", "matchFocus": "registry|state" },
+    { "id": "generated-router", "intent": "forbidden", "matchFocus": "react-router" }
+  ],
+  "workflows": [],
+  "lessons": {},
+  "allowedSideEffects": []
+}

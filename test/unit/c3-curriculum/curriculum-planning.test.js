@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "vite-plus/test";
 import {
+  curriculumDecisionSummary,
   planCurriculum,
   renderCurriculumMarkdown,
 } from "../../../src/curriculum/curriculum-planning.js";
@@ -60,6 +61,47 @@ function largeModel() {
   };
 }
 
+function mechanismModel() {
+  const paths = [
+    "app/security/identity.ts",
+    "app/security/policy.ts",
+    "app/security/access-gate.ts",
+    "app/server/request-adapter.server.ts",
+    "app/state/request-registry.ts",
+    "app/state/workflow-state.ts",
+    "app/routes/index.tsx",
+    "app/ui/logo.tsx",
+    "app/styles.css",
+    "app/features/records/list.tsx",
+    "app/services/worker.ts",
+    "app/data/query.ts",
+  ];
+  const nodes = [{ id: "system:root", kind: "system", name: "mechanisms", path: "." }];
+  const edges = [];
+  paths.forEach((path, index) =>
+    nodes.push({ id: `file:${index}`, kind: "file", name: path.split("/").at(-1), path }),
+  );
+  for (let index = 1; index < paths.length; index += 1) {
+    edges.push({ kind: "imports", from: `file:${index}`, to: "file:0" });
+    if (index > 2) edges.push({ kind: "imports", from: `file:${index}`, to: `file:${index - 1}` });
+  }
+  return {
+    generatedAt: "2026-08-01T00:00:00.000Z",
+    target: { root: "/tmp/mechanisms", scope: ".", excludedSkillPath: null },
+    coverage: { status: "complete", modeledFiles: paths.length, discoveredFiles: paths.length },
+    nodes,
+    edges,
+    dependencies: [],
+    profile: {
+      criticalWorkflows: [],
+      entryPoints: ["app/routes/index.tsx"],
+      components: [],
+      boundaryEvidence: [],
+      uncertainties: [],
+    },
+  };
+}
+
 test("large repositories receive a bounded diversified proposal", () => {
   const curriculum = planCurriculum(largeModel());
   assert.equal(curriculum.repositorySize, "large");
@@ -93,6 +135,38 @@ test("batch-only planning returns exactly the requested lesson batch", () => {
     curriculum.delivery.sessionBatch,
     curriculum.topics.map((topic) => topic.id),
   );
+});
+
+test("batch-only selection keeps three mechanisms visible with bounded alternates", () => {
+  const curriculum = planCurriculum(mechanismModel(), { batchOnly: true, batchSize: 3 });
+  assert.equal(new Set(curriculum.topics.map((topic) => topic.mechanismFamily)).size, 3);
+  assert.ok(curriculum.topics.every((topic) => topic.selection.evidence.length > 0));
+  assert.ok(curriculum.proposal.alternates.length >= 6);
+  assert.ok(
+    curriculum.proposal.alternates.every(
+      (topic) =>
+        !curriculum.topics.some((selected) => selected.id === topic.id) && topic.demotionReason,
+    ),
+  );
+  assert.ok(
+    [...curriculum.topics, ...curriculum.proposal.alternates].some(
+      (topic) => topic.mechanismFamily === "state-lifecycle",
+    ),
+  );
+});
+
+test("explicit focus overrides diversification and summary stays decision-sized", () => {
+  const curriculum = planCurriculum(mechanismModel(), {
+    batchOnly: true,
+    batchSize: 3,
+    focus: "policy.ts",
+  });
+  assert.equal(curriculum.topics[0].focus, "app/security/policy.ts");
+  assert.equal(curriculum.topics[0].selection.reason, "explicit-focus-override");
+  const summary = curriculumDecisionSummary(curriculum);
+  assert.equal(summary.coverage.parserDiagnostics, undefined);
+  assert.equal(summary.proposal.alternates.length, curriculum.proposal.alternates.length);
+  assert.ok(Buffer.byteLength(JSON.stringify(summary)) < 12_000);
 });
 
 test("written curriculum topics become lesson links", () => {

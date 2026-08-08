@@ -3,7 +3,7 @@
 // project-memory storage conflict rules. Covers:
 // resolveTargetRoot error codes; competing storage throws.
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, realpath, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { test } from "vite-plus/test";
@@ -68,6 +68,73 @@ test("resolveTargetRoot: valid external dir returns roots and null relativeSkill
     assert.equal(relativeSkillRoot, null, "external target must not nest the skill");
   } finally {
     await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("resolveTargetRoot: workspace with nested project requires an explicit target", async () => {
+  const directory = await mkdtemp(resolve(tmpdir(), "repay-target-workspace-"));
+  const previousState = process.env.REPAY_TECHDEBT_STATE_DIR;
+  process.env.REPAY_TECHDEBT_STATE_DIR = resolve(directory, "state");
+  try {
+    const frontend = resolve(directory, "frontend");
+    await mkdir(resolve(frontend, ".git"), { recursive: true });
+    await writeFile(resolve(frontend, "package.json"), "{}\n");
+    const canonicalFrontend = await realpath(frontend);
+    await assert.rejects(
+      () => resolveTargetRoot(directory),
+      (error) => {
+        if (!(error instanceof TargetRootError)) return false;
+        return (
+          error.code === "TARGET_AMBIGUOUS" &&
+          error.details?.candidates?.[0]?.path === canonicalFrontend &&
+          error.details?.candidates?.[0]?.existingMemory === false
+        );
+      },
+    );
+  } finally {
+    if (previousState === undefined) delete process.env.REPAY_TECHDEBT_STATE_DIR;
+    else process.env.REPAY_TECHDEBT_STATE_DIR = previousState;
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("resolveTargetRoot: a marked project remains valid when it has nested repositories", async () => {
+  const directory = await mkdtemp(resolve(tmpdir(), "repay-target-project-"));
+  try {
+    await writeFile(resolve(directory, "package.json"), "{}\n");
+    await mkdir(resolve(directory, "vendor-app", ".git"), { recursive: true });
+    await writeFile(resolve(directory, "vendor-app", "package.json"), "{}\n");
+    const target = await resolveTargetRoot(directory);
+    assert.equal(target.targetRoot, await realpath(directory));
+    assert.equal(target.identity.name, directory.split("/").at(-1));
+    assert.equal(target.identity.nestedCandidates.length, 1);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("resolveTargetRoot: workspace ambiguity reports every bounded nested repository", async () => {
+  const directory = await mkdtemp(resolve(tmpdir(), "repay-target-multi-workspace-"));
+  try {
+    for (const name of ["frontend", "admin-console"]) {
+      await mkdir(resolve(directory, name, ".git"), { recursive: true });
+      await writeFile(resolve(directory, name, "package.json"), "{}\n");
+    }
+    await assert.rejects(
+      () => resolveTargetRoot(directory),
+      (error) => {
+        assert.ok(error instanceof TargetRootError);
+        assert.equal(error.code, "TARGET_AMBIGUOUS");
+        assert.deepEqual(error.details.candidates.map((candidate) => candidate.name).sort(), [
+          "admin-console",
+          "frontend",
+        ]);
+        return true;
+      },
+    );
+    assert.deepEqual((await readdir(directory)).sort(), ["admin-console", "frontend"]);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
   }
 });
 

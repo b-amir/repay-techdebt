@@ -1610,10 +1610,12 @@ async function saveLesson(targetRoot, options) {
       if (topic) {
         const previousCurriculum = structuredClone(curriculum);
         const previousIndex = await readFile(workbook.lessonIndex, "utf8");
-        const normalizedTrajectory = checkTrajectoryGate(trajectoryGate, {
-          subject: lessonSubject,
-        });
-        if (!normalizedTrajectory.ok || !normalizedTrajectory.gate) {
+        const normalizedTrajectory = trajectory;
+        if (
+          normalizedTrajectory?.refuse === true ||
+          normalizedTrajectory?.pathComplete !== true ||
+          !normalizedTrajectory?.gate
+        ) {
           throw new Error("Validated lesson save lost its trajectory gate before persistence");
         }
         topic.status = "written";
@@ -1637,6 +1639,7 @@ async function saveLesson(targetRoot, options) {
           // path for a lesson that was not written and indexed successfully.
           await replaceJsonFile(resolve(paths.root, "trajectory-gate.json"), {
             gate: normalizedTrajectory.gate,
+            mapEvidence: normalizedTrajectory.mapEvidence,
             savedAt: new Date().toISOString(),
             source: "lesson-save",
             topicId: topic.id,

@@ -395,9 +395,22 @@ const CONTEXT_EDGE_KINDS = new Set([
 function relatedContext(model, focus) {
   const terms = words(focus);
   const fileLike = model.nodes.filter((node) => node.path && node.kind !== "area");
-  let anchors = fileLike.filter((node) =>
-    overlaps(terms, words(`${node.path ?? ""} ${node.name}`)),
-  );
+  const normalizedFocus = String(focus ?? "")
+    .replace(/^\.\//, "")
+    .replaceAll("\\", "/")
+    .trim();
+  const exactPathAnchors = normalizedFocus
+    ? fileLike.filter(
+        (node) =>
+          node.path === normalizedFocus ||
+          node.path?.endsWith(`/${normalizedFocus}`) ||
+          normalizedFocus.endsWith(`/${node.path}`),
+      )
+    : [];
+  let anchors =
+    exactPathAnchors.length > 0
+      ? exactPathAnchors
+      : fileLike.filter((node) => overlaps(terms, words(`${node.path ?? ""} ${node.name}`)));
   // A named focus that finds no anchor is an evidence gap, not permission to
   // silently substitute unrelated global hubs.
   if (anchors.length === 0 && terms.size === 0) {
@@ -412,12 +425,10 @@ function relatedContext(model, focus) {
       .sort((left, right) => (incoming.get(right.id) ?? 0) - (incoming.get(left.id) ?? 0));
   }
   anchors = anchors.slice(0, 12);
-  const relatedIds = new Set(anchors.map((node) => node.id));
+  const anchorIds = new Set(anchors.map((node) => node.id));
+  const relatedIds = new Set(anchorIds);
   for (const edge of model.edges) {
-    if (
-      CONTEXT_EDGE_KINDS.has(edge.kind) &&
-      (relatedIds.has(edge.from) || relatedIds.has(edge.to))
-    ) {
+    if (CONTEXT_EDGE_KINDS.has(edge.kind) && (anchorIds.has(edge.from) || anchorIds.has(edge.to))) {
       relatedIds.add(edge.from);
       relatedIds.add(edge.to);
     }
@@ -439,11 +450,14 @@ function makeSignal(model, context, definition) {
   const candidateNodes = definition.nodes(model, context);
   const candidateEdges = definition.edges(model, context);
   const priorityItems = definition.priorities.map((id) => priority(model, id)).filter(Boolean);
+  const candidateEvidenceIds = [
+    ...candidateNodes.flatMap((node) => node.evidenceIds),
+    ...candidateEdges.flatMap((edge) => edge.evidenceIds),
+  ];
   const evidenceIds = unique(
     [
-      ...candidateNodes.flatMap((node) => node.evidenceIds),
-      ...candidateEdges.flatMap((edge) => edge.evidenceIds),
-      ...priorityItems.flatMap((item) => item.evidenceIds),
+      ...candidateEvidenceIds,
+      ...(!context.terms.size ? priorityItems.flatMap((item) => item.evidenceIds) : []),
     ],
     40,
   );
@@ -863,12 +877,23 @@ function selectShape(model, context, kind, signals) {
   const strong = new Set(
     signals.filter((item) => item.strength === "strong").map((item) => item.id),
   );
-  if (strong.has("ui") && context.anchors.length > 0)
+  const anchorTerms = words(
+    context.anchors.map((anchor) => `${anchor.path ?? ""} ${anchor.name}`).join(" "),
+  );
+  const uiAnchor = overlaps(
+    anchorTerms,
+    new Set(["component", "components", "view", "screen", "page", "ui", "frontend"]),
+  );
+  const dataAnchor = overlaps(
+    anchorTerms,
+    new Set(["data", "database", "db", "model", "schema", "repository", "store"]),
+  );
+  if (strong.has("ui") && context.anchors.length > 0 && uiAnchor)
     return {
       id: "ui-interaction",
       reason: "Strong UI signals intersect the selected focus.",
     };
-  if (strong.has("data") && context.anchors.length > 0)
+  if (strong.has("data") && context.anchors.length > 0 && dataAnchor)
     return {
       id: "data-state",
       reason: "Strong data/state signals intersect the selected focus.",

@@ -222,13 +222,15 @@ mini-curriculum (`buildTeachingCurriculum` → `save-curriculum`) so every lesso
 After purpose + retrieve hubs, run the curriculum **proposal**, then agent shortlist before save:
 
 ```text
-node <skill-root>/scripts/plan-curriculum.js <target-root> --format json [--batch-size 3] [--batch-only]
+node <skill-root>/scripts/plan-curriculum.js <target-root> --format summary-json [--batch-size 3] [--batch-only] [--focus <path-or-topic>]
 ```
 
-The normal proposal is a diversified maximum of 18 candidates. Use `--batch-only` when the user
-explicitly asks for exactly N fresh lessons and no broader roadmap. Default whole-app runs keep a
-learning path plus a 1–3 lesson session batch. Full candidate diagnostics are opt-in with
-`--include-catalog --output <outside-target-path>` and never belong in normal stdout.
+The normal response is a bounded decision packet. In `--batch-only` mode, `topics` contains exactly
+the requested lesson count, diversified across mechanism/domain families when evidence permits;
+`proposal.alternates` provides up to nine ranked replacements and is never persisted as lessons.
+Use `--focus` to preserve an explicit user choice ahead of diversification. Default whole-app runs
+keep a learning path plus a 1–3 lesson session batch. Full candidate diagnostics are opt-in with
+`--format json --include-catalog --output <outside-target-path>` and never belong in normal stdout.
 
 Approve/demote/fold/add topics (B3; corroborate `signalClass: naming-heuristic`). **Rewrite
 `title` + `learnerOutcome` from live source** — script labels are path-unique placeholders;

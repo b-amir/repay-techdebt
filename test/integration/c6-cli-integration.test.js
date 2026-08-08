@@ -1,7 +1,7 @@
 // @category C6
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { chmod, mkdir, mkdtemp, realpath, readdir, rm, writeFile } from "node:fs/promises";
+import { chmod, cp, mkdir, mkdtemp, realpath, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { promisify } from "node:util";
@@ -9,6 +9,7 @@ import { test } from "vite-plus/test";
 
 const execute = promisify(execFile);
 const root = resolve(import.meta.dirname, "../..");
+const decisionFixture = resolve(root, "test/fixtures/evaluation/curriculum-selection");
 
 async function runScript(script, args = [], options = {}) {
   try {
@@ -339,6 +340,59 @@ if (args[0] === "extract") {
   }
 });
 
+test("Graphify wrapper fails precision closed for human count summaries", async () => {
+  const directory = await mkdtemp(resolve(tmpdir(), "repay-techdebt-graphify-count-target-"));
+  const state = await mkdtemp(resolve(tmpdir(), "repay-techdebt-graphify-count-state-"));
+  const cache = await mkdtemp(resolve(tmpdir(), "repay-techdebt-graphify-count-cache-"));
+  const fake = resolve(state, "fake-graphify-count.mjs");
+  try {
+    await writeFile(resolve(directory, "package.json"), "{}\n");
+    await writeFile(
+      fake,
+      `#!/usr/bin/env node
+import { mkdirSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
+const args = process.argv.slice(2);
+if (args[0] === "extract") {
+  const out = args[args.indexOf("--out") + 1];
+  mkdirSync(resolve(out, "graphify-out"), { recursive: true });
+  writeFileSync(resolve(out, "graphify-out", "graph.json"), "{}");
+} else if (args[0] === "query") {
+  process.stdout.write("178 nodes found\\nNo project-relative seeds in this summary");
+}
+`,
+    );
+    await chmod(fake, 0o755);
+    const environment = {
+      ...process.env,
+      REPAY_GRAPHIFY_COMMAND: fake,
+      REPAY_TECHDEBT_STATE_DIR: state,
+      REPAY_TECHDEBT_CACHE_DIR: cache,
+    };
+    const extracted = await runScript("run-graphify.js", ["extract", directory, "--yes"], {
+      env: environment,
+    });
+    assert.equal(extracted.code, 0, extracted.stderr);
+    const query = await runScript(
+      "run-graphify.js",
+      ["query", directory, "--question", "find the flow"],
+      { env: environment },
+    );
+    assert.equal(query.code, 0, query.stderr);
+    const result = JSON.parse(query.stdout);
+    assert.equal(result.attempts, 2);
+    assert.equal(result.reportedCount, 178);
+    assert.equal(result.outputLineCount, 2);
+    assert.equal(result.matchCount, 178);
+    assert.equal(result.precision, "low");
+    assert.equal(result.narrowingSeedStatus, "none-detected");
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+    await rm(state, { recursive: true, force: true });
+    await rm(cache, { recursive: true, force: true });
+  }
+});
+
 test("baseline analyzers load private external preferences without target memory", async () => {
   const directory = await mkdtemp(resolve(tmpdir(), "repay-techdebt-private-profile-"));
   const state = await mkdtemp(resolve(tmpdir(), "repay-techdebt-private-profile-state-"));
@@ -415,6 +469,29 @@ test("analysis never falls back to the current directory when target is omitted"
   const failure = JSON.parse(result.stderr);
   assert.equal(failure.type, "target-error");
   assert.equal(failure.code, "TARGET_REQUIRED");
+});
+
+test("curriculum CLI defaults to a bounded decision packet", async () => {
+  const base = await mkdtemp(resolve(tmpdir(), "repay-curriculum-summary-"));
+  const target = resolve(base, "target");
+  try {
+    await cp(decisionFixture, target, { recursive: true });
+    const result = await runScript("plan-curriculum.js", [
+      target,
+      "--batch-only",
+      "--batch-size",
+      "3",
+    ]);
+    assert.equal(result.code, 0, result.stderr);
+    const summary = JSON.parse(result.stdout);
+    assert.equal(summary.topics.length, 3);
+    assert.ok(summary.proposal.alternates.length >= 6);
+    assert.equal(summary.coverage.parserDiagnostics, undefined);
+    assert.equal(summary.candidateCatalog, undefined);
+    assert.ok(Buffer.byteLength(result.stdout) < 16_000);
+  } finally {
+    await rm(base, { recursive: true, force: true });
+  }
 });
 
 test("unsupported-language fallbacks are explicit", async () => {

@@ -19,7 +19,10 @@ import { buildTeachingCurriculum } from "../../src/curriculum/index.js";
 import { recordJudgment } from "../../src/lessons/lesson-judgment.js";
 import { PASSING_JUDGMENT } from "../helpers/passing-judgment.js";
 import { completeTrajectoryGatePayload } from "../helpers/complete-trajectory-gate.js";
-import { craftCompleteConciseLesson } from "../helpers/craft-complete-lesson.js";
+import {
+  craftCompleteConciseLesson,
+  craftCompleteFlowLesson,
+} from "../helpers/craft-complete-lesson.js";
 
 const execute = promisify(execFile);
 const root = resolve(import.meta.dirname, "../..");
@@ -686,6 +689,65 @@ test("discoverable workbook saves a curriculum first and links each lesson from 
     assert.equal(status.code, 0);
     assert.equal(JSON.parse(status.stdout).curriculumTopicCount, 1);
     assert.equal(JSON.parse(status.stdout).pendingTopicCount, 0);
+  } finally {
+    await rm(base, { recursive: true, force: true });
+  }
+});
+
+test("flow lesson persists the normalized gate when map evidence exists only in frontmatter", async () => {
+  const base = await mkdtemp(resolve(tmpdir(), "repay-techdebt-frontmatter-map-"));
+  const target = resolve(base, "target");
+  const environment = { REPAY_TECHDEBT_STATE_DIR: resolve(base, "state") };
+  try {
+    await mkdir(target);
+    await mkdir(resolve(target, "src", "entry"), { recursive: true });
+    await mkdir(resolve(target, "src", "security"), { recursive: true });
+    await writeFile(resolve(target, "src", "entry", "control.ts"), "// entry\n".repeat(12));
+    await writeFile(resolve(target, "src", "security", "policy.ts"), "// policy\n".repeat(8));
+    const initialized = await run(
+      ["init", target, "--depth", "concise", "--output-location", "private", "--yes"],
+      environment,
+    );
+    assert.equal(initialized.code, 0, initialized.stderr);
+    const memoryRoot = JSON.parse(initialized.stdout).memoryRoot;
+    await writeCompleteGate(memoryRoot);
+    const curriculum = await saveTeachingCurriculum(
+      target,
+      [
+        {
+          title: "Entry to policy flow",
+          focus: "src/entry/control.ts",
+          learnerOutcome: "Trace the entry-to-policy handoff safely.",
+          evidencePaths: ["src/entry/control.ts", "src/security/policy.ts"],
+        },
+      ],
+      environment,
+    );
+    const draft = resolve(base, "flow.md");
+    await writeFile(draft, craftCompleteFlowLesson());
+    await recordJudgment(draft, PASSING_JUDGMENT);
+    const saved = await run(
+      [
+        "save-lesson",
+        target,
+        "--topic-id",
+        curriculum.topics[0].id,
+        "--title",
+        curriculum.topics[0].title,
+        "--input",
+        draft,
+        "--subject",
+        "flow",
+        "--yes",
+      ],
+      environment,
+    );
+    assert.equal(saved.code, 0, saved.stderr);
+    const persistedGate = JSON.parse(
+      await readFile(resolve(memoryRoot, "trajectory-gate.json"), "utf8"),
+    );
+    assert.equal(persistedGate.gate.pathComplete, true);
+    assert.equal(persistedGate.mapEvidence, "lesson-frontmatter");
   } finally {
     await rm(base, { recursive: true, force: true });
   }

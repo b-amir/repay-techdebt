@@ -1,3 +1,8 @@
+import {
+  craftFieldsFromFrontmatter,
+  parseLessonFrontmatter,
+} from "../lessons/lesson-frontmatter.js";
+
 /**
  * Evaluates a generated curriculum against expected topics.
  *
@@ -98,40 +103,125 @@ function evidenceSnippet(markdown, pattern) {
   return match[0].replace(/\s+/g, " ").trim().slice(0, 180);
 }
 
+function lessonSections(markdown) {
+  const { frontmatter, body } = parseLessonFrontmatter(markdown);
+  const roles = craftFieldsFromFrontmatter(frontmatter).sectionRoles;
+  const matches = [...body.matchAll(/^##\s+(.+)\r?$/gm)];
+  const sections = matches.map((match, index) => ({
+    title: match[1].trim(),
+    body: body
+      .slice(match.index + match[0].length, matches[index + 1]?.index ?? body.length)
+      .trim(),
+  }));
+  const findRole = (role, fallback) => {
+    const named = roles[role];
+    return sections.find((section) =>
+      named ? section.title.toLowerCase() === named.toLowerCase() : fallback.test(section.title),
+    );
+  };
+  return {
+    sections,
+    workedPath: findRole("workedPath", /trace|path|flow|call|mechanism|walk/i),
+    pitfall: findRole("pitfall", /pitfall|mistake|boundary|contrast|failure/i),
+    check: findRole("check", /check|try|change|exercise|verify|practice/i),
+  };
+}
+
+function compactExcerpt(value) {
+  return String(value ?? "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 220);
+}
+
+function firstSentence(value, pattern) {
+  const sentences = String(value ?? "").split(/(?<=[.!?])\s+|\n+/);
+  return sentences.find((sentence) => pattern.test(sentence)) ?? null;
+}
+
 /** Detect teaching behaviors rather than rewarding headings or isolated keywords. */
 export function inspectLessonBehaviors(markdown) {
   const text = String(markdown);
+  const parsed = lessonSections(text);
   const citations = [...text.matchAll(/\b[\w./-]+\.[A-Za-z0-9]+:[1-9]\d*\b/g)].map(
     (match) => match[0],
   );
-  const sections = [...text.matchAll(/^##\s+(.+)$/gm)].map((match) => match[1]);
+  const sections = parsed.sections.map((section) => section.title);
+  const worked = parsed.workedPath?.body ?? "";
+  const pitfall = parsed.pitfall?.body ?? "";
+  const check = parsed.check?.body ?? "";
+  const numberedTrace = [...worked.matchAll(/^\s*\d+[.)]\s+(.+)$/gm)];
+  const numberedTraceEvidence =
+    numberedTrace.length >= 2 &&
+    /(?:->|→|then|next|after|before|because|returns?|calls?|writes?|reads?)/i.test(worked)
+      ? numberedTrace.map((match) => match[0]).join(" ")
+      : null;
+  const proseTrace = firstSentence(
+    worked,
+    /(?:start (?:at|with)|then (?:follow|open|trace)|next[, ]|flows? (?:to|through)|calls?|returns?|hands? .+ to)/i,
+  );
+  const contrastCandidate = firstSentence(
+    pitfall,
+    /(?:not\s+.{3,80}\s+but|common (?:mistake|assumption)|instead of|difference (?:is|between)|(?:if|when) .{3,120}(?:then|otherwise|means|leads? to|so) )/i,
+  );
+  const contrastEvidence =
+    String(contrastCandidate ?? "")
+      .split(/\s+/)
+      .filter(Boolean).length >= 10
+      ? contrastCandidate
+      : null;
+  const checkHasAction = /\b(?:modify|change|debug|test|trace|open|add|remove|replace|run)\b/i.test(
+    check,
+  );
+  const checkHasTarget =
+    /(?:[\w./-]+\.[A-Za-z0-9]+(?::\d+)?|\b(?:unit|integration|focused|browser) test\b)/i.test(
+      check,
+    );
+  const checkHasExpected =
+    /\b(?:assert|expect|verify|observe|should|must|remains?|returns?|throws?|fails?|passes?)\b/i.test(
+      check,
+    );
+  const learnerJobEvidence =
+    check.split(/\s+/).length >= 12 && checkHasAction && checkHasTarget && checkHasExpected
+      ? check
+      : null;
+  const decisionRuleCandidate = firstSentence(
+    `${pitfall}\n${text}`,
+    /(?:if\s+.{3,140}\s+then|when\s+.{3,140}\s+(?:use|prefer|choose|treat)|rule(?: of thumb)?\s*:)/i,
+  );
+  const decisionRuleEvidence =
+    String(decisionRuleCandidate ?? "")
+      .split(/\s+/)
+      .filter(Boolean).length >= 10
+      ? decisionRuleCandidate
+      : null;
   const evidence = {
     prediction: evidenceSnippet(
       text,
       /(?:predict|before (?:you )?(?:read|run|continue)|what (?:do you think|happens if))[^\n.!?]*[?.!]/i,
     ),
-    trace: evidenceSnippet(
-      text,
-      /(?:start (?:at|with)|then (?:follow|open|trace)|next[, ]|flows? (?:to|through)|step \d)[^\n.!?]*[.!?]/i,
-    ),
-    contrast: evidenceSnippet(
-      text,
-      /(?:not\s+[^\n.]{3,80}\s+but|common (?:mistake|assumption)|instead of|the difference (?:is|between))[^\n.!?]*[.!?]/i,
-    ),
-    decisionRule: evidenceSnippet(
-      text,
-      /(?:if\s+[^\n.]{3,100}\s+then|when\s+[^\n.]{3,100}\s+(?:use|prefer|choose|treat)|rule(?: of thumb)?\s*:)[^\n.!?]*[.!?]/i,
-    ),
-    learnerJob: evidenceSnippet(
-      text,
-      /(?:try|modify|change|debug|test|trace|open)\s+[^\n.]{8,160}(?:verify|assert|expect|observe|explain|write|run)[^\n.!?]*[.!?]/i,
-    ),
+    trace: compactExcerpt(numberedTraceEvidence ?? proseTrace) || null,
+    contrast: compactExcerpt(contrastEvidence) || null,
+    decisionRule: compactExcerpt(decisionRuleEvidence) || null,
+    learnerJob: compactExcerpt(learnerJobEvidence) || null,
   };
+  const confidence = Object.fromEntries(
+    Object.entries(evidence).map(([key, value]) => [
+      key,
+      value ? (key === "trace" && numberedTraceEvidence ? "high" : "medium") : "not-detected",
+    ]),
+  );
   return {
     evidence,
+    confidence,
     observed: Object.fromEntries(Object.entries(evidence).map(([key, value]) => [key, !!value])),
     citationCount: citations.length,
     sectionCount: sections.length,
+    inspectedSections: {
+      workedPath: parsed.workedPath?.title ?? null,
+      pitfall: parsed.pitfall?.title ?? null,
+      check: parsed.check?.title ?? null,
+    },
   };
 }
 

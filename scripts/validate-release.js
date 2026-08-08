@@ -1,6 +1,58 @@
 #!/usr/bin/env node
 import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
+import { parse, parseAllDocuments } from "yaml";
+
+function stable(value) {
+  if (Array.isArray(value)) return value.map(stable);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, item]) => [key, stable(item)]),
+  );
+}
+
+function isProjectLockDocument(value) {
+  if (!value || typeof value !== "object") return false;
+  if (value.overrides && Object.keys(value.overrides).length > 0) return true;
+  const rootImporter = value.importers?.["."];
+  return Boolean(
+    rootImporter &&
+    ["dependencies", "devDependencies", "optionalDependencies"].some(
+      (key) => rootImporter[key] && Object.keys(rootImporter[key]).length > 0,
+    ),
+  );
+}
+
+export function validateReleaseLock(lockText, workspaceText) {
+  const documents = parseAllDocuments(lockText);
+  const parseErrors = documents.flatMap((document) => document.errors ?? []);
+  if (parseErrors.length > 0) {
+    return { ok: false, reason: `pnpm-lock.yaml is invalid YAML: ${parseErrors[0].message}` };
+  }
+  const values = documents.map((document) => document.toJS());
+  const projectDocuments = values.filter(isProjectLockDocument);
+  if (projectDocuments.length !== 1) {
+    return {
+      ok: false,
+      reason:
+        "pnpm-lock.yaml must contain exactly one project dependency document; regenerate it with pinned pnpm",
+    };
+  }
+
+  const workspace = parse(workspaceText) ?? {};
+  const workspaceOverrides = stable(workspace.overrides ?? {});
+  const lockOverrides = stable(projectDocuments[0].overrides ?? {});
+  if (JSON.stringify(workspaceOverrides) !== JSON.stringify(lockOverrides)) {
+    return {
+      ok: false,
+      reason:
+        "pnpm-lock.yaml overrides do not match pnpm-workspace.yaml; regenerate both with pinned pnpm",
+    };
+  }
+  return { ok: true, documentCount: documents.length, projectDocumentCount: 1 };
+}
 
 async function validateRelease() {
   const root = process.cwd();
@@ -49,7 +101,25 @@ async function validateRelease() {
     failed = true;
   }
 
-  // 3. Verify bundle size (e.g., node_modules excluded from git, but let's check repo size)
+  // 3. Verify the distributable lock and workspace settings agree. pnpm may
+  // prepend a package-manager dependency document; there must still be exactly
+  // one project dependency document carrying the effective overrides.
+  try {
+    const [lockText, workspaceText] = await Promise.all([
+      readFile(join(root, "pnpm-lock.yaml"), "utf8"),
+      readFile(join(root, "pnpm-workspace.yaml"), "utf8"),
+    ]);
+    const lockCheck = validateReleaseLock(lockText, workspaceText);
+    if (!lockCheck.ok) {
+      process.stderr.write(`❌ ${lockCheck.reason}\n`);
+      failed = true;
+    }
+  } catch (err) {
+    process.stderr.write(`❌ Failed to validate pnpm release lock: ${err.message}\n`);
+    failed = true;
+  }
+
+  // 4. Verify bundle size (e.g., node_modules excluded from git, but let's check repo size)
   try {
     // A real implementation would recursively stat.
     // For this demonstration, we'll just check if SKILL.md is reasonable.
@@ -62,7 +132,7 @@ async function validateRelease() {
     failed = true;
   }
 
-  // 4. Forward-test review provenance is optional by default, but release
+  // 5. Forward-test review provenance is optional by default, but release
   // callers can require one or more clean independent judgments explicitly.
   for (const reviewPath of requiredReviews) {
     try {

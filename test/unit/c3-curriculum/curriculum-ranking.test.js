@@ -34,3 +34,20 @@ test("rankCandidate bounds scores between 1 and 100", () => {
 
   assert.equal(result.score, 100);
 });
+
+test("rankCandidate makes thin surfaces prove strong relationships", () => {
+  const thin = rankCandidate({ kind: "module", focus: "app/ui/logo.tsx", relationCount: 1 });
+  const connected = rankCandidate({
+    kind: "module",
+    focus: "app/ui/logo.tsx",
+    relationCount: 5,
+  });
+  assert.ok(thin.score < connected.score);
+  assert.ok(
+    thin.features.negative.some((penalty) => penalty.feature === "low-information-surface"),
+  );
+  assert.equal(
+    connected.features.negative.some((penalty) => penalty.feature === "low-information-surface"),
+    false,
+  );
+});

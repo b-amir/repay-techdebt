@@ -5,12 +5,16 @@ import {
   isSameOrInside,
   resolveTargetRoot,
 } from "../src/foundations/targeting.js";
-import { planCurriculum, renderCurriculumMarkdown } from "../src/curriculum/curriculum-planning.js";
+import {
+  curriculumDecisionSummary,
+  planCurriculum,
+  renderCurriculumMarkdown,
+} from "../src/curriculum/curriculum-planning.js";
 import { buildProgramModel } from "../src/program/program-intelligence.js";
 
 function help() {
   process.stdout.write(`Usage:
-  node plan-curriculum.js <target-root> [--scope <relative-path>] [--format json|markdown] [--candidate-limit <count>] [--batch-size <count>] [--batch-only] [--include-catalog --output <path>] [--max-files <count>] [--max-manifest-files <count>] [--max-relation-files <count>] [--max-relation-bytes <count>]
+  node plan-curriculum.js <target-root> [--scope <relative-path>] [--focus <path-or-topic>] [--format summary-json|json|markdown] [--candidate-limit <count>] [--batch-size <count>] [--batch-only] [--include-catalog --output <path>] [--max-files <count>] [--max-manifest-files <count>] [--max-relation-files <count>] [--max-relation-bytes <count>]
 
 Build a ranked book-index proposal before writing lessons. It creates no target files. Output is a
 dialogue proposal (role/nextAsks/signalClass); the agent must approve the shortlist before save.
@@ -23,9 +27,10 @@ function parse(argv) {
     process.exit(0);
   }
   const positional = [];
-  const options = { format: "json" };
+  const options = { format: "summary-json" };
   const allowed = new Set([
     "scope",
+    "focus",
     "format",
     "max-files",
     "max-manifest-files",
@@ -49,8 +54,8 @@ function parse(argv) {
     }
   }
   if (positional.length > 1) throw new Error("Expected exactly one target root");
-  if (!["json", "markdown"].includes(options.format))
-    throw new Error("--format must be json or markdown");
+  if (!["summary-json", "json", "markdown"].includes(options.format))
+    throw new Error("--format must be summary-json, json, or markdown");
   for (const name of [
     "max-files",
     "max-manifest-files",
@@ -87,6 +92,7 @@ try {
     batchSize: options["batch-size"],
     batchOnly: options["batch-only"] === true,
     includeCatalog: options["include-catalog"] === true,
+    focus: options.focus,
   });
   /** @type {any} */
   let outputCurriculum = curriculum;
@@ -104,11 +110,17 @@ try {
       diagnosticsArtifact: outputPath,
     };
   }
-  process.stdout.write(
+  const rendered =
     options.format === "markdown"
       ? renderCurriculumMarkdown(outputCurriculum)
-      : `${JSON.stringify(outputCurriculum, null, 2)}\n`,
-  );
+      : JSON.stringify(
+          options.format === "summary-json"
+            ? curriculumDecisionSummary(outputCurriculum)
+            : outputCurriculum,
+          null,
+          2,
+        );
+  process.stdout.write(options.format === "markdown" ? rendered : `${rendered}\n`);
 } catch (error) {
   process.stderr.write(
     `${formatTargetError(error) ?? JSON.stringify({ type: "curriculum-planning-failure", reason: error.message })}\n`,

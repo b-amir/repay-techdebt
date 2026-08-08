@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "name": "transfer-task",
+  "description": "Behavior-report fixture for detecting a concrete multi-sentence learner task.",
+  "topics": [],
+  "workflows": [],
+  "lessons": {},
+  "allowedSideEffects": []
+}

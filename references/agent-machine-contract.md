@@ -45,7 +45,7 @@ Never treat exit 2 as “try another product.” It is a **defined branch**.
 | `check-capabilities.js`                                | `json`              | TTY `table` / non-TTY `json`                        |
 | `profile-project.js`                                   | `json`              | `json`                                              |
 | `plan-analysis.js`                                     | **`summary-json`**  | full `json` if omitted; never table for agents      |
-| `plan-curriculum.js`                                   | `json`              | `json`                                              |
+| `plan-curriculum.js`                                   | **`summary-json`**  | `summary-json`                                      |
 | `plan-lesson.js`                                       | `json`              | `json`                                              |
 | `build-program-model.js` / `query-program-model.js`    | `json`              | `json` (table only human paste)                     |
 | `find-patterns.js`                                     | `json`              | json envelope                                       |
@@ -59,11 +59,13 @@ Never treat exit 2 as “try another product.” It is a **defined branch**.
 **Human CLI (`repay …`):** TTY → pretty table; non-TTY pipe → machine format for `plan`/`init`/`status`.  
 Still **not** the agent contract path — agents call scripts with explicit `--format`.
 
-`plan-curriculum.js` returns at most 18 diversified candidates by default. Pass `--batch-size N
---batch-only` for an explicit exact-N request. Full candidate catalogs require
-`--include-catalog --output <outside-target-path>`; they are never returned in normal stdout. The
-compact `candidateSummary` reports available, eligible, filtered/rejected, folded, and returned
-counts plus bounded examples.
+`plan-curriculum.js` returns a bounded decision packet by default. Pass `--batch-size N
+--batch-only` for an explicit exact-N request; the batch pays a transparent penalty for repeated
+mechanism/domain families, while `--focus` pins an explicit user choice. `proposal.alternates`
+contains up to nine ranked replacements and never becomes persisted curriculum automatically. Full
+candidate catalogs require `--format json --include-catalog --output <outside-target-path>`; they
+are never returned in normal stdout. The compact `candidateSummary` reports available, eligible,
+filtered/rejected, folded, returned, and selected family coverage.
 
 ## Shared head (copy-paste sequence)
 

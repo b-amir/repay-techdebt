@@ -43,6 +43,8 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
     refuse: pathRefuse.refuse,
     reason: pathRefuse.reason,
     code: pathRefuse.code,
+    gate: pathRefuse.check.gate,
+    mapEvidence: hasMapAnswers ? "lesson-frontmatter" : "trajectory-or-skip",
   };
   if (pathRefuse.refuse) {
     quality.ok = false;

@@ -2,8 +2,15 @@
 // Pure unit tests for the program-model seams that need no filesystem:
 // normalizeScope safety (rejects `..`, absolute, NUL) and schema round-trips.
 import assert from "node:assert/strict";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { resolve } from "node:path";
 import { test } from "vite-plus/test";
-import { normalizeScope, classifyFile } from "../../../src/program/program-scan.js";
+import {
+  normalizeScope,
+  classifyFile,
+  discoverTargetFiles,
+} from "../../../src/program/program-scan.js";
 import {
   MODEL_VERSION,
   evidenceSchema,
@@ -102,4 +109,32 @@ test("classifyFile labels manifests, tests, deployment, and ordinary files", () 
   assert.equal(classifyFile("src/foo.test.js"), "test");
   assert.equal(classifyFile("deploy/Dockerfile"), "deployment");
   assert.equal(classifyFile("src/billing/capture.js"), "file");
+});
+
+test("discovery excludes framework-generated and browser-test output", async () => {
+  const directory = await mkdtemp(resolve(tmpdir(), "repay-scan-generated-"));
+  try {
+    for (const path of [
+      "app/core",
+      ".react-router/types",
+      "storybook-static/assets",
+      "playwright-report/data",
+      "test-results/run",
+    ])
+      await mkdir(resolve(directory, path), { recursive: true });
+    await writeFile(resolve(directory, "app/core/proxy.ts"), "export const proxy = 1;\n");
+    await writeFile(resolve(directory, ".react-router/types/routes.ts"), "export {};\n");
+    await writeFile(resolve(directory, "storybook-static/assets/app.js"), "export {};\n");
+    await writeFile(resolve(directory, "playwright-report/data/report.json"), "{}\n");
+    await writeFile(resolve(directory, "test-results/run/result.json"), "{}\n");
+    const result = await discoverTargetFiles({
+      targetRoot: directory,
+      relativeSkillRoot: null,
+      scope: ".",
+      maxFiles: 100,
+    });
+    assert.deepEqual(result.files, ["app/core/proxy.ts"]);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });

@@ -60,12 +60,16 @@ test("the must-find runner covers every evaluation fixture", async () => {
 test("evaluateCurriculum flags a missing must-find topic from a real fixture", async () => {
   // Sanity: the runner's check actually fails when a must-find id is absent.
   const names = await loadFixtures();
-  const withMustFind = names.find(async (name) => {
+  let withMustFind = null;
+  for (const name of names) {
     const data = JSON.parse(
       await readFile(resolve(fixturesDir, name, "expectations.json"), "utf8"),
     );
-    return (data.topics ?? []).some((t) => t.intent === "must-find");
-  });
+    if ((data.topics ?? []).some((topic) => topic.intent === "must-find")) {
+      withMustFind = name;
+      break;
+    }
+  }
   if (!withMustFind) return; // no must-find fixture present — vacuous pass
   const expectations = JSON.parse(
     await readFile(resolve(fixturesDir, withMustFind, "expectations.json"), "utf8"),

@@ -86,6 +86,24 @@ export function rankCandidate(candidate, _context = {}) {
     });
   }
 
+  const leaf = String(candidate.focus ?? "")
+    .split(/[\\/]/)
+    .at(-1)
+    ?.replace(/\.[^./]+$/, "");
+  if (
+    /^(?:index|types?|keys?|styles?|logo|layout|constants?|barrel)$/i.test(leaf ?? "") &&
+    candidate.kind !== "workflow" &&
+    candidate.relationCount < 4
+  ) {
+    score -= 24;
+    negative.push({
+      feature: "low-information-surface",
+      value: -24,
+      reason:
+        "Thin layout, asset, barrel, style, or generated-type surfaces need strong relationship evidence to outrank a mechanism.",
+    });
+  }
+
   const namingKinds = new Set(["area", "module", "boundary"]);
   if (namingKinds.has(candidate.kind) && !(candidate.relationCount >= 2)) {
     score -= 15;

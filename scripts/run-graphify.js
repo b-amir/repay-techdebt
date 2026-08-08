@@ -82,7 +82,7 @@ function toolFailure(reason, paths) {
  */
 function summarizeOutput(raw, { operation, budget = 80 } = {}) {
   const text = String(raw ?? "").trim();
-  let matchCount = 0;
+  let parsedItemCount = null;
   try {
     const parsed = JSON.parse(text);
     const countArrays = (value) => {
@@ -90,13 +90,26 @@ function summarizeOutput(raw, { operation, budget = 80 } = {}) {
       if (!value || typeof value !== "object") return 0;
       return Object.values(value).reduce((sum, item) => sum + countArrays(item), 0);
     };
-    matchCount = countArrays(parsed);
-  } catch {
-    matchCount = text ? text.split(/\r?\n/).filter(Boolean).length : 0;
-  }
+    parsedItemCount = countArrays(parsed);
+  } catch {}
+  const reportedCounts = [
+    ...text.matchAll(
+      /\b(\d+)\s+(?:nodes?|matches?|results?|items?)\s*(?:found|matched|returned)?\b/gi,
+    ),
+    ...text.matchAll(
+      /\b(?:found|matched|returned)\s+(\d+)\s+(?:nodes?|matches?|results?|items?)\b/gi,
+    ),
+  ].map((match) => Number(match[1]));
+  const reportedCount = reportedCounts.length > 0 ? Math.max(...reportedCounts) : null;
+  const outputLineCount = text ? text.split(/\r?\n/).filter(Boolean).length : 0;
+  const credibleCounts = [parsedItemCount, reportedCount].filter(Number.isFinite);
+  const matchCount = credibleCounts.length > 0 ? Math.max(...credibleCounts) : null;
   const maximumChars = operation === "query" ? 12_000 : 24_000;
   const truncated = text.length > maximumChars;
-  const broad = operation === "query" && (matchCount > 60 || truncated || matchCount >= budget);
+  const countUnknown = operation === "query" && text.length > 0 && matchCount === null;
+  const broad =
+    operation === "query" &&
+    (truncated || (matchCount !== null && (matchCount > 60 || matchCount >= budget)));
   const seeds = [
     ...text.matchAll(/(?:^|[\s"'`])([A-Za-z0-9_.-]+\/[A-Za-z0-9_./-]+)(?=$|[\s"'`,:])/g),
   ]
@@ -106,9 +119,19 @@ function summarizeOutput(raw, { operation, budget = 80 } = {}) {
   return {
     output: truncated ? `${text.slice(0, maximumChars)}\n…[truncated by repay-techdebt]` : text,
     matchCount,
+    parsedItemCount,
+    reportedCount,
+    outputLineCount,
     truncated,
-    precision: broad ? "low" : operation === "query" ? "bounded" : "exact-operation",
+    precision: broad
+      ? "low"
+      : countUnknown
+        ? "unknown"
+        : operation === "query"
+          ? "bounded"
+          : "exact-operation",
     suggestedNarrowingSeeds: seeds,
+    narrowingSeedStatus: seeds.length > 0 ? "available" : "none-detected",
   };
 }
 
@@ -243,7 +266,7 @@ try {
           budget: options.budget === undefined ? 80 : Number(options.budget),
         });
         let attempts = 1;
-        if (action === "query" && summary.precision === "low") {
+        if (action === "query" && new Set(["low", "unknown"]).has(summary.precision)) {
           const narrowBudget = Math.min(40, Number(options.budget ?? 80));
           const narrowed = await runGraphify(
             [
@@ -264,8 +287,9 @@ try {
               budget: narrowBudget,
             });
             if (
-              narrowedSummary.precision !== "low" ||
-              narrowedSummary.matchCount < summary.matchCount
+              !new Set(["low", "unknown"]).has(narrowedSummary.precision) ||
+              (narrowedSummary.matchCount !== null &&
+                (summary.matchCount === null || narrowedSummary.matchCount < summary.matchCount))
             )
               summary = narrowedSummary;
           }
@@ -284,7 +308,9 @@ try {
               limitation:
                 summary.precision === "low"
                   ? "Broad graph matches are leads only; use exact path/explain or the bundled relation graph."
-                  : "Graph output remains a lead until verified in live source.",
+                  : summary.precision === "unknown"
+                    ? "Graph result count could not be established; treat the output as an unbounded lead and verify it in live source."
+                    : "Graph output remains a lead until verified in live source.",
             },
             null,
             2,

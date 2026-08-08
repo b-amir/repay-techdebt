@@ -135,6 +135,36 @@ test("a missing named focus does not fall back to unrelated global hubs", async 
   }
 });
 
+test("an exact file focus excludes unrelated generated-style and UI anchors", async () => {
+  const directory = await mkdtemp(resolve(tmpdir(), "repay-lesson-focus-"));
+  try {
+    for (const path of ["app/server/request-adapter", "app/features/dashboard/components"])
+      await mkdir(resolve(directory, path), { recursive: true });
+    await writeFile(resolve(directory, "package.json"), '{"dependencies":{"react":"19"}}\n');
+    await writeFile(
+      resolve(directory, "app/server/request-adapter/adapter.server.ts"),
+      "export async function adaptRequest(request: Request) { return fetch(request); }\n",
+    );
+    await writeFile(
+      resolve(directory, "app/features/dashboard/components/page.tsx"),
+      "export function DashboardPage() { return <main />; }\n",
+    );
+    const model = await buildProgramModel(await resolveTargetRoot(directory));
+    const plan = planLesson(model, {
+      focus: "app/server/request-adapter/adapter.server.ts",
+      kind: "auto",
+      depth: "balanced",
+    });
+    assert.deepEqual(
+      plan.focusAnchors.map((anchor) => anchor.path),
+      ["app/server/request-adapter/adapter.server.ts"],
+    );
+    assert.notEqual(plan.lessonShape.id, "ui-interaction");
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test("CLI Markdown exposes a simple plan while JSON retains selection evidence", async () => {
   const directory = await richFixture();
   try {

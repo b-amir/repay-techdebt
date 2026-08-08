@@ -327,7 +327,7 @@ See §4. Then loop 1–3 lessons per run; resume from `INDEX.md`.
 
 ```mermaid
 flowchart TD
-  A[plan-curriculum.js] --> B[Proposal JSON + signalClass + nextAsks]
+  A[plan-curriculum.js] --> B[Bounded batch + alternates + signalClass + nextAsks]
   B --> C[Agent SHORTLIST keep/demote/fold/add + rewrite]
   C --> D[Stamp agentApproval]
   D --> E{validateAgentApproval}
@@ -359,6 +359,10 @@ Topics get `signalClass`:
 
 Extra nextAsks always include corroborate naming-heuristic + Graphify hubs.  
 If any topic matches omnibus regex → nextAsk `split-or-demote-omnibus-topics`.
+
+Batch-only proposals keep exactly N `topics`, diversify them by mechanism/domain family, and expose
+up to nine ranked `proposal.alternates`. Alternates are decision support, not saved curriculum.
+`summary-json` omits raw parser diagnostics; full JSON/catalog output is an explicit diagnostics path.
 
 Omnibus regex (title/focus/learnerOutcome): phrases like “whole app”, “entire codebase”, “complete overview”, “everything about”, etc. (`src/curriculum/curriculum-policy.js`).
 

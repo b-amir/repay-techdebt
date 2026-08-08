@@ -35,3 +35,15 @@ When you add an action, identify its route, the permission it requires, and the 
 Open \`src/routes/admin.ts\` and \`src/auth/permission.ts\`. Trace one neighboring action from its route to the permission helper. Explain which file owns the policy and which file owns the response. Then predict what would happen if a component hid the button but the route omitted its guard. Your answer should name the bypass path and the test that would expose it.
 `;
 }
+
+/** Same checked lesson, but a flow subject whose map answer lives only in frontmatter. */
+export function craftCompleteFlowLesson() {
+  return craftCompleteConciseLesson()
+    .replace("subject: code-mechanics", "subject: flow")
+    .replaceAll("src/routes/admin.ts", "src/entry/control.ts")
+    .replaceAll("src/auth/permission.ts", "src/security/policy.ts")
+    .replace(
+      /skipReasons:\n  map: >-\n    Single boundary between route and helper; no multi-module structure map needed\./,
+      "mapAnswers: The entry delegates its access decision to the shared policy.",
+    );
+}

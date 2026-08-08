@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "name": "conditional-consequence",
+  "description": "Behavior-report fixture for detecting a conditional consequence and decision rule.",
+  "topics": [],
+  "workflows": [],
+  "lessons": {},
+  "allowedSideEffects": []
+}

@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "name": "ordered-flow",
+  "description": "Behavior-report fixture for detecting an ordered causal trace.",
+  "topics": [],
+  "workflows": [],
+  "lessons": {},
+  "allowedSideEffects": []
+}

@@ -157,6 +157,36 @@ function learningStageFor(chapter) {
   return "2. foundational";
 }
 
+/** Generic mechanism families used to keep a small lesson batch from collapsing into one concern. */
+function mechanismFamilyFor(path, kind) {
+  const value = String(path);
+  if (kind === "workflow") return "workflow";
+  if (kind === "test") return "verification";
+  if (TRUST_SIGNAL.test(value)) return "trust-boundary";
+  if (/query|mutation|cache|state|store|reducer|lifecycle/i.test(value)) return "state-lifecycle";
+  if (/api|proxy|gateway|controller|handler|request|response|server/i.test(value))
+    return "request-boundary";
+  if (OPERATIONS_SIGNAL.test(value)) return "operations";
+  if (UI_SIGNAL.test(value)) return "user-interface";
+  if (kind === "entry") return "entrypoint";
+  if (["component", "boundary", "area"].includes(kind)) return "architecture";
+  return "code-mechanics";
+}
+
+function domainFamilyFor(path) {
+  const parts = String(path)
+    .replace(/\.[^./]+$/, "")
+    .split(/[\\/]+/)
+    .filter(
+      (part) =>
+        part &&
+        !PATH_NOISE.test(part) &&
+        !PATH_STRUCTURAL.test(part) &&
+        !/^(?:index|types?|keys?|utils?|helpers?|hooks?|styles?)$/i.test(part),
+    );
+  return (parts[0] ?? "application").toLowerCase();
+}
+
 /**
  * Catalog title from path only (unique + skimmable). Agent rewrites after source read.
  * @param {string} kind
@@ -222,7 +252,10 @@ function makeCandidate({ kind, focus, paths, reasons, relationCount = 0, importa
 
   return {
     id: stableTopicId(kind, focus),
+    kind,
     chapter,
+    mechanismFamily: mechanismFamilyFor(focus, kind),
+    domainFamily: domainFamilyFor(focus),
     learningStage: learningStageFor(chapter),
     title: titleFor(kind, focus),
     focus,
@@ -348,6 +381,7 @@ export function selectCurriculumCandidates(ranked, limit = 18) {
 
   return {
     selected,
+    eligible,
     summary: {
       available: ranked.length,
       eligible: eligible.length,
@@ -364,6 +398,93 @@ export function selectCurriculumCandidates(ranked, limit = 18) {
       rejectedExamples: rejected.slice(0, 8),
       foldedExamples: folded.slice(0, 8),
     },
+  };
+}
+
+function focusMatches(candidate, preferredFocus) {
+  if (!preferredFocus) return false;
+  const needle = String(preferredFocus).toLowerCase();
+  return `${candidate.focus} ${candidate.title}`.toLowerCase().includes(needle);
+}
+
+/** Select an exact batch while making repeated mechanism/domain families pay a transparent cost. */
+export function selectDiversifiedBatch(eligible, size, preferredFocus) {
+  const pool = [...eligible];
+  const selected = [];
+  const selectedIds = new Set();
+  const mechanismCounts = new Map();
+  const domainCounts = new Map();
+  const choose = (candidate, reason) => {
+    selected.push({
+      ...candidate,
+      selection: {
+        reason,
+        evidence: (candidate.evidencePaths ?? []).slice(0, 3),
+        mechanismFamily: candidate.mechanismFamily,
+        domainFamily: candidate.domainFamily,
+      },
+    });
+    selectedIds.add(candidate.id);
+    mechanismCounts.set(
+      candidate.mechanismFamily,
+      (mechanismCounts.get(candidate.mechanismFamily) ?? 0) + 1,
+    );
+    domainCounts.set(candidate.domainFamily, (domainCounts.get(candidate.domainFamily) ?? 0) + 1);
+  };
+
+  const focused = pool.find((candidate) => focusMatches(candidate, preferredFocus));
+  if (focused) choose(focused, "explicit-focus-override");
+
+  while (selected.length < size) {
+    const candidates = pool.filter((candidate) => !selectedIds.has(candidate.id));
+    if (candidates.length === 0) break;
+    const scored = candidates
+      .map((candidate) => {
+        const mechanismRepeat = mechanismCounts.get(candidate.mechanismFamily) ?? 0;
+        const domainRepeat = domainCounts.get(candidate.domainFamily) ?? 0;
+        const diversityAdjustment = mechanismRepeat * -24 + domainRepeat * -8;
+        return { candidate, adjusted: candidate.importance + diversityAdjustment };
+      })
+      .sort(
+        (a, b) =>
+          b.adjusted - a.adjusted ||
+          b.candidate.importance - a.candidate.importance ||
+          a.candidate.focus.localeCompare(b.candidate.focus),
+      );
+    const winner = scored[0];
+    const newMechanism = !mechanismCounts.has(winner.candidate.mechanismFamily);
+    const newDomain = !domainCounts.has(winner.candidate.domainFamily);
+    choose(
+      winner.candidate,
+      newMechanism
+        ? "strongest-remaining-new-mechanism"
+        : newDomain
+          ? "strongest-remaining-new-domain"
+          : "strongest-remaining-evidence",
+    );
+  }
+  return selected;
+}
+
+function alternateSummary(candidate, selected) {
+  const mechanisms = new Set(selected.map((topic) => topic.mechanismFamily));
+  const domains = new Set(selected.map((topic) => topic.domainFamily));
+  const demotionReason = mechanisms.has(candidate.mechanismFamily)
+    ? "mechanism-already-represented"
+    : domains.has(candidate.domainFamily)
+      ? "domain-already-represented"
+      : "ranked-below-requested-batch";
+  return {
+    id: candidate.id,
+    title: candidate.title,
+    focus: candidate.focus,
+    chapter: candidate.chapter,
+    mechanismFamily: candidate.mechanismFamily,
+    domainFamily: candidate.domainFamily,
+    importance: candidate.importance,
+    evidencePaths: (candidate.evidencePaths ?? []).slice(0, 3),
+    selectionReason: candidate.importanceReasons?.[0] ?? "Ranked from repository evidence.",
+    demotionReason,
   };
 }
 
@@ -573,7 +694,14 @@ export function planCurriculum(model, options = {}) {
     ? Math.max(1, Math.min(5, Math.trunc(requestedBatchSize)))
     : 3;
   const deliveryMode = options.batchOnly === true ? "batch-only" : "learning-path";
-  if (deliveryMode === "batch-only") selected = selected.slice(0, batchSize);
+  if (deliveryMode === "batch-only") {
+    selected = selectDiversifiedBatch(selection.eligible, batchSize, options.focus);
+  }
+  const selectedIds = new Set(selected.map((topic) => topic.id));
+  const alternates = selection.eligible
+    .filter((candidate) => !selectedIds.has(candidate.id))
+    .slice(0, 9)
+    .map((candidate) => alternateSummary(candidate, selected));
 
   selected.forEach((topic, index) => {
     topic.rank = index + 1;
@@ -638,6 +766,13 @@ export function planCurriculum(model, options = {}) {
     candidateSummary: {
       ...selection.summary,
       returned: selected.length,
+      mechanismFamilies: [...new Set(selected.map((topic) => topic.mechanismFamily))],
+      domainFamilies: [...new Set(selected.map((topic) => topic.domainFamily))],
+    },
+    proposal: {
+      alternates,
+      alternateCount: alternates.length,
+      note: "Alternates are decision support only and are not persisted as curriculum topics.",
     },
     delivery: {
       mode: deliveryMode,
@@ -695,4 +830,36 @@ export function renderCurriculumMarkdown(curriculum) {
     "",
   );
   return `${lines.join("\n")}\n`;
+}
+
+/** Bounded decision packet: enough to approve/replace topics without raw parser diagnostics. */
+export function curriculumDecisionSummary(curriculum) {
+  const coverage = curriculum.coverage ?? {};
+  return {
+    schemaVersion: curriculum.schemaVersion,
+    generatedAt: curriculum.generatedAt,
+    target: curriculum.target,
+    repositorySize: curriculum.repositorySize,
+    scale: curriculum.scale,
+    candidateSummary: curriculum.candidateSummary,
+    delivery: curriculum.delivery,
+    coverage: {
+      status: coverage.status ?? (coverage.truncated ? "partial" : "complete"),
+      modeledFiles: coverage.modeledFiles,
+      discoveredFiles: coverage.discoveredFiles,
+      truncated: coverage.truncated === true,
+      scope: coverage.scope,
+      limitations: [...new Set(coverage.limitations ?? [])].slice(0, 8),
+    },
+    topics: curriculum.topics,
+    proposal: curriculum.proposal,
+    unresolved: (curriculum.unresolved ?? []).slice(0, 10),
+    role: curriculum.role,
+    blindSpots: (curriculum.blindSpots ?? []).slice(0, 10),
+    mustNotClaim: (curriculum.mustNotClaim ?? []).slice(0, 10),
+    nextAsks: (curriculum.nextAsks ?? []).slice(0, 8),
+    ...(curriculum.diagnosticsArtifact
+      ? { diagnosticsArtifact: curriculum.diagnosticsArtifact }
+      : {}),
+  };
 }
