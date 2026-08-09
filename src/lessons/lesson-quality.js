@@ -101,6 +101,12 @@ export function inspectLesson(
       );
     }
 
+    if (/^flowchart\s+(?:LR|RL)\b/.test(diagramHeader)) {
+      warnings.push(
+        "Horizontal Mermaid flowchart detected. Prefer a compact TD/TB portrait layout that reads without zooming; keep LR/RL only when horizontal order is essential and the rendered graph stays narrow.",
+      );
+    }
+
     // Accessibility
     if (!/^\s*accTitle:/m.test(code)) {
       errors.push("Mermaid diagram is missing accTitle.");

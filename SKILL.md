@@ -276,7 +276,9 @@ topics, **must** open the viewer with
 3. **Agent draft** one topic, 3–8 topic-specific sections declared through `sectionRoles`, at least
    one verified source fence, path:line citations, honest evidence language, and a modify/debug/test
    job ending. Follow the plan's `diagramIntent`: use verified nodes/edges, keep the subgraph small,
-   give omissions a topic-specific reason, and fix Mermaid syntax before save.
+   prefer a compact portrait or near-square layout (`TD`/`TB` for flowcharts), avoid both wide
+   graphs and long single-column chains, give omissions a topic-specific reason, and fix Mermaid
+   syntax before save.
 4. **Script check:**
 
 ```text

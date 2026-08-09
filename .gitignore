@@ -1,5 +1,5 @@
 .repay-skill-runtime/
-node_modules/
+node_modules
 graphify-out/
 repomix-output.*
 .repomix/

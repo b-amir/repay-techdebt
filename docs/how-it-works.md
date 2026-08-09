@@ -518,7 +518,8 @@ Errors (any → `ok: false` → check CLI **exit 2**):
 | Mermaid: forbidden types / missing accTitle\|accDescr / &gt;30 lines / missing “What this shows” | Fail                                             |
 | External image/diagram sidecars                                                                  | Fail                                             |
 
-Warnings (do not alone fail quality): long paragraphs, missing “you/your”, missing causal connective.
+Warnings (do not alone fail quality): long paragraphs, missing “you/your”, missing causal
+connective, or a horizontal (`LR`/`RL`) flowchart that should use a compact portrait layout.
 
 ### 7.2 Citation validity (`verifyLessonCitations`)
 

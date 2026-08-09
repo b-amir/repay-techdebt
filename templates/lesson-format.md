@@ -67,7 +67,10 @@ the complete required/optional section catalog. Do not force every lesson throug
   excerpts, including at least one fenced source snippet from the primary path.
 - Follow the plan's `diagramIntent`. A `required` visual must be included; a `recommended` visual
   may be omitted only with a topic-specific `diagramReason`; `omit` must not include Mermaid.
-  Diagrams use only verified nodes and edges, stay small, and must parse before save.
+  Diagrams use only verified nodes and edges, stay small, and must parse before save. Prefer a
+  compact portrait or near-square layout that reads without zooming: flowcharts default to `TD` or
+  `TB`, while `LR`/`RL` need a topic-specific reason. Avoid long single-column chains by pruning,
+  grouping, shortening labels, or moving secondary detail into prose.
 - Weave PRIMM into the selected shape: invite a prediction, read the evidence, investigate the
   mechanism, propose a modification, and end with a small make-or-verify challenge. These are
   teaching moves, not mandatory headings.

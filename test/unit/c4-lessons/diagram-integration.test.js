@@ -71,4 +71,17 @@ flowchart TD
     .replace("flowchart TD", "flowchart TD\n  accTitle: Generic\n  accDescr: Generic edge");
   const genericResult = inspectLesson(genericEdge, { depth: "concise" });
   assert.ok(genericResult.errors.some((e) => e.includes("generic 'interacts'")));
+
+  const horizontal = noAcc
+    .replace("flowchart TD", "flowchart LR")
+    .replace(
+      "A-->B",
+      "  accTitle: Wide path\n  accDescr: A short path laid out horizontally\n  A-->B",
+    );
+  const horizontalResult = inspectLesson(horizontal, { depth: "concise" });
+  assert.ok(
+    horizontalResult.warnings.some((warning) =>
+      warning.includes("Prefer a compact TD/TB portrait layout"),
+    ),
+  );
 });

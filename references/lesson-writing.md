@@ -103,8 +103,10 @@ explicit target, and at least one citation must match the curriculum topic's evi
 
 Follow the lesson plan's `diagramIntent`. Use a verified diagram when it materially clarifies a
 sequence, state transition, ownership boundary, or multi-part relationship; reduce it to the
-smallest useful subgraph. Omit it only with a topic-specific reason. Every Mermaid block must parse
-successfully before save.
+smallest useful subgraph. Prefer a compact portrait or near-square layout that remains legible at
+normal viewer width; default flowcharts to `TD`/`TB`, and avoid both wide layouts and long vertical
+chains. Omit it only with a topic-specific reason. Every Mermaid block must parse successfully
+before save.
 Put tool attempts, failures, fallbacks, and limitations in the workbook-level Tool Use Ledger; do
 not repeat the ledger in every short lesson.
 
