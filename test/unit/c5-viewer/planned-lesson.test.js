@@ -50,10 +50,24 @@ test("renderPlanned CTA is a simple command row", () => {
   });
 
   assert.match(html, /ds-planned-cta/);
-  assert.match(html, /Ask your agent to write this lesson/);
+  assert.match(html, /Create this lesson with your agent/);
   assert.match(html, /ds-planned-cmd/);
-  assert.match(html, /ds-btn-copy-icon/);
+  assert.match(html, /ds-btn-copy-command/);
+  assert.match(html, /ds-copy-label">Copy/);
   assert.match(html, /\/repay-techdebt --create topic-xyz/);
+});
+
+test("renderPlanned reserves the desktop TOC track and exposes compact view controls", () => {
+  const html = renderPlanned({
+    workbookTitle: "frontend workbook",
+    sidebar: { chapters: [], counts: { done: 0, written: 0, planned: 1 } },
+    topic: { id: "topic-xyz", title: "Topic", evidencePaths: [] },
+    targetRoot: "/repo",
+  });
+
+  assert.match(html, /class="ds-layout ds-layout-toc"/);
+  assert.match(html, /type="range" min="80" max="120" step="10"/);
+  assert.equal(html.match(/class="ds-color-swatch /g)?.length, 7);
 });
 
 test("stripClaimsHtml removes CLAIMS blocks from lesson HTML", () => {

@@ -8,7 +8,7 @@ export const CLIENT_SCRIPT = `
   var sidebarReturnFocus = null;
   var DEFAULT_PREFS = {
     theme: "paper",
-    scale: "m",
+    scale: "100",
     accent: "teal",
     themeChosen: false,
     sidebarCollapsed: false,
@@ -47,6 +47,13 @@ export const CLIENT_SCRIPT = `
     return systemPrefersDark() ? "dark" : (prefs.theme || "paper");
   }
 
+  function normalizeScale(value) {
+    var raw = String(value || "100");
+    var legacy = { s: "90", m: "100", l: "110" };
+    var normalized = legacy[raw] || raw;
+    return ["80", "90", "100", "110", "120"].includes(normalized) ? normalized : "100";
+  }
+
   function isTypingTarget(el) {
     if (!el) return false;
     var tag = el.tagName;
@@ -60,8 +67,9 @@ export const CLIENT_SCRIPT = `
   function applyPrefs(prefs) {
     var root = document.documentElement;
     var theme = effectiveTheme(prefs);
+    var scale = normalizeScale(prefs.scale);
     root.setAttribute("data-theme", theme);
-    root.setAttribute("data-scale", prefs.scale || "m");
+    root.setAttribute("data-scale", scale);
     root.setAttribute("data-accent", prefs.accent || "teal");
     var sidebarOpen = isNarrowViewport() ? mobileSidebarOpen : !prefs.sidebarCollapsed;
     root.setAttribute("data-sidebar", sidebarOpen ? "open" : "collapsed");
@@ -77,6 +85,19 @@ export const CLIENT_SCRIPT = `
       btn.classList.toggle("ds-seg-btn-active", active);
       btn.setAttribute("aria-pressed", active ? "true" : "false");
     });
+    document.querySelectorAll(".ds-color-swatch[data-pref='accent']").forEach(function (btn) {
+      var active = prefs.accent === btn.getAttribute("data-value");
+      btn.classList.toggle("ds-color-swatch-active", active);
+      btn.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    var zoom = document.querySelector(".ds-zoom-slider[data-pref='scale']");
+    var zoomValue = document.querySelector(".ds-zoom-value");
+    if (zoom) {
+      zoom.value = scale;
+      zoom.setAttribute("aria-valuetext", scale + "%");
+      zoom.style.setProperty("--zoom-progress", ((Number(scale) - 80) / 40) * 100 + "%");
+    }
+    if (zoomValue) zoomValue.textContent = scale + "%";
     document.querySelectorAll(".ds-sidebar-toggle").forEach(function (btn) {
       btn.setAttribute("aria-expanded", sidebarOpen ? "true" : "false");
       btn.setAttribute("aria-label", sidebarOpen ? "Hide sidebar" : "Show sidebar");
@@ -326,7 +347,9 @@ export const CLIENT_SCRIPT = `
   function bindPrefs() {
     var prefs = readPrefs();
     applyPrefs(prefs);
-    document.querySelectorAll(".ds-seg-btn[data-pref]").forEach(function (btn) {
+    document
+      .querySelectorAll(".ds-seg-btn[data-pref], .ds-color-swatch[data-pref]")
+      .forEach(function (btn) {
       btn.addEventListener("click", function () {
         var key = btn.getAttribute("data-pref");
         var val = btn.getAttribute("data-value");
@@ -343,6 +366,15 @@ export const CLIENT_SCRIPT = `
         applyPrefs(next);
       });
     });
+    var zoom = document.querySelector(".ds-zoom-slider[data-pref='scale']");
+    if (zoom) {
+      zoom.addEventListener("input", function () {
+        var next = readPrefs();
+        next.scale = normalizeScale(zoom.value);
+        writePrefs(next);
+        applyPrefs(next);
+      });
+    }
     if (window.matchMedia) {
       window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () {
         var p = readPrefs();
@@ -518,8 +550,16 @@ export const CLIENT_SCRIPT = `
         var text = explicit || (code && code.textContent) || "";
         if (!text) return;
         var isIcon = btn.classList.contains("ds-btn-copy-icon");
+        var isCommandCopy = btn.classList.contains("ds-btn-copy-command");
         function done() {
-          if (isIcon) {
+          if (!btn.dataset.copyLabel) {
+            btn.dataset.copyLabel = btn.getAttribute("aria-label") || "Copy";
+          }
+          btn.setAttribute("aria-label", "Copied");
+          if (isCommandCopy) {
+            if (!btn.dataset.copyIcon) btn.dataset.copyIcon = btn.innerHTML;
+            btn.innerHTML = copyCheckIcon + '<span class="ds-copy-label">Copied</span>';
+          } else if (isIcon) {
             if (!btn.dataset.copyIcon) btn.dataset.copyIcon = btn.innerHTML;
             btn.innerHTML = copyCheckIcon;
           } else {
@@ -528,11 +568,12 @@ export const CLIENT_SCRIPT = `
           }
           btn.classList.add("ds-btn-copy-done");
           setTimeout(function () {
-            if (isIcon && btn.dataset.copyIcon) {
+            if ((isCommandCopy || isIcon) && btn.dataset.copyIcon) {
               btn.innerHTML = btn.dataset.copyIcon;
             } else if (btn.dataset.copyText) {
               btn.textContent = btn.dataset.copyText;
             }
+            btn.setAttribute("aria-label", btn.dataset.copyLabel || "Copy");
             btn.classList.remove("ds-btn-copy-done");
           }, 2000);
         }

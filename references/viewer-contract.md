@@ -27,8 +27,9 @@
 ## Reading system
 
 - Title, section, body, metadata/navigation, and code are separate semantic type roles. The viewer
-  uses an offline-safe system stack with no network font request, balanced editorial titles,
-  proportional S/M/L scaling, a 58–68 character measure, and mono isolation for code and paths.
+  uses an offline-safe system stack with no network font request, balanced editorial titles, a
+  five-stop 80–120% proportional zoom, a 58–68 character measure, and mono isolation for code and
+  paths.
 - Mixed-direction prose uses plaintext bidi behavior while code and source paths remain isolated
   left-to-right. Mobile text inputs remain at least 16px and browser pinch zoom is unrestricted.
 - Inline code is reserved for actual identifiers and literals. Repository paths belong in
@@ -36,6 +37,11 @@
 - Motion communicates only state, focus, and spatial continuity through short opacity/translate
   transitions. Reduced-motion behavior is equivalent. Do not animate lesson prose or scroll
   position.
+- Written and planned lesson pages share the same wide-desktop grid, including the reserved right
+  TOC track, so navigation does not move the reading column. Mobile and intermediate layouts do not
+  reserve that track.
+- Modal, palette, and navigation backdrops are neutral to the active theme. They may dim or soften
+  the reading surface but must not add a blue or accent-colored cast.
 
 ## Citations and diagrams
 

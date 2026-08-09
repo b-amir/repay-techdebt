@@ -90,29 +90,36 @@ function viewSettingsPanel() {
 
 function viewSettingsMarkup() {
   return `<div class="ds-settings" aria-label="Reading settings">
-    <p class="ds-settings-title">View</p>
+    <p class="ds-settings-title">View settings</p>
     <div class="ds-setting">
       <span class="ds-setting-label">Theme</span>
       <div class="ds-seg" role="group" aria-label="Theme">
-        <button type="button" class="ds-seg-btn" data-pref="theme" data-value="white">White</button>
-        <button type="button" class="ds-seg-btn" data-pref="theme" data-value="paper">Paper</button>
-        <button type="button" class="ds-seg-btn" data-pref="theme" data-value="dark">Dark</button>
+        <button type="button" class="ds-seg-btn" data-pref="theme" data-value="white"><span class="ds-theme-sample ds-theme-sample-white" aria-hidden="true"></span><span>White</span></button>
+        <button type="button" class="ds-seg-btn" data-pref="theme" data-value="paper"><span class="ds-theme-sample ds-theme-sample-paper" aria-hidden="true"></span><span>Paper</span></button>
+        <button type="button" class="ds-seg-btn" data-pref="theme" data-value="dark"><span class="ds-theme-sample ds-theme-sample-dark" aria-hidden="true"></span><span>Dark</span></button>
       </div>
     </div>
     <div class="ds-setting">
-      <span class="ds-setting-label">Size</span>
-      <div class="ds-seg" role="group" aria-label="Text size">
-        <button type="button" class="ds-seg-btn" data-pref="scale" data-value="s">S</button>
-        <button type="button" class="ds-seg-btn" data-pref="scale" data-value="m">M</button>
-        <button type="button" class="ds-seg-btn" data-pref="scale" data-value="l">L</button>
+      <div class="ds-setting-heading">
+        <label class="ds-setting-label" for="ds-zoom-slider">Zoom</label>
+        <output class="ds-zoom-value" id="ds-zoom-value" for="ds-zoom-slider">100%</output>
+      </div>
+      <div class="ds-zoom-control">
+        <input class="ds-zoom-slider" id="ds-zoom-slider" type="range" min="80" max="120" step="10" value="100" data-pref="scale" aria-label="Lesson zoom" aria-describedby="ds-zoom-value" list="ds-zoom-stops">
+        <datalist id="ds-zoom-stops"><option value="80"></option><option value="90"></option><option value="100"></option><option value="110"></option><option value="120"></option></datalist>
+        <span class="ds-zoom-ticks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
       </div>
     </div>
     <div class="ds-setting">
       <span class="ds-setting-label">Accent</span>
-      <div class="ds-seg" role="group" aria-label="Accent color">
-        <button type="button" class="ds-seg-btn" data-pref="accent" data-value="teal">Teal</button>
-        <button type="button" class="ds-seg-btn" data-pref="accent" data-value="slate">Slate</button>
-        <button type="button" class="ds-seg-btn" data-pref="accent" data-value="warm">Warm</button>
+      <div class="ds-color-options" role="group" aria-label="Accent color">
+        <button type="button" class="ds-color-swatch ds-color-swatch-teal" data-pref="accent" data-value="teal" aria-label="Teal accent" title="Teal"></button>
+        <button type="button" class="ds-color-swatch ds-color-swatch-blue" data-pref="accent" data-value="blue" aria-label="Blue accent" title="Blue"></button>
+        <button type="button" class="ds-color-swatch ds-color-swatch-violet" data-pref="accent" data-value="violet" aria-label="Violet accent" title="Violet"></button>
+        <button type="button" class="ds-color-swatch ds-color-swatch-rose" data-pref="accent" data-value="rose" aria-label="Rose accent" title="Rose"></button>
+        <button type="button" class="ds-color-swatch ds-color-swatch-warm" data-pref="accent" data-value="warm" aria-label="Warm accent" title="Warm"></button>
+        <button type="button" class="ds-color-swatch ds-color-swatch-amber" data-pref="accent" data-value="amber" aria-label="Amber accent" title="Amber"></button>
+        <button type="button" class="ds-color-swatch ds-color-swatch-slate" data-pref="accent" data-value="slate" aria-label="Slate accent" title="Slate"></button>
       </div>
     </div>
   </div>`;
@@ -177,8 +184,12 @@ function prefsBootstrapScript() {
     var r=document.documentElement;
     var dark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;
     var theme=p.themeChosen?p.theme:(dark?"dark":"paper");
+    var rawScale=String(p.scale||"100");
+    var legacyScale={s:"90",m:"100",l:"110"};
+    var scale=legacyScale[rawScale]||rawScale;
+    if(!["80","90","100","110","120"].includes(scale))scale="100";
     r.setAttribute("data-theme",theme);
-    r.setAttribute("data-scale",p.scale||"m");
+    r.setAttribute("data-scale",scale);
     r.setAttribute("data-accent",p.accent||"teal");
     var narrow=window.matchMedia&&window.matchMedia("(max-width: 900px)").matches;
     r.setAttribute("data-sidebar",narrow?"collapsed":(p.sidebarCollapsed?"collapsed":"open"));
@@ -197,6 +208,7 @@ function renderShell({
   sidebarHtml,
   mainHtml,
   rightRailHtml = "",
+  reserveRightRail = false,
   progress = null,
 }) {
   const scrollAttr = progress?.lastScroll
@@ -205,9 +217,9 @@ function renderShell({
   const lastReadAttr = progress?.lastRead
     ? ` data-last-read="${escapeHtml(String(progress.lastRead))}"`
     : "";
-  const layoutClass = rightRailHtml ? "ds-layout ds-layout-toc" : "ds-layout";
+  const layoutClass = rightRailHtml || reserveRightRail ? "ds-layout ds-layout-toc" : "ds-layout";
   return `<!doctype html>
-<html lang="en" data-theme="paper" data-scale="m" data-accent="teal" data-sidebar="open" data-focus="off"${scrollAttr}${lastReadAttr}>
+<html lang="en" data-theme="paper" data-scale="100" data-accent="teal" data-sidebar="open" data-focus="off"${scrollAttr}${lastReadAttr}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -500,7 +512,7 @@ function renderPlannedCommandRow(command, label = "command") {
   return `<div class="ds-planned-cmd">
     <div class="ds-cmd-row">
       <code class="ds-cmd-text">${escapeHtml(command)}</code>
-      <button type="button" class="ds-btn-copy ds-btn-copy-icon" aria-label="Copy ${escapeHtml(label)}">${COPY_ICON}</button>
+      <button type="button" class="ds-btn-copy ds-btn-copy-icon ds-btn-copy-command" aria-label="Copy ${escapeHtml(label)}">${COPY_ICON}<span class="ds-copy-label">Copy</span></button>
     </div>
   </div>`;
 }
@@ -654,7 +666,7 @@ export function renderPlanned({ workbookTitle, sidebar, topic, targetRoot }) {
       }
     </header>
     <section class="ds-planned-cta">
-      <p class="ds-planned-cta-lead">Ask your agent to write this lesson from project evidence.</p>
+      <p class="ds-planned-cta-lead">Create this lesson with your agent</p>
       ${renderPlannedCommandRow(chatCmd, "create command")}
     </section>
     ${evidenceHtml}
@@ -663,5 +675,6 @@ export function renderPlanned({ workbookTitle, sidebar, topic, targetRoot }) {
     documentTitle: `${topic.title} · ${workbookTitle}`,
     sidebarHtml: renderSidebar(sidebar, workbookTitle),
     mainHtml: main,
+    reserveRightRail: true,
   });
 }

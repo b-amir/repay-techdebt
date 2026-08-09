@@ -136,11 +136,16 @@ section is marked from the top of the page onward and kept visible in the deskto
 restores the last section or scroll position when you return. Focus mode hides navigation rails
 without changing lesson content.
 
-View settings provide paper, white, and dark themes; S, M, and L proportional type scales; and
-teal, slate, or warm accents. Before the user chooses a theme, the initial theme follows the system
-dark preference. Preferences persist locally. The reading surface uses an offline-safe editorial
-display/system-sans/monospace type stack, a bounded reading measure, balanced titles, restrained
-motion, and print styles; it does not fetch fonts from the network.
+View settings provide paper, white, and dark themes; a five-stop 80–120% zoom slider; and teal,
+blue, violet, rose, warm, amber, or slate accents. Before the user chooses a theme, the initial
+theme follows the system dark preference. Preferences persist locally. The reading surface uses an
+offline-safe editorial display/system-sans/monospace type stack, a bounded reading measure,
+balanced titles, restrained motion, and print styles; it does not fetch fonts from the network.
+
+On wide desktop layouts, planned lessons reserve the same right-side table-of-contents track as
+written lessons so moving between them does not shift the reading column. Search, shortcuts,
+diagram dialogs, and the mobile navigation rail use a neutral backdrop derived from the active
+theme rather than introducing a colored cast.
 
 ### Search, code, sources, and diagrams
 
