@@ -1,32 +1,42 @@
 import { createHash } from "node:crypto";
 import { access } from "node:fs/promises";
-import { homedir } from "node:os";
+import fs from "node:fs";
+import { homedir, tmpdir } from "node:os";
 import { resolve } from "node:path";
 
 export const LOCAL_MEMORY_DIRECTORY = ".repay-techdebt";
 
+function ensureWritableSync(targetPath, fallbackPrefix) {
+  try {
+    fs.mkdirSync(targetPath, { recursive: true });
+    fs.accessSync(targetPath, fs.constants.W_OK);
+    return targetPath;
+  } catch (e) {
+    if (e.code === 'EPERM' || e.code === 'EROFS' || e.code === 'EACCES') {
+      const fallback = resolve(tmpdir(), "repay-techdebt-fallback", fallbackPrefix);
+      fs.mkdirSync(fallback, { recursive: true });
+      return fallback;
+    }
+    throw e;
+  }
+}
+
 function defaultStateBase(environment = process.env, platform = process.platform) {
-  if (environment.REPAY_TECHDEBT_STATE_DIR) return resolve(environment.REPAY_TECHDEBT_STATE_DIR);
-  if (platform === "darwin")
-    return resolve(homedir(), "Library", "Application Support", "repay-techdebt");
-  if (platform === "win32")
-    return resolve(environment.LOCALAPPDATA ?? environment.APPDATA ?? homedir(), "repay-techdebt");
-  return resolve(
-    environment.XDG_STATE_HOME ?? resolve(homedir(), ".local", "state"),
-    "repay-techdebt",
-  );
+  let p;
+  if (environment.REPAY_TECHDEBT_STATE_DIR) p = resolve(environment.REPAY_TECHDEBT_STATE_DIR);
+  else if (platform === "darwin") p = resolve(homedir(), "Library", "Application Support", "repay-techdebt");
+  else if (platform === "win32") p = resolve(environment.LOCALAPPDATA ?? environment.APPDATA ?? homedir(), "repay-techdebt");
+  else p = resolve(environment.XDG_STATE_HOME ?? resolve(homedir(), ".local", "state"), "repay-techdebt");
+  return ensureWritableSync(p, "state");
 }
 
 function defaultCacheBase(environment = process.env, platform = process.platform) {
-  if (environment.REPAY_TECHDEBT_CACHE_DIR) return resolve(environment.REPAY_TECHDEBT_CACHE_DIR);
-  if (platform === "darwin") return resolve(homedir(), "Library", "Caches", "repay-techdebt");
-  if (platform === "win32")
-    return resolve(
-      environment.LOCALAPPDATA ?? environment.APPDATA ?? homedir(),
-      "repay-techdebt",
-      "cache",
-    );
-  return resolve(environment.XDG_CACHE_HOME ?? resolve(homedir(), ".cache"), "repay-techdebt");
+  let p;
+  if (environment.REPAY_TECHDEBT_CACHE_DIR) p = resolve(environment.REPAY_TECHDEBT_CACHE_DIR);
+  else if (platform === "darwin") p = resolve(homedir(), "Library", "Caches", "repay-techdebt");
+  else if (platform === "win32") p = resolve(environment.LOCALAPPDATA ?? environment.APPDATA ?? homedir(), "repay-techdebt", "cache");
+  else p = resolve(environment.XDG_CACHE_HOME ?? resolve(homedir(), ".cache"), "repay-techdebt");
+  return ensureWritableSync(p, "cache");
 }
 
 export function projectStorageIdentity(targetRoot) {
