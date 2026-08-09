@@ -508,29 +508,31 @@ flowchart TD
 
 Errors (any → `ok: false` → check CLI **exit 2**):
 
-| Predicate                                                                                        | Fail                                             |
-| ------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
-| Word count outside depth band                                                                    | concise 250–650. Balanced 450–950. Deep 700–1300 |
-| `##` section count ∉ 3–8                                                                         | Fail                                             |
-| Empty/generic headings (Predict/Run/Investigate/Modify/Make/Overview/…)                          | Fail                                             |
-| &lt; 2 distinct cited source paths                                                               | Fail                                             |
-| Topic `expectedEvidencePaths` set and no cite matches                                            | Fail                                             |
-| AI puffery phrases                                                                               | Fail                                             |
-| Generic lesson-announcement opening                                                              | Fail                                             |
-| Malformed Quick check choices or missing explanatory feedback                                    | Fail                                             |
-| Think first prompt without an answer                                                             | Fail                                             |
-| Curriculum lesson missing explicit learning-moment decisions                                     | Fail at durable save                             |
-| Included learning-moment decision without its matching block, or vague include/omit reason       | Fail at durable save                             |
-| Mermaid: forbidden types / missing accTitle\|accDescr / &gt;30 lines / missing “What this shows” | Fail                                             |
-| External image/diagram sidecars                                                                  | Fail                                             |
+| Predicate                                                                                        | Fail                 |
+| ------------------------------------------------------------------------------------------------ | -------------------- |
+| `##` section count ∉ 3–8                                                                         | Fail                 |
+| Empty/generic headings (Predict/Run/Investigate/Modify/Make/Overview/…)                          | Fail                 |
+| &lt; 2 distinct cited source paths                                                               | Fail                 |
+| Topic `expectedEvidencePaths` set and no cite matches                                            | Fail                 |
+| AI puffery phrases                                                                               | Fail                 |
+| Generic lesson-announcement opening                                                              | Fail                 |
+| Malformed Quick check choices or missing explanatory feedback                                    | Fail                 |
+| Think first prompt without an answer                                                             | Fail                 |
+| Curriculum lesson missing explicit learning-moment decisions                                     | Fail at durable save |
+| Included learning-moment decision without its matching block, or vague include/omit reason       | Fail at durable save |
+| Mermaid: forbidden types / missing accTitle\|accDescr / &gt;30 lines / missing “What this shows” | Fail                 |
+| External image/diagram sidecars                                                                  | Fail                 |
 
-Warnings (do not alone fail quality): long or path-heavy paragraphs, sections over 350 words,
+Warnings (do not alone fail quality): visible-prose word counts outside the broad advisory bands (concise
+70–900, balanced 150–1,800, deep 300–2,600), long or path-heavy paragraphs, sections over 350 words,
 source code excerpts over 40 lines, repeated lesson announcements, missing “you/your”, missing
 causal or verification language, or a horizontal (`LR`/`RL`) flowchart that should use a compact
 portrait layout. See for yourself walkthroughs also warn when they omit ordered DevTools steps, a
 safe execution context and Change one thing variation, the observable signal to Look for, or an
 explicit Reset. Instructions to expose secrets, mutate production, or bypass a protection fail.
-lessons with more than three interactive moments are prompted to keep only the useful pauses.
+Lessons near either length boundary are accepted without comment. A length warning never blocks
+save and should prompt a content check, not mechanical trimming. Lessons with more than three
+interactive moments are prompted to keep only the useful pauses.
 The planner separately records Quick check, Think first, and See for yourself as recommended,
 candidate, or omitted opportunities. Draft inspection warns when a strong misconception or safe
 browser-observation opportunity is silently skipped. Curriculum save requires a specific include or

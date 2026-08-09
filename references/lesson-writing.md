@@ -29,13 +29,17 @@ Before keeping a topic, ask what the learner can change or debug. Fold wrappers,
 constant tables, and same-flow helpers into the owning outcome unless they introduce a distinct
 failure mode, blast radius, or trust decision. Scanner rows are candidate evidence, not a syllabus.
 
-Default size:
+Length is guidance, not a quota or save gate. Only learner-visible prose counts. Author frontmatter,
+claim ledgers, and fenced code do not. Use these broad review bands:
 
-- concise: 250–650 words.
-- balanced: 450–950 words.
-- deep: 700–1,300 words.
+- concise: 70–900 words.
+- balanced: 150–1,800 words.
+- deep: 300–2,600 words.
 
-Depth adds evidence or examines a mechanism more closely. It does not add unrelated topics.
+A draft near either boundary is fine. A small target around 150 words can naturally land anywhere
+from about 70 to 300 words. Outside a review band, check whether the explanation is incomplete or
+contains multiple teaching jobs, but do not block the lesson or trim useful evidence only to satisfy
+a number. Depth adds evidence or examines a mechanism more closely. It does not add unrelated topics.
 
 ## Required anatomy
 

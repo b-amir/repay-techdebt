@@ -3,11 +3,13 @@ import { parseCitation } from "./citation-model.js";
 import { parseClaimsBlock } from "./claim-faithfulness.js";
 import { inspectLessonShape } from "./lesson-shape.js";
 import { inspectLearningMoments } from "./learning-moments.js";
+import { USEFULNESS_FLOORS } from "./usefulness-floors.js";
+import { parseLessonFrontmatter } from "./lesson-frontmatter.js";
 
 const DEPTH_RANGES = {
-  concise: [250, 650],
-  balanced: [450, 950],
-  deep: [700, 1300],
+  concise: [USEFULNESS_FLOORS.minBodyWords.concise, USEFULNESS_FLOORS.maxBodyWords.concise],
+  balanced: [USEFULNESS_FLOORS.minBodyWords.balanced, USEFULNESS_FLOORS.maxBodyWords.balanced],
+  deep: [USEFULNESS_FLOORS.minBodyWords.deep, USEFULNESS_FLOORS.maxBodyWords.deep],
 };
 
 const EMPTY_HEADING =
@@ -27,7 +29,9 @@ const UNSAFE_DEVTOOLS_ACTION =
   /\b(?:copy|paste|share|expose|reveal)\b.{0,60}\b(?:secret|token|password|cookie value|authorization header)\b|\b(?:disable|remove|bypass)\b.{0,50}\b(?:auth|guard|permission|security|csrf|validation)\b|\b(?:delete|mutate|edit|change|write(?:\s+to)?)\b.{0,50}\bproduction\b|\bproduction\b.{0,50}\b(?:delete|mutate|edit|change|write)\b/i;
 
 function wordCount(markdown) {
-  return markdown
+  const { body } = parseLessonFrontmatter(markdown);
+  return (body || markdown)
+    .replace(/<!--[\s\S]*?-->/g, " ")
     .replace(/```[\s\S]*?```/g, " ")
     .replace(/[`#>*_[\]()|-]/g, " ")
     .split(/\s+/)
@@ -63,10 +67,12 @@ export function inspectLesson(
   const errors = [];
   const warnings = [];
   if (count < minimum)
-    errors.push(`Lesson has ${count} words; ${depth} lessons need at least ${minimum}.`);
+    warnings.push(
+      `Visible lesson prose has ${count} words, outside the broad ${depth} review band of ${minimum}–${maximum}. Length alone does not block save. Check that the mechanism has enough evidence and explanation.`,
+    );
   if (count > maximum)
-    errors.push(
-      `Lesson has ${count} words; split this subject because ${depth} lessons stop at ${maximum}.`,
+    warnings.push(
+      `Visible lesson prose has ${count} words, outside the broad ${depth} review band of ${minimum}–${maximum}. Length alone does not block save. Split only when the lesson contains more than one teaching job.`,
     );
   if (headings.length < 3 || headings.length > 8)
     errors.push(`Lesson has ${headings.length} level-two sections; use 3–8 clear sections.`);

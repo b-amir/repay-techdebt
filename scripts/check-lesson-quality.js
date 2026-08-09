@@ -7,8 +7,8 @@ function help() {
   process.stdout.write(`Usage:
   node check-lesson-quality.js <lesson.md> [--depth concise|balanced|deep] [--format json|text]
 
-Check focus, length, section clarity, evidence citations, paragraph size, and writing smells before a
-lesson can enter a workbook.
+Check focus, section clarity, evidence citations, paragraph size, and writing smells before a lesson
+can enter a workbook. Length uses broad advisory bands and never fails the check by itself.
 `);
 }
 

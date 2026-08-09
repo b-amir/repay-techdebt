@@ -209,7 +209,11 @@ test("lesson guardrails reject overloaded and unsupported drafts", () => {
     depth: "balanced",
   });
   assert.equal(result.ok, false);
-  assert.ok(result.errors.some((item) => /split this subject|at least 450/.test(item)));
+  assert.equal(
+    result.errors.some((item) => /words|word count|length/i.test(item)),
+    false,
+  );
+  assert.ok(result.warnings.some((item) => /length alone does not block save/i.test(item)));
   assert.ok(result.errors.some((item) => /process labels/.test(item)));
   assert.ok(result.errors.some((item) => /two verified/.test(item)));
 });

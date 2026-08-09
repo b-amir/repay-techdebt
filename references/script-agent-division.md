@@ -35,6 +35,6 @@ Every handoff between scripts and the agent is structured JSON with a defined sc
 
 ### 3. Draft → Agent judgment
 
-- **Script (verifies):** Performs mechanical QA on the draft (word count, citation formats). If it passes, it asks the agent to review.
+- **Script (verifies):** Performs mechanical QA on the draft, including citation formats and broad advisory length signals. If it passes, it asks the agent to review.
 - **Agent (judges):** Reviews the lesson against the rubric. Emits a JSON containing `judgments` (scores, mustFix notes).
 - **Script (saves):** Only persists the draft if the agent's recorded judgment meets the threshold.

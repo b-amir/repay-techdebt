@@ -7,19 +7,19 @@ import { GOLDEN_SITTING_SIZE } from "./lesson-shape.js";
 import { parseLessonFrontmatter, craftFieldsFromFrontmatter } from "./lesson-frontmatter.js";
 import { extractLessonCitations } from "./lesson-citation-check.js";
 
-/** Derived from golden A (balanced ~450) and B (concise ~380). */
+/** Broad review bands. Length is advisory and never blocks a save by itself. */
 export const USEFULNESS_FLOORS = Object.freeze({
-  // From GOLDEN_SITTING_SIZE - do not invent abstract caps unrelated to goldens.
-  source: "test/fixtures/golden-lessons (A path+map ~450w / B deep-dive ~380w)",
+  source: "broad advisory bands informed by test/fixtures/golden-lessons, not save gates",
+  wordCountBlocksSave: false,
   minBodyWords: {
-    concise: 280, // below B still fails; B~380 passes
-    balanced: 320, // A~450 passes; hollow overviews fail
-    deep: 500,
+    concise: 70,
+    balanced: 150,
+    deep: 300,
   },
   maxBodyWords: {
-    concise: 700,
-    balanced: 950,
-    deep: 1300,
+    concise: 900,
+    balanced: 1800,
+    deep: 2600,
   },
   minSections: 3,
   maxSections: 8,
@@ -36,6 +36,7 @@ const NEXT_LOOK = /\b(?:next|then|after|open|look at|follow|cross into|start at|
 function bodyWordCount(markdown) {
   const { body } = parseLessonFrontmatter(markdown);
   return (body || markdown)
+    .replace(/<!--[\s\S]*?-->/g, " ")
     .replace(/```[\s\S]*?```/g, " ")
     .replace(/[`#>*_[\]()|-]/g, " ")
     .split(/\s+/)
@@ -49,6 +50,7 @@ function bodyWordCount(markdown) {
 export function inspectUsefulnessFloors(markdown, opts = {}) {
   const depth = opts.depth ?? "balanced";
   const errors = [];
+  const warnings = [];
   const { frontmatter, body } = parseLessonFrontmatter(markdown);
   const craft = craftFieldsFromFrontmatter(frontmatter);
   const text = body || markdown;
@@ -56,13 +58,13 @@ export function inspectUsefulnessFloors(markdown, opts = {}) {
   const min = USEFULNESS_FLOORS.minBodyWords[depth] ?? USEFULNESS_FLOORS.minBodyWords.balanced;
   const max = USEFULNESS_FLOORS.maxBodyWords[depth] ?? USEFULNESS_FLOORS.maxBodyWords.balanced;
   if (words < min) {
-    errors.push(
-      `Lesson body has ${words} words; ${depth} lessons need ≥${min} (calibrated from golden fixtures).`,
+    warnings.push(
+      `Visible lesson prose has ${words} words, outside the broad ${depth} review band of ${min}–${max}. Length alone does not block save. Check that the mechanism has enough evidence and explanation.`,
     );
   }
   if (words > max) {
-    errors.push(
-      `Lesson body has ${words} words; ${depth} lessons stop at ${max} (split the subject).`,
+    warnings.push(
+      `Visible lesson prose has ${words} words, outside the broad ${depth} review band of ${min}–${max}. Length alone does not block save. Split only when the lesson contains more than one teaching job.`,
     );
   }
 
@@ -118,6 +120,7 @@ export function inspectUsefulnessFloors(markdown, opts = {}) {
   return {
     ok: errors.length === 0,
     errors,
+    warnings,
     wordCount: words,
     sectionCount: headings.length,
     citedPaths,

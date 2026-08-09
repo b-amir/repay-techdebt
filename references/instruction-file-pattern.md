@@ -40,7 +40,7 @@ The invoking script validates this shape and persists it.
 
 ## When to use this pattern
 
-| Write a **script** when                                                                | Write an **instruction file** when                                       |
-| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| The check is verifiable by regex/AST (e.g., citation format, path exists, word count). | The check requires understanding meaning (e.g., insight, accuracy, fit). |
-| The operation requires atomic persistence or schema enforcement.                       | The operation involves selection (what to teach, what's important).      |
+| Write a **script** when                                                         | Write an **instruction file** when                                                                          |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| The check is verifiable by regex/AST (e.g., citation format or path existence). | The check requires understanding meaning (e.g., insight, accuracy, fit, or whether length suits the topic). |
+| The operation requires atomic persistence or schema enforcement.                | The operation involves selection (what to teach, what's important).                                         |

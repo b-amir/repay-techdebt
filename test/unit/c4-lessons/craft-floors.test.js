@@ -116,6 +116,39 @@ test("golden B passes with map skip", async () => {
   );
 });
 
+test("word count is advisory and broad at both ends", () => {
+  const short = inspectLesson(
+    "## First\n\nTiny.\n\n## Second\n\nStill tiny.\n\n## Third\n\nDone.",
+    {
+      depth: "concise",
+    },
+  );
+  assert.equal(
+    short.errors.some((error) => /words|word count|length/i.test(error)),
+    false,
+  );
+  assert.ok(short.warnings.some((warning) => /length alone does not block save/i.test(warning)));
+
+  const nearLowerBound = inspectLesson(
+    `## First\n\n${"Direct mechanism evidence consequence. ".repeat(20)}\n\n## Second\n\nUse src/a.js:1 and src/b.js:1.\n\n## Third\n\nVerify the result.`,
+    { depth: "concise" },
+  );
+  assert.equal(
+    nearLowerBound.warnings.some((warning) => /review band|length alone/i.test(warning)),
+    false,
+  );
+});
+
+test("word count ignores author metadata and claim ledgers", () => {
+  const visible = `# Boundary\n\n## First\n\n${"Direct mechanism evidence consequence. ".repeat(20)}\n\n## Second\n\nUse src/a.js:1 and src/b.js:1.\n\n## Third\n\nVerify the result.`;
+  const plain = inspectLesson(visible, { depth: "concise" });
+  const decorated = inspectLesson(
+    `---\nsubject: flow\nnotes: ${"hidden metadata ".repeat(300)}\n---\n${visible}\n<!-- ${"hidden claim ledger ".repeat(300)} -->`,
+    { depth: "concise" },
+  );
+  assert.equal(decorated.wordCount, plain.wordCount);
+});
+
 test("default-path missing required section fails shape", () => {
   const md = `---
 subject: flow

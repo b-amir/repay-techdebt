@@ -94,6 +94,13 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
       depth: options.depth ?? "balanced",
       expectedPaths: options.expectedEvidencePaths ?? craftFields.primaryPaths,
     });
+    const qualityHasLengthWarning = quality.warnings.some((warning) =>
+      /length alone does not block save/i.test(warning),
+    );
+    for (const warning of craft.usefulness.warnings) {
+      if (qualityHasLengthWarning && /length alone does not block save/i.test(warning)) continue;
+      if (!quality.warnings.includes(warning)) quality.warnings.push(warning);
+    }
     if (!craft.usefulness.ok) {
       quality.ok = false;
       quality.errors.push(...craft.usefulness.errors);
