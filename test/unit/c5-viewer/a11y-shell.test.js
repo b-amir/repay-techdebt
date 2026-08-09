@@ -142,7 +142,7 @@ test("nav filter CSS forces [hidden] despite display:grid on nav links", async (
 test("sidebar states use monochrome shape and weight hierarchy", async () => {
   const css = await readFile(resolve(root, "src/viewer/static/viewer.css"), "utf8");
   assert.match(css, /\.ds-nav-current\s*\{[\s\S]*?background:\s*var\(--nav-current-bg\)/);
-  assert.match(css, /\.ds-nav-current \.ds-nav-mark-dot::before\s*\{[\s\S]*?height:\s*12px/);
+  assert.match(css, /\.ds-nav-mark-dot::after\s*\{[\s\S]*?height:\s*12px/);
   assert.match(
     css,
     /\.ds-nav-planned \.ds-nav-mark-dot::before\s*\{[\s\S]*?border:\s*1px solid currentColor/,
