@@ -77,10 +77,27 @@ the complete required/optional section catalog. Do not force every lesson throug
 - Weave PRIMM into the selected shape: invite a prediction, read the evidence, investigate the
   mechanism, propose a modification, and end with a small make-or-verify challenge. These are
   teaching moves, not mandatory headings.
-- Interactive learning is optional. Use it only at a natural decision, misconception, or observable
-  runtime boundary; never add a widget to satisfy a lesson quota. Prefer no more than three varied
-  pauses in one lesson, and keep the surrounding explanation complete without them.
-- When prediction materially improves understanding, use one progressive-disclosure block:
+- Interactive learning is optional, but reviewing its opportunities is required. Inspect every
+  `learningMoments` entry from the plan against live source. Include recommended moments unless a
+  concrete evidence, safety, redundancy, or pacing reason justifies omission; decide candidates
+  explicitly. Never add a widget to satisfy a lesson quota. Prefer no more than three varied pauses
+  and keep the surrounding explanation complete without them.
+- Record the decision ledger in frontmatter. The ledger is author metadata and is hidden by the
+  viewer. Every value starts with `included -` or `omitted -` and names the topic-specific teaching
+  purpose or omission reason:
+
+  ```yaml
+  learningMoments:
+    quickCheck: included - distinguish the shared BFF client from a plausible raw fetch shortcut
+    thinkFirst: omitted - the worked trace already pauses for the same causal prediction
+    seeForYourself: included - inspect the safe local request URL and response status
+  ```
+
+  Durable save rejects missing decisions, vague reasons, or an included moment whose block is
+  absent. A detected opportunity without a block or omission reason is a revision warning.
+
+- `Prediction`/`Reveal` remains compatible with older lessons, but new lessons should use the
+  `Think first`/`Answer` form below so causal reflections have one consistent vocabulary.
 
   ```markdown
   > **Prediction:** What will the caller observe if this guard is removed?

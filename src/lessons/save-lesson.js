@@ -37,6 +37,7 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
     depth: options.depth ?? "balanced",
     expectedEvidencePaths: options.expectedEvidencePaths ?? [],
     subject,
+    requireLearningMomentDecisions: options.requireLearningMomentDecisions === true,
   });
   const hasMapAnswers =
     options.hasMapAnswers === true ||
@@ -73,6 +74,7 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
     prPaths: null,
     polyglot: null,
     absence: null,
+    learningMoments: quality.learningMoments,
   };
 
   if (options.skipCraftFloors !== true) {
@@ -249,6 +251,7 @@ export async function runTeachFloors(targetRoot, markdown, options = {}) {
     depth,
     expectedEvidencePaths: options.expectedEvidencePaths ?? [],
     subject: options.subject,
+    requireLearningMomentDecisions: options.requireLearningMomentDecisions === true,
   });
   const citations = await verifyLessonCitations(targetRoot, quality.citations);
   if (citations.problems.length > 0) {

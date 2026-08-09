@@ -15,6 +15,13 @@ Inventory is not insight. Score `insight` ≤2 when the lesson mainly lists file
 surface without one non-obvious causal claim. Add `mustFix` when the lesson lacks a verified source
 snippet or ends in symbol recall instead of a small change/debug/test-prediction job.
 
+Review the author-only `learningMoments` ledger as a decision record, not a quota. Confirm every
+included Quick check, Think first, or See for yourself block exists and earns its place. Challenge
+an omission when the draft contains a consequential misconception, a useful causal pause, or a
+safe browser-observable boundary and the stated reason is generic or contradicted by the lesson.
+Add `mustFix` when an obvious opportunity was silently skipped or dismissed without a specific
+evidence, safety, redundancy, or pacing reason.
+
 ## Context
 
 **Draft:**

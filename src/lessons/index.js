@@ -28,6 +28,11 @@ export {
 export { evaluateLessonForSave, runTeachFloors } from "./save-lesson.js";
 
 export { lessonPlanSchema, planLesson, composeMermaidBlock } from "./lesson-composition.js";
+export {
+  LEARNING_MOMENT_KINDS,
+  planLearningMoments,
+  inspectLearningMoments,
+} from "./learning-moments.js";
 
 export { buildEvidencePacket } from "./lesson-evidence.js";
 

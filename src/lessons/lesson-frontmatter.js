@@ -21,7 +21,7 @@ export function parseLessonFrontmatter(markdown) {
 }
 
 /**
- * Loose YAML subset: key: value, key: | / >- blocks, nested skipReasons, list under primaryPaths.
+ * Loose YAML subset: key: value, key: | / >- blocks, shallow nested maps, and scalar lists.
  * @param {string} raw
  */
 function parseSimpleYaml(raw) {
@@ -115,7 +115,7 @@ function stripQuotes(value) {
 
 /**
  * @param {Record<string, unknown>} fm
- * @returns {{ mapAnswers: string | null, skipReasons: { map?: string, purpose?: string, verify?: string }, subject: string | null, primaryPaths: string[], shape: string | null, sectionRoles: { workedPath?: string, pitfall?: string, check?: string }, diagramDecision: string | null, diagramReason: string | null }}
+ * @returns {{ mapAnswers: string | null, skipReasons: { map?: string, purpose?: string, verify?: string }, subject: string | null, primaryPaths: string[], shape: string | null, sectionRoles: { workedPath?: string, pitfall?: string, check?: string }, learningMoments: { quickCheck?: string, thinkFirst?: string, seeForYourself?: string }, diagramDecision: string | null, diagramReason: string | null }}
  */
 export function craftFieldsFromFrontmatter(fm) {
   const skipRaw = fm.skipReasons && typeof fm.skipReasons === "object" ? fm.skipReasons : {};
@@ -146,6 +146,13 @@ export function craftFieldsFromFrontmatter(fm) {
     const value = /** @type {any} */ (rolesRaw)[key];
     if (typeof value === "string" && value.trim()) sectionRoles[key] = value.trim();
   }
+  const momentsRaw =
+    fm.learningMoments && typeof fm.learningMoments === "object" ? fm.learningMoments : {};
+  const learningMoments = {};
+  for (const key of ["quickCheck", "thinkFirst", "seeForYourself"]) {
+    const value = /** @type {any} */ (momentsRaw)[key];
+    if (typeof value === "string" && value.trim()) learningMoments[key] = value.trim();
+  }
   const diagramDecision =
     typeof fm.diagramDecision === "string" && fm.diagramDecision.trim()
       ? fm.diagramDecision.trim().toLowerCase()
@@ -161,6 +168,7 @@ export function craftFieldsFromFrontmatter(fm) {
     primaryPaths,
     shape,
     sectionRoles,
+    learningMoments,
     diagramDecision,
     diagramReason,
   };

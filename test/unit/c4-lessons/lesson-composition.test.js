@@ -93,6 +93,12 @@ test("selects a dynamic shape and activates only strong cross-application module
     assert.equal(security.strength, "strong");
     assert.ok(security.independentSources >= 2);
     assert.ok(plan.simplePlan.length <= 9);
+    assert.equal(plan.learningMoments.opportunities.length, 3);
+    assert.ok(
+      plan.learningMoments.opportunities.every((moment) =>
+        ["recommended", "candidate", "omit"].includes(moment.decision),
+      ),
+    );
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
@@ -185,6 +191,7 @@ test("CLI Markdown exposes a simple plan while JSON retains selection evidence",
     const plan = lessonPlanSchema.parse(JSON.parse(json.stdout));
     assert.ok(plan.signals.some((signal) => signal.evidenceIds.length > 0));
     assert.ok(plan.omittedOptionalSections.length > 0);
+    assert.ok(plan.learningMoments.opportunities.some((moment) => moment.reason.length > 20));
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
@@ -203,6 +210,7 @@ test("planLesson includes diagramIntent according to topic and evidence", async 
     assert.ok(
       ["none", "flowchart", "sequence", "state", "er", "class"].includes(plan.diagramIntent.type),
     );
+    assert.equal(plan.learningMoments.maximum, 3);
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

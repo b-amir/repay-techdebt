@@ -162,91 +162,122 @@ test("default private memory persists externally without changing the target", a
   }
 });
 
-test("initializes memory, saves a checked Markdown lesson, and records a decision", async () => {
-  const target = await mkdtemp(resolve(tmpdir(), "repay-techdebt-memory-team-"));
-  const draft = resolve(target, "lesson-draft.md");
-  try {
-    await writeLessonEvidence(target);
-    await writeFile(draft, validConciseLesson());
-    await recordJudgment(draft, PASSING_JUDGMENT);
-    const initialized = await run([
-      "init",
-      target,
-      "--sharing",
-      "team",
-      "--mode",
-      "workbook",
-      "--depth",
-      "concise",
-      "--output-location",
-      "private",
-      "--save-policy",
-      "automatic",
-      "--allow-non-git",
-      "--yes",
-    ]);
-    assert.equal(initialized.code, 0, initialized.stderr);
-    const initializedResult = JSON.parse(initialized.stdout);
-    assert.equal(initializedResult.status, "ready");
-    assert.equal(initializedResult.graphifyIgnoreUpdated, true);
-    assert.match(await readFile(resolve(target, ".graphifyignore"), "utf8"), /\.repay-techdebt\//);
-    await writeCompleteGate(initializedResult.memoryRoot);
+test(
+  "initializes memory, saves a checked Markdown lesson, and records a decision",
+  { timeout: 120_000 },
+  async () => {
+    const target = await mkdtemp(resolve(tmpdir(), "repay-techdebt-memory-team-"));
+    const draft = resolve(target, "lesson-draft.md");
+    try {
+      await writeLessonEvidence(target);
+      await writeFile(draft, validConciseLesson());
+      await recordJudgment(draft, PASSING_JUDGMENT);
+      const initialized = await run([
+        "init",
+        target,
+        "--sharing",
+        "team",
+        "--mode",
+        "workbook",
+        "--depth",
+        "concise",
+        "--output-location",
+        "private",
+        "--save-policy",
+        "automatic",
+        "--allow-non-git",
+        "--yes",
+      ]);
+      assert.equal(initialized.code, 0, initialized.stderr);
+      const initializedResult = JSON.parse(initialized.stdout);
+      assert.equal(initializedResult.status, "ready");
+      assert.equal(initializedResult.graphifyIgnoreUpdated, true);
+      assert.match(
+        await readFile(resolve(target, ".graphifyignore"), "utf8"),
+        /\.repay-techdebt\//,
+      );
+      await writeCompleteGate(initializedResult.memoryRoot);
 
-    const curriculum = await saveTeachingCurriculum(target, [
-      {
-        title: "Dependency Direction",
-        focus: "dependency-direction-boundary",
-        evidencePaths: ["src/routes/admin.ts", "src/auth/permission.ts"],
-      },
-    ]);
-    const saved = await run([
-      "save-lesson",
-      target,
-      "--topic-id",
-      curriculum.topics[0].id,
-      "--title",
-      "Dependency Direction",
-      "--input",
-      draft,
-      "--yes",
-    ]);
-    assert.equal(saved.code, 0, saved.stderr);
-    const savedResult = JSON.parse(saved.stdout);
-    assert.match(savedResult.file, /^lessons\/\d{4}-\d{2}-\d{2}-/);
-    assert.match(
-      await readFile(resolve(target, ".repay-techdebt", savedResult.file), "utf8"),
-      /^---[\s\S]*?\n# Dependency Direction/m,
-    );
+      const curriculum = await saveTeachingCurriculum(target, [
+        {
+          title: "Dependency Direction",
+          focus: "dependency-direction-boundary",
+          evidencePaths: ["src/routes/admin.ts", "src/auth/permission.ts"],
+        },
+      ]);
+      const missingDecisionsDraft = resolve(target, "lesson-without-learning-decisions.md");
+      await writeFile(
+        missingDecisionsDraft,
+        validConciseLesson().replace(/learningMoments:\n(?:  .+\n){3}/, ""),
+      );
+      await recordJudgment(missingDecisionsDraft, PASSING_JUDGMENT);
+      const missingDecisions = await run([
+        "save-lesson",
+        target,
+        "--topic-id",
+        curriculum.topics[0].id,
+        "--title",
+        "Dependency Direction",
+        "--input",
+        missingDecisionsDraft,
+        "--yes",
+      ]);
+      assert.equal(missingDecisions.code, 2);
+      assert.ok(
+        JSON.parse(missingDecisions.stdout).quality.errors.some((error) =>
+          /learningMoments decisions/i.test(error),
+        ),
+      );
 
-    const recorded = await run([
-      "record-decision",
-      target,
-      "--scope",
-      "architecture",
-      "--decision",
-      "Teach domain boundaries first",
-      "--reason",
-      "They explain most call paths",
-      "--yes",
-    ]);
-    assert.equal(recorded.code, 0, recorded.stderr);
+      const saved = await run([
+        "save-lesson",
+        target,
+        "--topic-id",
+        curriculum.topics[0].id,
+        "--title",
+        "Dependency Direction",
+        "--input",
+        draft,
+        "--yes",
+      ]);
+      assert.equal(saved.code, 0, saved.stderr);
+      const savedResult = JSON.parse(saved.stdout);
+      assert.match(savedResult.file, /^lessons\/\d{4}-\d{2}-\d{2}-/);
+      assert.match(
+        await readFile(resolve(target, ".repay-techdebt", savedResult.file), "utf8"),
+        /^---[\s\S]*?\n# Dependency Direction/m,
+      );
 
-    const status = await run(["status", target, "--format", "json"]);
-    assert.equal(status.code, 0);
-    const report = JSON.parse(status.stdout);
-    assert.equal(report.targetRoot, await realpath(target));
-    assert.equal(report.status, "ready-with-warning");
-    assert.equal(report.config.sharing, "team");
-    assert.equal(report.config.output.savePolicy, "automatic");
-    assert.equal(report.lessonCount, 1);
-    assert.match(
-      await readFile(resolve(target, ".repay-techdebt", "decisions.md"), "utf8"),
-      /Teach domain boundaries first/,
-    );
-  } finally {
-    await rm(target, { force: true, recursive: true });
-  }
-});
+      const recorded = await run([
+        "record-decision",
+        target,
+        "--scope",
+        "architecture",
+        "--decision",
+        "Teach domain boundaries first",
+        "--reason",
+        "They explain most call paths",
+        "--yes",
+      ]);
+      assert.equal(recorded.code, 0, recorded.stderr);
+
+      const status = await run(["status", target, "--format", "json"]);
+      assert.equal(status.code, 0);
+      const report = JSON.parse(status.stdout);
+      assert.equal(report.targetRoot, await realpath(target));
+      assert.equal(report.status, "ready-with-warning");
+      assert.equal(report.config.sharing, "team");
+      assert.equal(report.config.output.savePolicy, "automatic");
+      assert.equal(report.lessonCount, 1);
+      assert.match(
+        await readFile(resolve(target, ".repay-techdebt", "decisions.md"), "utf8"),
+        /Teach domain boundaries first/,
+      );
+    } finally {
+      await rm(target, { force: true, recursive: true });
+    }
+  },
+);
 
 test("local memory is added to the target gitignore", async () => {
   const target = await mkdtemp(resolve(tmpdir(), "repay-techdebt-memory-local-"));

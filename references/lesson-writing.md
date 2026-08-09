@@ -132,14 +132,34 @@ Build those needs around one verified causal thread: trigger, decision or transf
 and feedback. Pair the normal mechanism with one supported failure, edge case, abuse case, or
 tempting wrong model from the same subject.
 
-Interactive learning is optional and evidence-driven. Add it where the reader naturally needs to
-commit to a model, pause before an explanation, or observe runtime behavior—not because every lesson
-needs a quiz. Use the documented `Quick check` for one consequential misconception with two to four
-plausible choices and one correct answer; `Think first` for a collapsed causal answer; and `See for
-yourself` for a safe DevTools walkthrough. A walkthrough names the safe execution context, setup,
-action, observable signal, one controlled variation, and an explicit `Reset`. It must not expose
-secrets, alter production data, or ask the reader to defeat a live security boundary. Keep at most
-three useful interactive moments and remove any that merely test symbol recall.
+Interactive learning is optional and evidence-driven; reviewing its opportunities is not optional.
+Use the plan's `learningMoments` entries to inspect three specific possibilities against live
+source: a consequential misconception for `Quick check`, a causal pause for `Think first`, and a
+safe browser-observable boundary for `See for yourself`. Include recommendations unless a concrete
+evidence, safety, redundancy, or pacing reason supports omission, and decide candidates explicitly.
+This is an opportunity review, not a quiz quota.
+
+Record the result in author-only frontmatter so the save gate can catch silent omissions:
+
+```yaml
+learningMoments:
+  quickCheck: included - distinguish the shared client from a plausible raw request shortcut
+  thinkFirst: omitted - the worked trace already resolves the same causal prediction
+  seeForYourself: included - observe the safe local request boundary in DevTools
+```
+
+Every entry starts with `included -` or `omitted -` and gives a topic-specific purpose or reason.
+Included entries require a matching block. Missing decisions, vague reasons, and plan-to-draft
+drift block durable save for curriculum lessons. `Prediction`/`Reveal` remains readable in older
+lessons but is treated as the same causal moment as `Think first`/`Answer`; prefer the latter in new
+lessons.
+
+Use `Quick check` with two to four plausible choices and one correct answer; use `Think first` for a
+collapsed causal answer; and use `See for yourself` for a safe DevTools walkthrough. A walkthrough
+names the safe execution context, setup, action, observable signal, one controlled variation, and
+an explicit `Reset`. It must not expose secrets, alter production data, or ask the reader to defeat
+a live security boundary. Keep at most three useful interactive moments and remove any that merely
+test symbol recall.
 
 Do not force these labels verbatim. A security lesson and a UI interaction lesson should not look
 like copies of the same form.

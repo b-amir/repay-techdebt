@@ -2,6 +2,7 @@ import { extractLessonCitations } from "./lesson-citation-check.js";
 import { parseCitation } from "./citation-model.js";
 import { parseClaimsBlock } from "./claim-faithfulness.js";
 import { inspectLessonShape } from "./lesson-shape.js";
+import { inspectLearningMoments } from "./learning-moments.js";
 
 const DEPTH_RANGES = {
   concise: [250, 650],
@@ -35,11 +36,16 @@ function wordCount(markdown) {
 
 /**
  * @param {string} markdown
- * @param {{ depth?: string, expectedEvidencePaths?: string[], subject?: string }} [options]
+ * @param {{ depth?: string, expectedEvidencePaths?: string[], subject?: string, requireLearningMomentDecisions?: boolean }} [options]
  */
 export function inspectLesson(
   markdown,
-  { depth = "balanced", expectedEvidencePaths = [], subject } = {},
+  {
+    depth = "balanced",
+    expectedEvidencePaths = [],
+    subject,
+    requireLearningMomentDecisions = false,
+  } = {},
 ) {
   if (!DEPTH_RANGES[depth]) throw new Error("depth must be concise, balanced, or deep");
   const headings = [...markdown.matchAll(/^##\s+(.+)$/gm)].map((match) => match[1].trim());
@@ -309,6 +315,13 @@ export function inspectLesson(
     );
   }
 
+  const learningMoments = inspectLearningMoments(markdown, {
+    depth,
+    requireDecisions: requireLearningMomentDecisions,
+  });
+  errors.push(...learningMoments.errors);
+  warnings.push(...learningMoments.warnings);
+
   const nonMermaidFence = [...markdown.matchAll(/^```([^\n`]*)\n[\s\S]*?^```/gm)].some(
     (match) => match[1].trim().split(/\s+/)[0]?.toLowerCase() !== "mermaid",
   );
@@ -374,6 +387,7 @@ export function inspectLesson(
     errors,
     warnings,
     shape,
+    learningMoments,
   };
 }
 

@@ -178,7 +178,11 @@ source note. Prefer behavior and symbol names in prose instead of repeatedly spe
 repository locations.
 
 Interactive learning appears only where it supports the lesson's causal thread; lessons do not have
-a quiz quota. Prediction and Think first prompts use native disclosures, so the question remains
+a quiz quota. During composition, the planner explicitly reviews Quick check, Think first, and See
+for yourself opportunities. Curriculum lessons record an author-only include/omit decision and a
+specific purpose or omission reason for each one; durable save rejects a selected moment that
+disappears from the draft. This makes omissions deliberate without forcing a widget into every
+lesson. Prediction and Think first prompts use native disclosures, so the question remains
 visible without JavaScript and print reveals the answer. A Quick check offers two to four predefined
 choices, enables Check answer after selection, and then identifies correct or incorrect without
 relying on color. Its feedback always explains the mechanism; choices are not scored or saved. If

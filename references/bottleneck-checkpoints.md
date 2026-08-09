@@ -98,16 +98,17 @@ hard taste gates.
 **Ask:** Draft one topic. Self-check predict hook, investigate-from-citations, concrete modify/debug
 job, transfer recap—without empty PRIMM headings.
 
-| Craft decision | Pass                                                                      |
-| -------------- | ------------------------------------------------------------------------- |
-| Mental model   | One safe-change/debug job                                                 |
-| Worked path    | At least one small verified non-Mermaid code fence from a primary path    |
-| Pitfall        | Wrong model → concrete effect                                             |
-| Ending         | Modify, debug, run/predict, or named-test assertion—not symbol recall     |
-| Prove-it       | Test path + expected behavior, or omit                                    |
-| CLAIMS         | Prefer ≤5 material mechanism claims, not export inventory                 |
-| Headings       | Topic language declared with `sectionRoles`; do not clone a batch outline |
-| Visual         | Follow `diagramIntent`; verified nodes/edges only; Mermaid must parse     |
+| Craft decision | Pass                                                                       |
+| -------------- | -------------------------------------------------------------------------- |
+| Mental model   | One safe-change/debug job                                                  |
+| Worked path    | At least one small verified non-Mermaid code fence from a primary path     |
+| Pitfall        | Wrong model → concrete effect                                              |
+| Ending         | Modify, debug, run/predict, or named-test assertion—not symbol recall      |
+| Prove-it       | Test path + expected behavior, or omit                                     |
+| CLAIMS         | Prefer ≤5 material mechanism claims, not export inventory                  |
+| Headings       | Topic language declared with `sectionRoles`; do not clone a batch outline  |
+| Visual         | Follow `diagramIntent`; verified nodes/edges only; Mermaid must parse      |
+| Learning aids  | Review all three `learningMoments`; includes exist, omissions are specific |
 
 **Floor:** `check-lesson-quality.js`.
 

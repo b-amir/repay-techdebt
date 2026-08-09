@@ -11,7 +11,9 @@ mental model and supports safe action.
 
 The planner's result is advisory. Verify source and successful tool evidence before filling a
 module. A required module is required for the chosen lesson shape, but its exact heading and format
-remain flexible. An optional module disappears unless it passes the activation gate.
+remain flexible. An optional module disappears unless it passes the activation gate. The planner
+also emits three explicit `learningMoments` opportunity decisions. Recommendations should survive
+unless source review records a concrete reason to omit them; candidates require an explicit choice.
 
 ## Primary shape recipes
 
@@ -218,12 +220,12 @@ frequency, latency, utilization, and production impact.
 
 ## Presentation constraints
 
-The internal plan may retain scores, omissions, limitations, and many candidates. The learner-facing
+The internal plan may retain scores, omissions, limitations, learning-moment decisions, and many candidates. The learner-facing
 lesson should normally contain four to eight sections with plain headings. Do not expose a rubric,
 empty optional headings, or an exhaustive inventory. Put evidence beside claims, label uncertainty,
-and give the reader one coherent path through the subject. Interactive aids are optional: use only
-the prediction, single-answer check, think-first reveal, or DevTools walkthrough that creates a
-useful pause in the causal thread. Never add one to meet a quota, avoid more than three in a lesson,
-and make every revealed answer explain the mechanism. Teach one supported contrast beside the
-normal path, and close on the safe-change, recovery, or next-test boundary appropriate to the
-selected shape.
+and give the reader one coherent path through the subject. Interactive aids are optional, but the
+author must record include/omit decisions for Quick check, Think first, and See for yourself. Use
+only the aids that create a useful pause in the causal thread, never add one to meet a quota, avoid
+more than three, and make every revealed answer explain the mechanism. Teach one supported contrast
+beside the normal path, and close on the safe-change, recovery, or next-test boundary appropriate to
+the selected shape.

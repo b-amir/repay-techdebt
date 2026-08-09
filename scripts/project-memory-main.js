@@ -1680,6 +1680,7 @@ async function saveLesson(targetRoot, options) {
     draftPath: inputPath,
     trajectoryGate,
     subject: lessonSubject,
+    requireLearningMomentDecisions: Boolean(topic),
   });
   if (!ok) {
     const pathBlocked = trajectory?.refuse === true;

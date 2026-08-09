@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { selectDiagramType } from "./diagram-selection.js";
+import { planLearningMoments } from "./learning-moments.js";
 
 const LESSON_PLAN_VERSION = 1;
 
@@ -85,6 +86,21 @@ export const lessonPlanSchema = z.object({
   ),
   evidenceGaps: z.array(z.string()),
   compositionRules: z.array(z.string()),
+  learningMoments: z.object({
+    maximum: z.literal(3),
+    opportunities: z
+      .array(
+        z.object({
+          kind: z.enum(["quick-check", "think-first", "see-for-yourself"]),
+          decision: z.enum(["recommended", "candidate", "omit"]),
+          afterSectionId: z.string().nullable(),
+          teachingGoal: z.string(),
+          reason: z.string(),
+          evidenceIds: z.array(z.string()),
+        }),
+      )
+      .length(3),
+  }),
   diagramIntent: z
     .object({
       type: z.enum(["none", "flowchart", "sequence", "state", "er", "class"]),
@@ -1032,6 +1048,14 @@ export function planLesson(model, options = {}) {
   };
   const topicForDiagram = { chapter: shape.label };
   const diagramIntent = selectDiagramType(topicForDiagram, packetForDiagram);
+  const learningMoments = planLearningMoments({
+    shapeId: shapeSelection.id,
+    depth,
+    sections: [...required, ...activated],
+    signals,
+    hasFocusEvidence: context.anchors.length > 0,
+    browserCapable: model.profile.capabilities.includes("browser-ui"),
+  });
 
   return lessonPlanSchema.parse({
     schemaVersion: LESSON_PLAN_VERSION,
@@ -1056,13 +1080,15 @@ export function planLesson(model, options = {}) {
     })),
     evidenceGaps,
     diagramIntent,
+    learningMoments,
     compositionRules: [
       "Keep the visible lesson to the planned sections; do not print scoring or empty placeholders.",
       "Open with what the learner can understand or safely change and why that capability matters in this project; do not restate the title or announce the lesson.",
       "Build the explanation around one verified causal thread from trigger through decision to effect or feedback.",
       "Verify every claim in live source and cite exact project-relative lines before teaching it.",
       "Pair the normal mechanism with one supported failure, edge case, abuse case, or tempting wrong model from the same subject.",
-      "Use zero to three interactive learning moments only where a pause improves understanding: a single-answer Quick check for a consequential misconception, a Think first reveal for causal reasoning, or a See for yourself walkthrough for safe observable behavior. Never add them to satisfy a quota.",
+      "Review every learningMoments opportunity against live source. Include recommended moments unless a concrete evidence, safety, redundancy, or pacing reason justifies omission; decide candidates explicitly; never add a widget to satisfy a quota.",
+      "Record include/omit decisions for quickCheck, thinkFirst, and seeForYourself in the lesson frontmatter. Every decision needs a topic-specific purpose or omission reason, and every included decision must appear in the draft.",
       "End with the invariant to preserve, affected consumer or boundary, concrete verification, and the signal that would reveal a regression.",
       "Treat optional sections as invitations to investigate, not proof of a defect or runtime behavior.",
       "Prefer clues that converge across files, relations, manifests, tests, configuration, tools, or confirmed memory.",

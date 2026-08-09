@@ -102,6 +102,13 @@ function markdown(plan) {
         : []),
     ]),
     "",
+    "## Learning opportunities",
+    "",
+    ...plan.learningMoments.opportunities.map(
+      (moment) =>
+        `- **${moment.kind} · ${moment.decision}**${moment.afterSectionId ? ` after \`${moment.afterSectionId}\`` : ""} — ${moment.teachingGoal} ${moment.reason}`,
+    ),
+    "",
     "## Evidence gaps",
     "",
     ...plan.evidenceGaps.map((item) => `- ${item}`),

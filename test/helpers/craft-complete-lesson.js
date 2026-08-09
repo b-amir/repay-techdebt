@@ -12,6 +12,10 @@ primaryPaths:
 skipReasons:
   map: >-
     Single boundary between route and helper; no multi-module structure map needed.
+learningMoments:
+  quickCheck: omitted - this concise integration fixture already ends with a transfer challenge
+  thinkFirst: omitted - the final prediction covers the only causal pause in this small fixture
+  seeForYourself: omitted - the fixture has no browser runtime or safe DevTools observation
 ---
 
 You will learn how the request boundary protects a change before data reaches the service. This matters because a caller should not be able to bypass the same rule through a second entry point. The lesson stays focused on one decision and one consequence so you can reuse the same check order on the next route you touch.
