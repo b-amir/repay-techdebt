@@ -8,14 +8,15 @@ Quick reference for humans and agents. All paths use `<skill-root>` (directory c
 When you invoke the skill with a flag (e.g. in chat: “use repay-techdebt `--clear-output`”), the
 agent runs the matching script **before** analysis. These map to `project-memory.js` actions.
 
-| Flag / intent    | Script         | What it does                                                                                                                            |
-| ---------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `--clear-output` | `clear-output` | Removes skill memory, workbook (`INDEX.md`, `progress.json`, lessons), curriculum, and artifacts. **Never** deletes application source. |
-| `--clear-cache`  | `clear-cache`  | Removes disposable analyzer cache only (Graphify/Serena indexes). Keeps lessons and curriculum.                                         |
-| `--reset`        | `reset`        | `--clear-output` plus `--clear-cache`. Fresh skill state for the target.                                                                |
-| `--reconfig`     | `reconfig`     | Updates preferences in existing `config.json` (mode, depth, save policy, hints). Does not move workbook paths.                          |
-| `--view`         | `open-viewer`  | Opens the script-owned workbook viewer in the browser (`view-lessons.js --open`).                                                       |
-| `--create <id>`  | `teach-topic`  | Start teaching one planned topic by id, title slug, or focus (`teach-topic.js`).                                                        |
+| Flag / intent     | Script                   | What it does                                                                                                                            |
+| ----------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `--clear-output`  | `clear-output`           | Removes skill memory, workbook (`INDEX.md`, `progress.json`, lessons), curriculum, and artifacts. **Never** deletes application source. |
+| `--clear-cache`   | `clear-cache`            | Removes disposable analyzer cache only (Graphify/Serena indexes). Keeps lessons and curriculum.                                         |
+| `--reset`         | `reset`                  | `--clear-output` plus `--clear-cache`. Fresh skill state for the target.                                                                |
+| `--reconfig`      | `reconfig`               | Updates preferences in existing `config.json` (mode, depth, save policy, hints). Does not move workbook paths.                          |
+| `--view`          | `open-viewer`            | Opens the script-owned workbook viewer in the browser (`view-lessons.js --open`).                                                       |
+| `--create <id>`   | `teach-topic`            | Start teaching one planned topic by id, title slug, or focus (`teach-topic.js`).                                                        |
+| `--recreate <id>` | `teach-topic --recreate` | Replace one written lesson through the same teach handshake + `save-lesson`. Never hand-write memory lesson files.                      |
 
 Optional modifiers (combine with clear/reset):
 
@@ -214,6 +215,18 @@ Script (agents / automation only):
 ```text
 node <skill-root>/scripts/teach-topic.js <target-root> <topic-id-or-slug> [--draft <path>]
 ```
+
+### Recreate one written topic (`--recreate`)
+
+Chat: `/repay-techdebt --recreate topic-abc123`. Agents must still run quality + judgment +
+`save-lesson`. If the curriculum title is a path basename, invent a mechanism title and pass
+`--title` (same text as the draft H1).
+
+```text
+node <skill-root>/scripts/teach-topic.js <target-root> <topic-id> --recreate [--title <mechanism title>] [--draft <path>]
+```
+
+Do not write `memory/lessons/topic-*.md` by hand or invent Goal/Overview/Summary packets.
 
 ### Skill runtime
 

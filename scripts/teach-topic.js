@@ -13,6 +13,8 @@ function parse(argv) {
     options: {
       "topic-id": { type: "string" },
       next: { type: "boolean" },
+      recreate: { type: "boolean" },
+      title: { type: "string" },
       draft: { type: "string" },
       depth: { type: "string" },
       scope: { type: "string" },
@@ -27,12 +29,15 @@ function parse(argv) {
 
   if (values.help) {
     process.stdout.write(`Usage:
-  node teach-topic.js <target-root> [<topic-id-or-slug>] [--topic-id <id>] [--next] [--draft <path>]
+  node teach-topic.js <target-root> [<topic-id-or-slug>] [--topic-id <id>] [--next] [--recreate] [--title <title>] [--draft <path>]
 
 Activation flag --create maps to this script with a topic selector (id, title slug, or focus).
+Use --recreate when replacing an existing written lesson. If the curriculum title is still a
+path basename, pass a mechanism title with --title (and put the same text in the draft H1).
 
 Examples:
   node teach-topic.js /path/to/app topic-abc123def456
+  node teach-topic.js /path/to/app topic-abc123def456 --recreate --title "One QueryClient, Shared Failure Policy" --draft /tmp/lesson.md
   node teach-topic.js /path/to/app request-boundary --draft /tmp/lesson.md
 `);
     process.exit(0);
@@ -68,6 +73,8 @@ try {
     topicId: options.topicId,
     next: options.next,
     draftPath: options.draft,
+    recreate: options.recreate === true,
+    title: options.title,
     depth: options.depth,
     scope: options.scope,
     maxFiles: options["max-files"],

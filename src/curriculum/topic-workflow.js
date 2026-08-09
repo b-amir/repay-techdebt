@@ -2,6 +2,7 @@ import { resolveMemoryPaths } from "../foundations/memory-paths.js";
 import { buildProgramModel } from "../program/program-intelligence.js";
 import { planLesson } from "../lessons/lesson-composition.js";
 import { inspectLesson } from "../lessons/lesson-quality.js";
+import { isWeakCurriculumTitle } from "./title-quality.js";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { readFile } from "node:fs/promises";
@@ -41,8 +42,8 @@ export async function runTopicWorkflow(target, options) {
     }
   }
 
-  // 3. Check if completed
-  if (topic.lessonPath) {
+  // 3. Existing lesson: recreate continues; plain create stops.
+  if (topic.lessonPath && !options.recreate) {
     return { status: "complete", reason: "Topic already has a saved lesson." };
   }
 
@@ -52,6 +53,7 @@ export async function runTopicWorkflow(target, options) {
     const evaluation = inspectLesson(draftMarkdown, {
       depth: options.depth || "balanced",
       expectedEvidencePaths: topic.evidencePaths || [],
+      requireLearningMomentDecisions: true,
     });
 
     if (!evaluation.ok) {
@@ -60,6 +62,19 @@ export async function runTopicWorkflow(target, options) {
         requiredAction: "fix-lesson-quality",
         errors: evaluation.errors,
         warnings: evaluation.warnings,
+      };
+    }
+
+    const saveTitle = options.title?.trim() || topic.title;
+    if (isWeakCurriculumTitle(saveTitle, topic.focus, topic.kind)) {
+      return {
+        status: "paused",
+        requiredAction: "rewrite-topic-title",
+        topicId: topic.id,
+        focus: topic.focus,
+        currentTitle: topic.title,
+        reason:
+          "Curriculum/lesson title is still a path basename or planner placeholder. Invent a mechanism title, put it in the draft H1, and pass it as --title on save.",
       };
     }
 
@@ -72,7 +87,7 @@ export async function runTopicWorkflow(target, options) {
       "--topic-id",
       topic.id,
       "--title",
-      topic.title,
+      saveTitle,
       "--input",
       options.draftPath,
       "--yes",
@@ -84,7 +99,7 @@ export async function runTopicWorkflow(target, options) {
       return {
         status: "complete",
         topicId: topic.id,
-        reason: "Lesson saved successfully.",
+        reason: options.recreate ? "Lesson recreated successfully." : "Lesson saved successfully.",
         warnings: payload.warnings ?? evaluation.warnings ?? [],
         viewer: payload.viewer ?? null,
       };
@@ -97,7 +112,7 @@ export async function runTopicWorkflow(target, options) {
     }
   }
 
-  // 5. Build model and plan
+  // 5. Build model and plan against the focus path, never the title string.
   const model = await buildProgramModel(target, {
     scope: options.scope,
     maxFiles: options.maxFiles,
@@ -107,14 +122,34 @@ export async function runTopicWorkflow(target, options) {
   });
 
   const plan = planLesson(model, {
-    focus: topic.title,
+    focus: topic.focus,
     depth: options.depth || "balanced",
   });
 
+  const weakTitle = isWeakCurriculumTitle(topic.title, topic.focus, topic.kind);
   return {
     status: "paused",
     requiredAction: "draft-lesson",
     topicId: topic.id,
+    focus: topic.focus,
+    title: topic.title,
+    recreate: Boolean(options.recreate && topic.lessonPath),
+    previousLessonPath: options.recreate ? topic.lessonPath : null,
+    mustRewriteTitle: weakTitle,
+    titleGuidance: weakTitle
+      ? "Do not keep this Title-Cased path as the lesson title. Invent a mechanism/decision/consequence title before drafting."
+      : null,
     plan,
+    nextAsks: [
+      {
+        who: "agent",
+        do: weakTitle
+          ? "rewrite-title-then-draft-via-teach-handshake"
+          : "draft-via-teach-handshake",
+        why: options.recreate
+          ? "Recreate must run check-lesson-quality + review-lesson + save-lesson. Never write topic-*.md into memory by hand."
+          : "Draft must use repay lesson shape and save-lesson only.",
+      },
+    ],
   };
 }

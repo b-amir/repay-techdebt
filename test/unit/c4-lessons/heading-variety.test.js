@@ -36,6 +36,10 @@ test("path-derived titles are rejected", () => {
     isPathDerivedTitle("Every Browser Request Enters Through /bff", "app/core/api/http-client.ts"),
     false,
   );
+  assert.equal(
+    isPathDerivedTitle("Dependency Direction", "dependency-direction-boundary"),
+    false,
+  );
 });
 
 test("path-derived title with multi-segment focus still fails", () => {

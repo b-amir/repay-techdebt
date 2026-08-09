@@ -83,14 +83,15 @@ as application evidence.
 If the user invokes the skill with a maintenance flag, run the matching `project-memory.js` action
 on `<target-root>` first. Full manual: `<skill-root>/docs/manual.md`.
 
-| User flag        | Action         | Notes                                                                             |
-| ---------------- | -------------- | --------------------------------------------------------------------------------- |
-| `--clear-output` | `clear-output` | Skill memory + workbook + curriculum. Never app source. `--dry-run` then `--yes`. |
-| `--clear-cache`  | `clear-cache`  | Analyzer cache only.                                                              |
-| `--reset`        | `reset`        | Output + cache.                                                                   |
-| `--reconfig`     | `reconfig`     | Update mode/depth/save-policy in existing config.                                 |
-| `--view`         | `open-viewer`  | Script-owned browser UI only. Never hand-build viewer HTML.                       |
-| `--create <id>`  | `teach-topic`  | Teach one planned topic (`teach-topic.js` with topic id/slug/focus).              |
+| User flag         | Action                   | Notes                                                                                          |
+| ----------------- | ------------------------ | ---------------------------------------------------------------------------------------------- |
+| `--clear-output`  | `clear-output`           | Skill memory + workbook + curriculum. Never app source. `--dry-run` then `--yes`.              |
+| `--clear-cache`   | `clear-cache`            | Analyzer cache only.                                                                           |
+| `--reset`         | `reset`                  | Output + cache.                                                                                |
+| `--reconfig`      | `reconfig`               | Update mode/depth/save-policy in existing config.                                              |
+| `--view`          | `open-viewer`            | Script-owned browser UI only. Never hand-build viewer HTML.                                    |
+| `--create <id>`   | `teach-topic`            | Teach one planned topic (`teach-topic.js` with topic id/slug/focus).                           |
+| `--recreate <id>` | `teach-topic --recreate` | Replace one written lesson. Same teach handshake + save-lesson. Never hand-write memory files. |
 
 Modifiers: `--keep-lessons`, `--keep-config`, `--revert-target-markers`, `--dry-run` (preview).
 
@@ -304,7 +305,16 @@ topics, **must** open the viewer with
 
 ## Teach handshake (compose → check → semantic → save)
 
-1. **Script propose:** `plan-lesson.js` (advisory shape. Verify in live source). Review all three
+**Hard rule for create and recreate:** the only durable write path is
+`project-memory.js save-lesson … --yes` after `check-lesson-quality` + reviewer judgment.
+Never invent `memory/lessons/topic-*.md`, never write a freeform Goal/Overview/Summary packet, and
+never treat a Title-Cased file path (`Core Query Client Ts`) as the lesson title. If the curriculum
+title is still a path basename, invent a mechanism title first. `save-lesson` will upgrade a weak
+curriculum title when `--title` and the draft H1 match the new name.
+
+1. **Script propose:** `plan-lesson.js` / `teach-topic.js` (advisory shape. Verify in live source).
+   For recreate, run `teach-topic.js <target> <topic-id> --recreate` so an existing `lessonPath` does
+   not short-circuit. Review all three
    `learningMoments` decisions: include recommended moments unless live source gives a concrete
    evidence, safety, redundancy, or pacing reason to omit them. Decide candidates explicitly.
    After retrieve, complete B5 (verify ≤3 anchors).

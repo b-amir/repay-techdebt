@@ -1,7 +1,8 @@
 import { resolve } from "node:path";
 import { validateAgentApproval } from "./curriculum-approval.js";
-import { titleFor, outcomeFor } from "./curriculum-planning.js";
+import { outcomeFor } from "./curriculum-planning.js";
 import { inspectTitleSet } from "./title-review.js";
+import { isWeakCurriculumTitle } from "./title-quality.js";
 
 /**
  * Validate a curriculum proposal for persistence (approval + structural floors).
@@ -104,12 +105,9 @@ export function validateCurriculum(value, targetRoot) {
   const hasReason = (reason) => typeof reason === "string" && reason.trim().length > 0;
   for (const topic of value.topics) {
     if (!topic.kind || !topic.focus) continue;
-    if (
-      topic.title === titleFor(topic.kind, topic.focus) &&
-      !hasReason(placeholderReasons[topic.id]?.title)
-    ) {
+    if (isWeakCurriculumTitle(topic.title, topic.focus, topic.kind)) {
       throw new Error(
-        `Topic ${topic.id} keeps the planner title placeholder; the agent must author the final title or record a specific placeholderReasons title reason.`,
+        `Topic ${topic.id} title "${topic.title}" is still a path basename or planner placeholder. Invent a mechanism/decision/consequence title before approval (focus stays ${topic.focus}).`,
       );
     }
     if (

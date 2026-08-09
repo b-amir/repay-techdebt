@@ -273,7 +273,10 @@ test("unchanged planner title is blocked until the agent authors it or records a
     learnerOutcome: outcomeFor("module", focus),
   });
   const value = curriculum([planned, topic(2), topic(3)]);
-  assert.throws(() => validateCurriculum(value, TARGET_ROOT), /planner title placeholder/i);
+  assert.throws(
+    () => validateCurriculum(value, TARGET_ROOT),
+    /path basename or planner placeholder|planner title placeholder/i,
+  );
 
   const booleanBypass = curriculum(
     [
@@ -298,12 +301,22 @@ test("unchanged planner title is blocked until the agent authors it or records a
       },
     },
   );
-  assert.throws(() => validateCurriculum(booleanBypass, TARGET_ROOT), /planner title placeholder/i);
+  assert.throws(
+    () => validateCurriculum(booleanBypass, TARGET_ROOT),
+    /path basename or planner placeholder|planner title placeholder/i,
+  );
 
   booleanBypass.agentApproval.placeholderReasons[planned.id] = {
     title: "The project uses this exact product term, so changing it would reduce clarity.",
     learnerOutcome: "The source-defined outcome is already precise.",
   };
+  // Path/placeholder titles are never retainable, even with a written reason.
+  assert.throws(
+    () => validateCurriculum(booleanBypass, TARGET_ROOT),
+    /path basename or planner placeholder/i,
+  );
+
+  booleanBypass.topics[0].title = "Where the module owns the request boundary";
   assert.ok(validateCurriculum(booleanBypass, TARGET_ROOT));
 });
 

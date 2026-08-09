@@ -24,6 +24,8 @@ const TEMPLATED_CLAIMS = [
 ];
 const HOLLOW_OPENING =
   /\b(?:in this lesson|this lesson (?:will|covers|explores|discusses)|we (?:will|are going to) (?:explore|cover|discuss)|welcome to)\b/i;
+const FREEFORM_BRIEF =
+  /(?:^|\n)#\s+Lesson\s*:|(?:^|\n)###\s+(?:Goal|Overview|Summary|Key Mechanisms\b)|(?:^|\n)\*\*(?:Topic ID|Date|Focus|Chapter)\*\*\s*:/i;
 const VERIFICATION_LANGUAGE =
   /\b(?:test|assert|expect|verify|check|run|observe|measure|log|trace|rollback|recover|diagnos|reproduce)\w*\b/i;
 const UNSAFE_DEVTOOLS_ACTION =
@@ -134,6 +136,11 @@ export function inspectLesson(
   if (opening && HOLLOW_OPENING.test(opening)) {
     errors.push(
       "Replace the generic opening with the learner outcome, project consequence, and concrete mechanism.",
+    );
+  }
+  if (FREEFORM_BRIEF.test(markdown)) {
+    errors.push(
+      "Draft uses a freeform brief/outline (Lesson:/Goal/Overview/Summary or Topic ID metadata). Rewrite into the repay lesson shape with topic-specific ## sections, sectionRoles, citations, and a transfer job, then save only via save-lesson.",
     );
   }
   const introductionCount = (markdown.match(/\b(?:in|throughout) this lesson\b/gi) ?? []).length;

@@ -190,6 +190,8 @@ export function isPathDerivedTitle(title, focus) {
     .replace(/^\.\//, "")
     .replaceAll("\\", "/");
   if (!focusPath) return false;
+  // Slug-like curriculum focuses (no slash, no extension) are not file-path titles.
+  if (!focusPath.includes("/") && !/\.[a-z][a-z0-9]*$/i.test(focusPath)) return false;
 
   const leaf = focusPath.split("/").pop() ?? "";
   const stem = leaf.replace(/\.[^.]+$/, "");

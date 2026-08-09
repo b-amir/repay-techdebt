@@ -33,7 +33,10 @@ import {
   preserveCurriculumProgress,
 } from "../src/memory/curriculum-refresh.js";
 import { readCurriculum, writeCurriculum } from "../src/memory/curriculum-store.js";
+import { validateCurriculum } from "../src/curriculum/approve-curriculum.js";
 import { renderCurriculumMarkdown } from "../src/curriculum/curriculum-planning.js";
+import { isWeakCurriculumTitle } from "../src/curriculum/title-quality.js";
+import { isPathDerivedTitle } from "../src/lessons/heading-variety.js";
 import { evaluateLessonForSave } from "../src/lessons/save-lesson.js";
 import {
   reverifyLessonClaims,
@@ -45,7 +48,6 @@ import { resolveWorkbook } from "../src/viewer/resolve-workbook.js";
 import { checkTrajectoryGate, formatPathIncompleteReason } from "../src/dialogue/trajectory.js";
 import { assertClosedNextAsks } from "../src/dialogue/dialogue-envelope.js";
 import { recordExercise, scheduleReview } from "../src/memory/learning-progress.js";
-import { validateCurriculum } from "../src/curriculum/approve-curriculum.js";
 import {
   executeSkillMaintenance,
   planSkillCacheClear,
@@ -1648,10 +1650,21 @@ async function saveLesson(targetRoot, options) {
   const title = options.title.replace(/\s+/g, " ").trim();
   const inputPath = await realpath(resolve(options.input));
   const body = await readFile(inputPath, "utf8");
-  if (topic?.title && topic.title !== title) {
+  const focusForTitle = topic?.focus ?? null;
+  if (isPathDerivedTitle(title, focusForTitle)) {
     throw new Error(
-      `Lesson title must match the agent-approved curriculum title exactly: ${topic.title}`,
+      `Lesson title "${title}" is still a path basename in Title Case. Name the mechanism, decision, or consequence before save.`,
     );
+  }
+  if (topic?.title && topic.title !== title) {
+    if (isWeakCurriculumTitle(topic.title, topic.focus, topic.kind)) {
+      // Recreate/create may replace a weak curriculum placeholder with a real title.
+      topic.title = title;
+    } else {
+      throw new Error(
+        `Lesson title must match the agent-approved curriculum title exactly: ${topic.title}`,
+      );
+    }
   }
   const bodyWithoutFrontmatter = body.replace(/^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/, "");
   const draftTitle = bodyWithoutFrontmatter.match(/^#\s+(.+)$/m)?.[1]?.trim();

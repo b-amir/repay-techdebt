@@ -91,6 +91,35 @@ test("selecting a topic that already has a lessonPath is complete", async () => 
   }
 });
 
+test("recreate on a written topic with a weak title asks for a rewrite before draft", async () => {
+  const ctx = await setup();
+  try {
+    await writeCurriculum(ctx.paths, [
+      {
+        id: "topic-aaaaaaaaaaaa",
+        title: "Core Query Client Ts",
+        focus: "app/core/query/client.ts",
+        kind: "entry",
+        lessonPath: "lessons/old.md",
+      },
+    ]);
+    // Avoid buildProgramModel by providing a draft that fails quality first.
+    const draft = resolve(ctx.targetRoot, "draft.md");
+    await writeFile(draft, "# Core Query Client Ts\n\n### Overview\nBrief.\n");
+    const result = await runTopicWorkflow(
+      { targetRoot: ctx.targetRoot },
+      { topicId: "topic-aaaaaaaaaaaa", recreate: true, draftPath: draft },
+    );
+    assert.equal(result.status, "paused");
+    assert.ok(
+      result.requiredAction === "fix-lesson-quality" ||
+        result.requiredAction === "rewrite-topic-title",
+    );
+  } finally {
+    await cleanup(ctx);
+  }
+});
+
 test("a low-quality draft pauses with fix-lesson-quality before any save", async () => {
   const ctx = await setup();
   const draft = resolve(ctx.targetRoot, "draft.md");

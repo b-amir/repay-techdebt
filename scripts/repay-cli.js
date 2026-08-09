@@ -166,6 +166,7 @@ export function sanitizeInvokeArgs(rest) {
       "--task",
       "--view",
       "--create",
+      "--recreate",
       "--clear-output",
       "--clear-cache",
       "--reset",

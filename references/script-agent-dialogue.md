@@ -180,6 +180,11 @@ Agent: stamp agentApproval, including complete-curriculum titleReview, on the re
 Script: project-memory.js save-curriculum … --input <approved.json> --yes (Save)
 Loop 1–3 lessons/run: plan-lesson (Propose) ↔ draft (Quality) ↔ check-lesson-quality (Mechanical QA) ↔ semantic (Quality judgment) ↔ save-lesson (Save)
 Agent: index + ledger; stop (resume next session)
+
+**Recreate (single topic):** same loop with `teach-topic.js <target> <id> --recreate`. If
+`mustRewriteTitle` is true, invent a mechanism title before drafting. Pass it as draft H1 and
+`save-lesson --title`. Never write `memory/lessons/topic-*.md` by hand. Never ship Goal/Overview/
+Summary packets. Path-basename titles (`Core Query Client Ts`) fail quality and save.
 ```
 
 Naming-heuristic topics need agent corroboration (graph, source, docs, or user) via
