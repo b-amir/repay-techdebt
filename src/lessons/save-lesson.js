@@ -39,6 +39,9 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
     subject,
     requireLearningMomentDecisions: options.requireLearningMomentDecisions === true,
   });
+  const citationVerification = await verifyLessonCitations(targetRoot, quality.citations);
+  const verifiedCitationPaths =
+    citationVerification.problems.length === 0 ? quality.evidencePaths : [];
   const hasMapAnswers =
     options.hasMapAnswers === true ||
     (typeof craftFields.mapAnswers === "string" && craftFields.mapAnswers.trim().length > 0);
@@ -92,7 +95,8 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
 
     craft.usefulness = inspectUsefulnessFloors(content, {
       depth: options.depth ?? "balanced",
-      expectedPaths: options.expectedEvidencePaths ?? craftFields.primaryPaths,
+      expectedPaths:
+        craftFields.primaryPaths.length > 0 ? craftFields.primaryPaths : verifiedCitationPaths,
     });
     const qualityHasLengthWarning = quality.warnings.some((warning) =>
       /length alone does not block save/i.test(warning),
@@ -106,12 +110,13 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
       quality.errors.push(...craft.usefulness.errors);
     }
 
-    const inventoryPaths =
+    const suppliedInventoryPaths =
       options.inventoryPaths ??
       options.inventory?.files?.map((f) => (typeof f === "string" ? f : f.path)) ??
-      null;
+      [];
+    const inventoryPaths = [...new Set([...suppliedInventoryPaths, ...verifiedCitationPaths])];
     craft.diagram = checkDiagramGate(content, {
-      inventory: inventoryPaths ?? options.inventory,
+      inventory: inventoryPaths.length > 0 ? inventoryPaths : options.inventory,
       mapAnswers: craftFields.mapAnswers,
     });
     if (!craft.diagram.ok) {
@@ -149,8 +154,8 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
     craft.subjectPath = checkSubjectPathGate({
       topicPath: options.topicPath ?? options.topic?.path,
       primaryPaths: craftFields.primaryPaths,
-      evidencePaths: options.expectedEvidencePaths ?? options.topic?.evidencePaths,
-      inventoryPaths: inventoryPaths ?? [],
+      evidencePaths: verifiedCitationPaths,
+      inventoryPaths,
       pins: options.pins ?? [],
       focus: options.topic?.focus ?? options.focus,
     });
@@ -180,7 +185,7 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
         {
           primaryPaths: craftFields.primaryPaths,
           citations: quality.citations,
-          evidencePaths: options.expectedEvidencePaths ?? options.topic?.evidencePaths,
+          evidencePaths: verifiedCitationPaths,
         },
         changedPaths,
       );
@@ -211,7 +216,7 @@ export async function evaluateLessonForSave(targetRoot, content, options = {}) {
     }
   }
 
-  quality.evidenceProblems = (await verifyLessonCitations(targetRoot, quality.citations)).problems;
+  quality.evidenceProblems = citationVerification.problems;
   if (quality.evidenceProblems.length > 0) {
     quality.ok = false;
     quality.errors.push("Every source citation must resolve to a current target file and line.");

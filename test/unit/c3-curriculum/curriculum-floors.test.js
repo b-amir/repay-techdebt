@@ -204,7 +204,7 @@ test("topic decisions require reasons and fold evidence into the kept topic", ()
   assert.throws(() => validateCurriculum(reasonless, TARGET_ROOT), /decision reason/i);
 });
 
-test("topic decisions reject missing fold targets", () => {
+test("topic decisions keep their source when a stale fold target disappeared", () => {
   const source = topic(1);
   const value = curriculum([source, topic(2), topic(3)], {
     agentApproval: {
@@ -223,7 +223,45 @@ test("topic decisions reject missing fold targets", () => {
       },
     },
   });
-  assert.throws(() => validateCurriculum(value, TARGET_ROOT), /fold target.*does not exist/i);
+  const result = validateCurriculum(value, TARGET_ROOT);
+  assert.deepEqual(
+    result.topics.map((item) => item.id),
+    [source.id, topic(2).id, topic(3).id],
+  );
+  assert.deepEqual(result.agentApproval.topicDecisions, {});
+  assert.ok(
+    !result.approvalWarnings.some((warning) => /fold target is no longer present/i.test(warning)),
+  );
+});
+
+test("stale topic decisions are stripped without blocking the current curriculum", () => {
+  const value = curriculum([topic(1), topic(2), topic(3)], {
+    agentApproval: {
+      approvedAt: "2026-01-01T00:00:00Z",
+      purposeStatus: "accepted",
+      titleReview: {
+        reviewedAt: "2026-01-01T00:00:00Z",
+        scope: "complete-curriculum",
+      },
+      topicDecisions: Object.fromEntries(
+        Array.from({ length: 130 }, (_, index) => [
+          `topic-${(index + 100).toString(16).padStart(12, "0")}`,
+          { action: "demote", reason: "Superseded planner candidate" },
+        ]),
+      ),
+      demotedTopicIds: ["topic-ffffffffffff"],
+    },
+  });
+
+  const result = validateCurriculum(value, TARGET_ROOT);
+  assert.equal(result.topics.length, 3);
+  assert.deepEqual(result.agentApproval.topicDecisions, {});
+  assert.deepEqual(result.agentApproval.demotedTopicIds, []);
+  assert.ok(
+    !result.approvalWarnings.some((warning) =>
+      /stale topic decision|stale legacy demotion/i.test(warning),
+    ),
+  );
 });
 
 test("unchanged planner title is blocked until the agent authors it or records a reason", () => {

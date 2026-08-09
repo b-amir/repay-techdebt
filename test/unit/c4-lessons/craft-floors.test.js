@@ -33,6 +33,7 @@ import { inspectLesson } from "../../../src/lessons/lesson-quality.js";
 import { buildTrajectoryGate } from "../../../src/dialogue/trajectory.js";
 import { recordJudgment } from "../../../src/lessons/lesson-judgment.js";
 import { PASSING_JUDGMENT } from "../../helpers/passing-judgment.js";
+import { craftCompleteConciseLesson } from "../../helpers/craft-complete-lesson.js";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 
@@ -487,6 +488,37 @@ Name a feeling.
         /inventory path|resolved|hollow|cite|Check yourself|path/i.test(e),
       ),
     );
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("verified live root files can re-anchor stale curriculum evidence", async () => {
+  const directory = await mkdtemp(resolve(tmpdir(), "repay-live-reanchor-"));
+  const draft = resolve(directory, "draft.md");
+  try {
+    await writeFile(resolve(directory, "instrumentation-server.mjs"), "// instrument\n".repeat(12));
+    await writeFile(resolve(directory, "server.mjs"), "// server\n".repeat(8));
+    const body = craftCompleteConciseLesson()
+      .replaceAll("src/routes/admin.ts", "instrumentation-server.mjs")
+      .replaceAll("src/auth/permission.ts", "server.mjs");
+    await writeFile(draft, body);
+    await recordJudgment(draft, PASSING_JUDGMENT);
+
+    const result = await evaluateLessonForSave(directory, body, {
+      depth: "concise",
+      draftPath: draft,
+      trajectoryGate: {
+        gate: buildTrajectoryGate({ mode: "fast", purposeDone: true, verifyDone: null }),
+      },
+      expectedEvidencePaths: ["app/core/otel/client-instrumentation.ts"],
+      inventoryPaths: ["app/core/otel/client-instrumentation.ts"],
+      topicPath: "app/core/otel/client-instrumentation.ts",
+    });
+
+    assert.equal(result.ok, true, result.quality.errors.join("; "));
+    assert.equal(result.craft.subjectPath.resolvedPath, "instrumentation-server.mjs");
+    assert.ok(result.quality.warnings.some((warning) => /re-anchor this topic/i.test(warning)));
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

@@ -228,6 +228,8 @@ mode path**. Do not start a second product workflow. Adding a new `do` requires 
 | “Graphify missing → install without ask”         | ask install/config only                                    |
 | “init failed → delete memory and retry”          | follow `requiredAction`. No silent wipe                    |
 | “orphaned lesson → ask the user to repair”       | silently rebuild the derived index and continue            |
+| “stale topic IDs → curriculum is corrupt”        | let save strip stale decisions and continue                |
+| “live citations differ → edit curriculum JSON”   | verify them, save, and let lesson save refresh anchors     |
 | “status first-run → invent config files by hand” | wizard + `init --yes`                                      |
 | “save failed quality → save anyway / weaker”     | rewrite once or refuse. Hard overclaim                     |
 | “try CodeGraph / other indexers”                 | no - Graphify chain only unless user requests              |

@@ -1,4 +1,8 @@
-const CITATION_PATH_SOURCE = "[A-Za-z0-9_.@+-]+(?:\\/[A-Za-z0-9_.@+()\\[\\]-]+)+\\.[A-Za-z0-9]+";
+const CITATION_SEGMENT_SOURCE = "[A-Za-z0-9_.@+()\\[\\]-]+";
+// Bare project files are valid evidence too. Exclude common hostname suffixes so
+// prose such as `example.com:80` does not become a source citation.
+const CITATION_EXTENSION_SOURCE = "(?!(?:com|org|net|io|dev|app|ai|co|me):)[A-Za-z0-9]+";
+const CITATION_PATH_SOURCE = `(?:\\.\\/)?${CITATION_SEGMENT_SOURCE}(?:\\/${CITATION_SEGMENT_SOURCE})*\\.${CITATION_EXTENSION_SOURCE}`;
 const CITATION_LINE_SOURCE = "[1-9]\\d*";
 const CITATION_RANGE_SEPARATOR_SOURCE = "[-–\\u2014]";
 
@@ -24,7 +28,7 @@ export function parseCitation(raw) {
   const startLine = Number(match[2]);
   const endLine = match[3] ? Number(match[3]) : startLine;
   if (endLine < startLine) return null;
-  const path = match[1];
+  const path = match[1].replace(/^\.\//, "");
   const label = `${path}:${startLine}${endLine === startLine ? "" : `-${endLine}`}`;
   return { path, startLine, endLine, label, key: label };
 }

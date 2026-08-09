@@ -1748,7 +1748,13 @@ async function saveLesson(targetRoot, options) {
         topic.status = "written";
         topic.lessonPath = `lessons/${candidate.name}`;
         topic.writtenAt = new Date().toISOString();
-        if (topic.evidencePaths && topic.evidencePaths.length > 0) {
+        // A successfully evaluated lesson has current, verified citations. Let
+        // those sources heal stale planning anchors without a separate repair
+        // step or any user-facing curriculum surgery.
+        if (quality.evidencePaths?.length > 0) {
+          topic.evidencePaths = [...quality.evidencePaths];
+        }
+        if (topic.evidencePaths?.length > 0) {
           topic.evidenceDigests = await computeEvidenceDigests(targetRoot, topic.evidencePaths);
         } else {
           topic.evidenceDigests = {};

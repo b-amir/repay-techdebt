@@ -553,6 +553,64 @@ test("recreating a curriculum lesson preserves its prior version without breakin
   }
 });
 
+test("saving from verified live files silently replaces stale curriculum anchors", async () => {
+  const target = await mkdtemp(resolve(tmpdir(), "repay-techdebt-memory-reanchor-"));
+  const draft = resolve(target, "trace-context-draft.md");
+  try {
+    await writeFile(resolve(target, "instrumentation-server.mjs"), "// instrument\n".repeat(12));
+    await writeFile(resolve(target, "server.mjs"), "// server\n".repeat(8));
+    const lesson = validConciseLesson()
+      .replaceAll("src/routes/admin.ts", "instrumentation-server.mjs")
+      .replaceAll("src/auth/permission.ts", "server.mjs");
+    await writeFile(draft, lesson);
+    await recordJudgment(draft, PASSING_JUDGMENT);
+
+    const initialized = await run([
+      "init",
+      target,
+      "--sharing",
+      "local",
+      "--output-location",
+      "private",
+      "--depth",
+      "concise",
+      "--yes",
+    ]);
+    assert.equal(initialized.code, 0, initialized.stderr);
+    const memoryRoot = JSON.parse(initialized.stdout).memoryRoot;
+    await writeCompleteGate(memoryRoot);
+    const curriculum = await saveTeachingCurriculum(target, [
+      {
+        title: "Trace Context Survives the Async Gap",
+        focus: "server-trace-context",
+        evidencePaths: ["app/core/otel/operation.ts", "app/core/otel/client-instrumentation.ts"],
+      },
+    ]);
+
+    const saved = await run([
+      "save-lesson",
+      target,
+      "--topic-id",
+      curriculum.topics[0].id,
+      "--title",
+      "Trace Context Survives the Async Gap",
+      "--input",
+      draft,
+      "--yes",
+    ]);
+    assert.equal(saved.code, 0, saved.stderr || saved.stdout);
+
+    const stored = JSON.parse(await readFile(resolve(memoryRoot, "curriculum.json"), "utf8"));
+    assert.deepEqual(stored.topics[0].evidencePaths, ["instrumentation-server.mjs", "server.mjs"]);
+    assert.deepEqual(Object.keys(stored.topics[0].evidenceDigests).sort(), [
+      "instrumentation-server.mjs",
+      "server.mjs",
+    ]);
+  } finally {
+    await rm(target, { force: true, recursive: true });
+  }
+});
+
 test("repair-index restores an orphaned curriculum lesson without user interaction", async () => {
   const target = await mkdtemp(resolve(tmpdir(), "repay-techdebt-memory-repair-orphan-"));
   try {

@@ -108,7 +108,9 @@ Show at least one small verified fenced snippet from the primary path, not Merma
 explain what the language/runtime does
 and why that behavior matters here. A filename, an analyzer score, or a generic framework rule is
 not proof. Before persistence, every citation must resolve to a current file and valid line in the
-explicit target, and at least one citation must match the curriculum topic's evidence anchors.
+explicit target. Existing topic anchors guide drafting but do not override verified live source.
+When all live citations differ from those anchors, save the lesson and let persistence refresh the
+topic anchors silently.
 
 Follow the lesson plan's `diagramIntent`. Use a verified diagram when it materially clarifies a
 sequence, state transition, ownership boundary, or multi-part relationship. Reduce it to the

@@ -22,21 +22,33 @@ function applyTopicDecisions(curriculum, approval) {
     importanceReasons: [...(topic.importanceReasons ?? [])],
   }));
   const byId = new Map(topics.map((topic) => [topic.id, topic]));
-  const decisions = approval.topicDecisions ?? {};
-  const removed = new Set(approval.demotedTopicIds ?? []);
+  const suppliedDecisions = approval.topicDecisions ?? {};
+  const removed = new Set();
+  const decisions = {};
   const warnings = [];
+  const recoveryWarnings = [];
+  let staleDemotionCount = 0;
+  let staleDecisionCount = 0;
+  let staleFoldCount = 0;
 
-  for (const id of removed) {
-    if (!byId.has(id)) throw new Error(`Legacy demoted topic ${id} does not exist`);
-    if (!decisions[id]) {
+  for (const id of approval.demotedTopicIds ?? []) {
+    if (!byId.has(id)) {
+      staleDemotionCount += 1;
+      continue;
+    }
+    removed.add(id);
+    if (!suppliedDecisions[id]) {
       warnings.push(
         `Legacy demotion ${id} has no reason; migrate it to agentApproval.topicDecisions.`,
       );
     }
   }
 
-  for (const [id, decision] of Object.entries(decisions)) {
-    if (!byId.has(id)) throw new Error(`Topic decision ${id} does not match a curriculum topic`);
+  for (const [id, decision] of Object.entries(suppliedDecisions)) {
+    if (!byId.has(id)) {
+      staleDecisionCount += 1;
+      continue;
+    }
     if (!decision || !["demote", "fold"].includes(decision.action)) {
       throw new Error(`Topic decision ${id} action must be demote or fold`);
     }
@@ -45,12 +57,21 @@ function applyTopicDecisions(curriculum, approval) {
     }
     if (decision.action === "fold") {
       const target = byId.get(decision.intoTopicId);
-      if (!target)
-        throw new Error(`Fold target ${decision.intoTopicId ?? "(missing)"} does not exist`);
-      if (decision.intoTopicId === id) throw new Error(`Topic ${id} cannot fold into itself`);
-      if (decisions[decision.intoTopicId] || removed.has(decision.intoTopicId)) {
-        throw new Error(`Fold target ${decision.intoTopicId} must be a kept topic`);
+      if (!target) {
+        staleFoldCount += 1;
+        continue;
       }
+      if (decision.intoTopicId === id) throw new Error(`Topic ${id} cannot fold into itself`);
+    }
+    decisions[id] = decision;
+  }
+
+  for (const decision of Object.values(decisions)) {
+    if (
+      decision.action === "fold" &&
+      (decisions[decision.intoTopicId] || removed.has(decision.intoTopicId))
+    ) {
+      throw new Error(`Fold target ${decision.intoTopicId} must be a kept topic`);
     }
   }
 
@@ -70,9 +91,28 @@ function applyTopicDecisions(curriculum, approval) {
     ];
   }
 
+  if (staleDecisionCount > 0) {
+    recoveryWarnings.push(
+      `Ignored ${staleDecisionCount} stale topic decision${staleDecisionCount === 1 ? "" : "s"} that no longer match this curriculum.`,
+    );
+  }
+  if (staleDemotionCount > 0) {
+    recoveryWarnings.push(
+      `Ignored ${staleDemotionCount} stale legacy demotion${staleDemotionCount === 1 ? "" : "s"} that no longer match this curriculum.`,
+    );
+  }
+  if (staleFoldCount > 0) {
+    recoveryWarnings.push(
+      `Kept ${staleFoldCount} topic${staleFoldCount === 1 ? "" : "s"} whose previous fold target is no longer present.`,
+    );
+  }
+
   return {
     topics: topics.filter((topic) => !removed.has(topic.id)),
     warnings,
+    recoveryWarnings,
+    topicDecisions: decisions,
+    demotedTopicIds: [...removed].filter((id) => !decisions[id]),
   };
 }
 
@@ -127,6 +167,10 @@ export function validateAgentApproval(curriculum) {
   } catch (error) {
     return { ok: false, error: error.message };
   }
+  // Heal approval metadata while validating so stale planner IDs do not poison
+  // every later save attempt.
+  approval.topicDecisions = decisionResult.topicDecisions;
+  approval.demotedTopicIds = decisionResult.demotedTopicIds;
   const topics = decisionResult.topics;
   const titleDiagnostics = inspectTitleSet(topics);
   if (titleDiagnostics.exactDuplicates.length > 0) {
@@ -200,6 +244,7 @@ export function validateAgentApproval(curriculum) {
     approval,
     titleDiagnostics,
     warnings: [...decisionResult.warnings, ...similarityWarnings],
+    recoveryWarnings: decisionResult.recoveryWarnings,
   };
 }
 

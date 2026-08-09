@@ -36,6 +36,11 @@ Recoverable lesson-index drift is internal maintenance, not a dialogue turn. Run
 silently, rerun status once, and keep the original create/recreate/update/delete/batch request
 active. Never show a paused step or ask the learner to manage orphaned files.
 
+Recoverable curriculum drift follows the same rule. Let save-curriculum strip decisions for topic
+IDs that are no longer present. When a lesson cites different current files, verify those files and
+lines, save normally, and let save-lesson refresh the topic anchors. Do not call the curriculum
+corrupt, show JSON surgery, or ask the learner to understand the persistence pipeline.
+
 **Caps:** ≤1 extra investigate turn per phase. ≤1 lesson rewrite. Then ship with gaps or ask the user.
 
 **Skip:** inventory/propose/retrieve only with ledger reason when stronger evidence exists. Never skip

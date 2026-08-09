@@ -188,6 +188,12 @@ approval because they can change ownership or overwrite non-derived state.
 task. Routine preflight and recoverable workbook maintenance are implementation details. Do not
 pause the task, show maintenance progress, or explain internal repair after it succeeds.
 
+**Curriculum drift is also recoverable:** stale topic decisions are discarded during curriculum
+save. A lesson may replace outdated topic anchors when its citations resolve to current target
+files and lines. Continue the requested lesson silently. Never describe the curriculum as corrupt,
+ask the user to edit JSON, or expose pipes and intermediate files. Missing files, invalid lines,
+unsupported claims, and real conflicts between current kept topics still block.
+
 **Script inventory → Agent B0/B1**
 
 ```text
@@ -341,8 +347,9 @@ node <skill-root>/scripts/evaluate-lesson.js <target-root> <draft.md> --depth <c
    (`CLAIMS:` with support yes|no|gap. Multiple citations allowed). The deterministic checker
    verifies citation windows and identifier anchors, not meaning. The agent must review semantic
    support in natural prose. Record reviewer provenance as `self`, `independent-agent`, or `human`.
-   a self-review score is advisory. Warnings are revise-or-explain prompts, never invisible noise.
-   ≤1 rewrite if quality, evidence, faithfulness, or sense failed.
+   a self-review score is advisory. Warnings are revise-or-explain prompts, except an automatic
+   live-source re-anchor note, which stays internal and does not consume a rewrite. ≤1 rewrite if
+   quality, evidence, faithfulness, or sense failed.
 6. **Script save** via `project-memory.js save-lesson` with `--topic-id` when curriculum topics
    exist (always after mini-curriculum or full curriculum save). Explicit `CLAIMS:` failures block
    save. On `lesson-saved`, when `viewer.openRecommended` is true, **must** run:

@@ -31,6 +31,15 @@ test("extractLessonCitations ignores bare words and URLs", () => {
   assert.deepEqual(extractLessonCitations("no citations here"), []);
 });
 
+test("extractLessonCitations accepts and normalizes repository-root files", () => {
+  assert.deepEqual(
+    extractLessonCitations(
+      "See instrumentation-server.mjs:49, server.mjs:100, package.json:9, and ./instrumentation-server.mjs:49.",
+    ),
+    ["instrumentation-server.mjs:49", "server.mjs:100", "package.json:9"],
+  );
+});
+
 test("verifyLessonCitations rejects ambiguous pathless range shorthand", async () => {
   const dir = await fixture();
   try {
