@@ -200,6 +200,7 @@ export function createViewerServer({ workbook, now = defaultNow }) {
             key: hit.key,
             title: hit.title,
             match: hit.match,
+            snippet: hit.snippet ?? "",
           });
         }
         return sendJson(res, 200, {

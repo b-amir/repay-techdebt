@@ -25,6 +25,9 @@ html[data-theme="paper"] {
   --hljs-symbol: #8250df;
   --hljs-name: #116329;
   --danger: #b91c1c;
+  --danger-soft: rgba(185, 28, 28, 0.09);
+  --success: #16794b;
+  --success-soft: rgba(22, 121, 75, 0.1);
   --backdrop: rgba(24, 24, 27, 0.38);
   --nav-hover-bg: rgba(255, 255, 255, 0.65);
   --nav-current-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
@@ -67,6 +70,10 @@ html[data-theme="dark"] {
   --nav-current-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
   --brand-icon: var(--accent-muted);
   --backdrop: rgba(0, 0, 0, 0.58);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.12);
+  --success: #5ee09a;
+  --success-soft: rgba(94, 224, 154, 0.11);
 }
 
 html[data-accent="teal"] {
@@ -148,8 +155,10 @@ html[data-scale="120"] {
 :root {
   /* Deliberate offline-safe pairing: expressive editorial display, neutral reading UI. */
   --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-  --font-ui: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-body: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-ui:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", sans-serif;
+  --font-body:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   --sidebar: 320px;
   --sidebar-width: var(--sidebar);
@@ -1195,7 +1204,6 @@ html[data-theme="dark"] .ds-settings-panel {
   height: 100%;
   border-radius: 999px;
   background: var(--accent);
-  transition: width var(--dur) var(--ease);
 }
 
 .ds-home-progress-note {
@@ -1500,6 +1508,7 @@ html[data-theme="dark"] .ds-settings-panel {
 
 .ds-plaque-body h2,
 .ds-plaque-body h3 {
+  position: relative;
   font-family: var(--font-display);
   font-weight: 600;
   letter-spacing: -0.025em;
@@ -1510,6 +1519,23 @@ html[data-theme="dark"] .ds-settings-panel {
   margin-bottom: 0.75rem;
   scroll-margin-top: 5rem;
   scroll-margin-bottom: 40vh;
+}
+
+.ds-resume-marker {
+  position: absolute;
+  top: -1.15rem;
+  right: 0;
+  color: var(--text-tertiary);
+  font-family: var(--font-ui);
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.035em;
+  transition: opacity var(--dur-fast) var(--ease);
+  white-space: nowrap;
+}
+
+.ds-resume-marker-hide {
+  opacity: 0;
 }
 
 .ds-plaque-body h2 {
@@ -2005,7 +2031,7 @@ html[data-theme="dark"] .ds-settings-panel {
 .ds-plaque-body .ds-callout {
   padding: 0.8rem 1rem;
   border: 0;
-  border-left: 2px solid var(--accent);
+  border-left: 1px solid var(--accent);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   background: color-mix(in srgb, var(--accent-soft) 52%, transparent);
   font-family: var(--font-ui);
@@ -2014,6 +2040,429 @@ html[data-theme="dark"] .ds-settings-panel {
 
 .ds-plaque-body .ds-callout p:last-child {
   margin-bottom: 0;
+}
+
+.ds-prediction,
+.ds-reflection {
+  margin: 1.75rem 0;
+  padding: 0.9rem 0;
+  border-block: 1px solid var(--border-subtle);
+  font-family: var(--font-ui);
+}
+
+.ds-prediction summary,
+.ds-reflection summary {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  color: var(--text);
+  cursor: pointer;
+  list-style: none;
+}
+
+.ds-prediction summary::-webkit-details-marker,
+.ds-reflection summary::-webkit-details-marker {
+  display: none;
+}
+
+.ds-prediction summary::after,
+.ds-reflection summary::after {
+  content: "+";
+  margin-left: auto;
+  color: var(--text-tertiary);
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.ds-prediction[open] summary::after,
+.ds-reflection[open] summary::after {
+  content: "−";
+}
+
+.ds-prediction-label,
+.ds-reflection-label,
+.ds-quiz-label,
+.ds-devtools-lab-label {
+  flex: 0 0 auto;
+  color: var(--text-secondary);
+  font-family: var(--font-display);
+  font-size: 0.925rem;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.ds-prediction-answer-label,
+.ds-reflection-answer-label {
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.ds-prediction-question,
+.ds-reflection-question {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-body);
+  font-size: calc(1rem * var(--content-scale));
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.ds-prediction-answer,
+.ds-reflection-answer {
+  margin: 0.9rem 0 0 calc(0.75rem + 4.6rem);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.ds-prediction-answer-label,
+.ds-reflection-answer-label {
+  margin-right: 0.55rem;
+}
+
+.ds-quiz {
+  margin: 2.25rem 0;
+  padding: 0;
+  font-family: var(--font-ui);
+}
+
+.ds-quiz fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ds-quiz legend {
+  display: flex;
+  width: 100%;
+  margin-bottom: 0.9rem;
+  padding: 0;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ds-quiz-question {
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: calc(1rem * var(--content-scale));
+  font-weight: 600;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.ds-quiz-options {
+  display: grid;
+  border-block: 1px solid var(--border-subtle);
+}
+
+.ds-quiz-option {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.65rem 0.4rem;
+  border: 0;
+  border-bottom: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.ds-quiz-option:last-child {
+  border-bottom: 0;
+}
+
+.ds-quiz-option:hover {
+  background: color-mix(in srgb, var(--text) 3.5%, transparent);
+}
+
+.ds-quiz-option[data-selected] {
+  background: color-mix(in srgb, var(--accent-soft) 42%, transparent);
+}
+
+.ds-quiz-option[data-selected]:hover {
+  background: color-mix(in srgb, var(--accent-soft) 58%, transparent);
+}
+
+.ds-quiz-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.ds-quiz-control {
+  display: grid;
+  width: 0.95rem;
+  height: 0.95rem;
+  place-items: center;
+  border: 1px solid var(--text-tertiary);
+  border-radius: 50%;
+  background: transparent;
+  scale: 0.94;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    scale var(--dur-fast) var(--ease-out);
+}
+
+.ds-quiz-option input:checked + .ds-quiz-control {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 3.5px var(--accent);
+  scale: 1;
+}
+
+.ds-quiz-option input:focus-visible + .ds-quiz-control {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.ds-quiz-option[data-result="correct"] {
+  background: transparent;
+}
+
+.ds-quiz-option[data-result="incorrect"] {
+  background: transparent;
+}
+
+.ds-quiz-option[data-result="correct"] .ds-quiz-control {
+  border-color: var(--success);
+  box-shadow: inset 0 0 0 3.5px var(--success);
+}
+
+.ds-quiz-option[data-result="incorrect"] .ds-quiz-control {
+  border-color: var(--danger);
+  box-shadow: inset 0 0 0 3.5px var(--danger);
+}
+
+.ds-quiz-option-text {
+  min-width: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.ds-quiz-option-status {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ds-quiz-option[data-result="correct"] .ds-quiz-option-status {
+  color: var(--success);
+}
+
+.ds-quiz-option[data-result="incorrect"] .ds-quiz-option-status {
+  color: var(--danger);
+}
+
+.ds-quiz-actions {
+  display: flex;
+  align-items: center;
+  margin-top: 0.75rem;
+}
+
+.ds-quiz-submit {
+  min-height: 36px;
+  padding: 0.42rem 0.72rem;
+  border: 1px solid var(--text);
+  border-radius: 5px;
+  background: var(--text);
+  color: var(--bg);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    scale var(--dur-fast) var(--ease-out);
+}
+
+.ds-quiz-submit:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--text) 82%, var(--bg));
+  background: color-mix(in srgb, var(--text) 82%, var(--bg));
+  color: var(--bg);
+}
+
+.ds-quiz-submit:active:not(:disabled) {
+  scale: 0.98;
+}
+
+.ds-quiz-submit:disabled {
+  border-color: var(--border);
+  background: var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: default;
+}
+
+.ds-quiz-feedback {
+  margin-top: 0.8rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  animation: ds-feedback-in var(--dur) var(--ease-out);
+}
+
+.ds-quiz-feedback strong {
+  margin-right: 0.4rem;
+  color: var(--text);
+}
+
+.ds-quiz-announcement {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  border: 0;
+  white-space: nowrap;
+}
+
+.ds-quiz-explanation {
+  color: var(--text-secondary);
+}
+
+.ds-quiz-fallback {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.ds-quiz-fallback summary {
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.ds-quiz-fallback p {
+  margin-bottom: 0;
+}
+
+@keyframes ds-feedback-in {
+  from {
+    opacity: 0;
+    translate: 0 -3px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.ds-devtools-lab {
+  margin: 2.25rem 0;
+  padding-block: 0.1rem 0.15rem;
+  padding-inline: 1.1rem 0;
+  border: 0;
+  border-inline-start: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-ui);
+}
+
+.ds-devtools-lab-header {
+  display: grid;
+  gap: 0.2rem;
+  margin-bottom: 0.75rem;
+}
+
+.ds-devtools-lab-header p {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: calc(1rem * var(--content-scale));
+  font-weight: 600;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.ds-devtools-lab-body {
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.65;
+}
+
+.ds-devtools-lab-body ol {
+  margin: 0.7rem 0 0.85rem;
+  padding-inline-start: 1.35rem;
+}
+
+.ds-devtools-lab-body li {
+  margin: 0.4rem 0;
+  padding-inline-start: 0.2rem;
+}
+
+.ds-devtools-lab-body p {
+  margin: 0.65rem 0 0;
+}
+
+.ds-devtools-lab-body strong {
+  color: var(--text);
+  font-weight: 650;
+}
+
+@media (max-width: 600px) {
+  .ds-prediction summary,
+  .ds-reflection summary {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.65rem;
+    padding-right: 1.25rem;
+  }
+
+  .ds-prediction summary::after,
+  .ds-reflection summary::after {
+    position: absolute;
+    right: 0;
+  }
+
+  .ds-prediction-answer,
+  .ds-reflection-answer {
+    margin-left: 0;
+  }
+
+  .ds-quiz-option {
+    grid-template-columns: 1rem minmax(0, 1fr);
+  }
+
+  .ds-quiz-option-status {
+    grid-column: 2;
+  }
+
+  .ds-quiz-actions {
+    align-items: flex-start;
+  }
+
+  .ds-quiz-submit {
+    min-height: 44px;
+  }
+
+  .ds-resume-marker {
+    display: none;
+  }
 }
 
 .ds-lesson-footer {
@@ -2489,7 +2938,11 @@ html[data-theme="dark"] .ds-settings-panel {
 }
 
 .ds-toc-link:hover {
-  color: var(--text-secondary);
+  color: var(--text);
+}
+
+.ds-toc-link-passed {
+  color: color-mix(in srgb, var(--text-secondary) 72%, transparent);
 }
 
 .ds-toc-link-active {
@@ -2539,27 +2992,6 @@ html[data-theme="dark"] .ds-settings-panel {
   margin-top: 12px;
 }
 
-.ds-reading-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: transparent;
-  z-index: var(--z-progress);
-  pointer-events: none;
-}
-
-.ds-reading-progress-bar {
-  height: 100%;
-  width: 100%;
-  transform: scaleX(0);
-  transform-origin: left center;
-  background: var(--accent);
-  transition: transform 80ms linear;
-  will-change: transform;
-}
-
 .ds-codeblock {
   position: relative;
   margin-bottom: 24px;
@@ -2581,6 +3013,43 @@ html[data-theme="dark"] .ds-settings-panel {
   text-transform: uppercase;
   color: var(--text-secondary);
   font-family: var(--font-ui);
+}
+
+.ds-codeblock-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ds-codeblock-toggle {
+  min-height: 24px;
+  border: 0;
+  padding: 3px 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: 500 0.6875rem/1.2 var(--font-ui);
+  cursor: pointer;
+}
+
+.ds-codeblock-actions .ds-btn-copy {
+  min-height: 24px;
+}
+
+.ds-codeblock-toggle:hover,
+.ds-codeblock-toggle:focus-visible {
+  color: var(--text);
+}
+
+.ds-codeblock-collapsible .ds-codeblock-code {
+  max-height: 22rem;
+  overflow-y: hidden;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 3.25rem), transparent);
+}
+
+.ds-codeblock-expanded .ds-codeblock-code {
+  max-height: none;
+  overflow-y: auto;
+  mask-image: none;
 }
 
 .ds-btn-copy {
@@ -2804,9 +3273,6 @@ html[data-theme="dark"] .ds-settings-panel {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  .ds-reading-progress-bar {
-    transition: none !important;
-  }
   .ds-reload-toast {
     animation: none !important;
   }
@@ -2849,6 +3315,28 @@ html[data-theme="dark"] .ds-settings-panel {
 
 .ds-fn-ref a:hover {
   color: var(--accent);
+}
+
+.ds-fn-ref a:focus-visible {
+  color: var(--accent);
+}
+
+.ds-fn-preview {
+  position: fixed;
+  z-index: var(--z-toast);
+  width: max-content;
+  max-width: min(18rem, calc(100vw - 24px));
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-elevated, var(--surface));
+  box-shadow: var(--shadow-sm);
+  color: var(--text-secondary);
+  font: 500 0.75rem/1.35 var(--font-ui);
+  letter-spacing: 0;
+  text-align: left;
+  white-space: normal;
+  pointer-events: none;
 }
 
 .ds-footnotes {
@@ -3333,7 +3821,6 @@ html[data-focus="on"] .ds-main-inner:has(.ds-plaque) {
   .ds-rail-toc,
   .ds-settings-root,
   .ds-sidebar-toggle,
-  .ds-reading-progress,
   .ds-mark-done,
   .ds-lesson-footer-nav,
   .ds-search-root,
@@ -3365,6 +3852,42 @@ html[data-focus="on"] .ds-main-inner:has(.ds-plaque) {
     box-shadow: none !important;
     border: 0 !important;
     max-width: none !important;
+  }
+
+  .ds-codeblock-collapsible .ds-codeblock-code {
+    max-height: none !important;
+    overflow: visible !important;
+    mask-image: none !important;
+  }
+
+  .ds-codeblock-toggle,
+  .ds-fn-preview,
+  .ds-quiz-actions {
+    display: none !important;
+  }
+
+  .ds-prediction > .ds-prediction-answer,
+  .ds-reflection > .ds-reflection-answer,
+  .ds-quiz-feedback {
+    display: block !important;
+    animation: none !important;
+  }
+
+  .ds-quiz-option:has(input[data-correct="true"]) {
+    border-color: currentColor;
+  }
+
+  .ds-quiz-option:has(input[data-correct="true"])::after {
+    content: "Correct answer";
+    color: inherit;
+    font-size: 0.75rem;
+    font-weight: 650;
+  }
+
+  .ds-quiz-feedback::before {
+    content: "Why: ";
+    color: inherit;
+    font-weight: 650;
   }
 
   .ds-citation {

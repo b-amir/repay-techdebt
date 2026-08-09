@@ -529,8 +529,13 @@ export function renderLesson({
   next,
 }) {
   const buttonClass = completed ? "ds-mark-done ds-mark-done-complete" : "ds-mark-done";
-  const buttonLabel = completed ? "Mark not done" : "Mark as done";
-  const button = `<button type="button" class="${buttonClass}" data-lesson="${escapeHtml(lessonKey)}" data-completed="${completed ? "true" : "false"}" aria-pressed="${completed ? "true" : "false"}" aria-describedby="ds-completion-status"><span class="ds-mark-done-check" aria-hidden="true">✓</span><span class="ds-mark-done-label">${buttonLabel}</span></button><p class="ds-completion-status" id="ds-completion-status" role="status" aria-live="polite"></p>`;
+  const buttonLabel = completed
+    ? "Mark not done"
+    : next
+      ? "Mark done and continue"
+      : "Mark as done";
+  const nextAttr = next ? ` data-next="${lessonHref(next.key)}"` : "";
+  const button = `<button type="button" class="${buttonClass}" data-lesson="${escapeHtml(lessonKey)}" data-completed="${completed ? "true" : "false"}"${nextAttr} aria-pressed="${completed ? "true" : "false"}" aria-describedby="ds-completion-status"><span class="ds-mark-done-check" aria-hidden="true">✓</span><span class="ds-mark-done-label">${buttonLabel}</span></button><p class="ds-completion-status" id="ds-completion-status" role="status" aria-live="polite"></p>`;
   const footer = `<footer class="ds-lesson-footer">
     ${button}
     <nav class="ds-lesson-footer-nav" aria-label="Lesson navigation" data-lesson-nav>
@@ -592,11 +597,9 @@ export function renderLesson({
     </aside>`;
   }
 
-  const progressBar = `<div class="ds-reading-progress" aria-hidden="true"><div class="ds-reading-progress-bar"></div></div>`;
   const bodyContent = stripClaimsHtml(stripLeadingTitleHtml(bodyHtml));
 
   const main = `<article class="ds-plaque">
-    ${progressBar}
     <header class="ds-lesson-header">
       <h1 class="ds-lesson-title">${escapeHtml(title)}</h1>
       ${orientationStrip}
@@ -613,7 +616,7 @@ export function renderLesson({
     sidebarHtml: renderSidebar(sidebar, workbookTitle),
     mainHtml: main,
     rightRailHtml,
-    progress,
+    progress: progress?.lastRead === lessonKey ? progress : { ...progress, lastScroll: null },
   });
 }
 

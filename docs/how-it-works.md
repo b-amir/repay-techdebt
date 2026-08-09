@@ -515,11 +515,19 @@ Errors (any → `ok: false` → check CLI **exit 2**):
 | &lt; 2 distinct cited source paths                                                               | Fail                                             |
 | Topic `expectedEvidencePaths` set and no cite matches                                            | Fail                                             |
 | AI puffery phrases                                                                               | Fail                                             |
+| Generic lesson-announcement opening                                                              | Fail                                             |
+| Malformed Quick check choices or missing explanatory feedback                                    | Fail                                             |
+| Think first prompt without an answer                                                             | Fail                                             |
 | Mermaid: forbidden types / missing accTitle\|accDescr / &gt;30 lines / missing “What this shows” | Fail                                             |
 | External image/diagram sidecars                                                                  | Fail                                             |
 
-Warnings (do not alone fail quality): long or path-heavy paragraphs, missing “you/your”, missing
-causal connective, or a horizontal (`LR`/`RL`) flowchart that should use a compact portrait layout.
+Warnings (do not alone fail quality): long or path-heavy paragraphs, sections over 350 words,
+source code excerpts over 40 lines, repeated lesson announcements, missing “you/your”, missing
+causal or verification language, or a horizontal (`LR`/`RL`) flowchart that should use a compact
+portrait layout. See for yourself walkthroughs also warn when they omit ordered DevTools steps, a
+safe execution context and Change one thing variation, the observable signal to Look for, or an
+explicit Reset. Instructions to expose secrets, mutate production, or bypass a protection fail;
+lessons with more than three interactive moments are prompted to keep only the useful pauses.
 
 ### 7.2 Citation validity (`verifyLessonCitations`)
 

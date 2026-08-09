@@ -91,3 +91,21 @@ test("setLastRead sets lastRead and lastScroll", async () => {
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("setLastRead clears another lesson's scroll position", async () => {
+  const root = await mkdtemp(resolve(tmpdir(), "repay-viewer-progress-switch-"));
+  const progressPath = resolve(root, "progress.json");
+  try {
+    await setLastRead(progressPath, "lessons/first.md", root, {
+      nowIso: "2026-08-02T12:00:00.000Z",
+      lastScroll: "first-section",
+    });
+    const switched = await setLastRead(progressPath, "lessons/second.md", root, {
+      nowIso: "2026-08-02T12:01:00.000Z",
+    });
+    assert.equal(switched.lastRead, "lessons/second.md");
+    assert.equal(switched.lastScroll, null);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

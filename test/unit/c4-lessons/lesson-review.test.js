@@ -94,3 +94,103 @@ ${"Supporting prose explains the consequence because explicit claims are part of
   const result = inspectLesson(markdown, { depth: "concise" });
   assert.ok(result.errors.some((error) => /malformed CLAIMS/i.test(error)));
 });
+
+test("lesson quality rejects generic openings and flags oversized support material", () => {
+  const longCode = Array.from({ length: 41 }, (_, index) => `const value${index} = ${index};`).join(
+    "\n",
+  );
+  const markdown = `# Guard behavior
+
+In this lesson we will explore the guard and discuss how it works for the application.
+
+## Trace the request
+Open src/guard.ts:1 and src/route.ts:1 because the route calls the guard before mutation.
+
+\`\`\`ts
+${longCode}
+\`\`\`
+
+## What goes wrong
+Removing the guard lets the mutation run with an unchecked request.
+
+## Verify the boundary
+Change src/guard.ts and run the route test to observe the rejected request.
+
+${"Concrete supporting prose keeps the fixture inside the concise depth while preserving one subject. ".repeat(25)}`;
+  const result = inspectLesson(markdown, { depth: "concise" });
+  assert.ok(result.errors.some((error) => /generic opening/i.test(error)));
+  assert.ok(result.warnings.some((warning) => /exceed 40 lines/i.test(warning)));
+});
+
+test("lesson quality validates optional interactive learning blocks when authors use them", () => {
+  const markdown = `# Guard behavior
+
+You can trace the guard because direct navigation reaches the loader before any protected UI renders.
+
+## Trace the request
+Read src/guard.ts:1 and src/route.ts:1 because the route calls the guard before mutation.
+
+> **Quick check:** Which boundary can reject direct navigation first?
+>
+> - [x] The route loader
+> - [x] The component gate
+
+## Inspect it in the browser
+> **See for yourself:** Watch the redirect happen.
+>
+> Open DevTools and request the protected route.
+> Disable the auth guard in production and reload.
+
+## Verify the boundary
+Change src/guard.ts and run the route test to observe the rejected request.
+
+${"Concrete supporting prose keeps this focused fixture within its depth range because interactive checks supplement the explanation. ".repeat(28)}`;
+  const result = inspectLesson(markdown, { depth: "concise" });
+  assert.ok(result.errors.some((error) => /exactly one.*correct answer/i.test(error)));
+  assert.ok(result.errors.some((error) => /Why\/Explanation/i.test(error)));
+  assert.ok(result.warnings.some((warning) => /ordered DevTools steps/i.test(warning)));
+  assert.ok(result.warnings.some((warning) => /Change one thing/i.test(warning)));
+  assert.ok(result.warnings.some((warning) => /Look for/i.test(warning)));
+  assert.ok(result.warnings.some((warning) => /under Reset/i.test(warning)));
+  assert.ok(result.warnings.some((warning) => /safe execution context/i.test(warning)));
+  assert.ok(result.errors.some((error) => /unsafe action/i.test(error)));
+});
+
+test("lesson quality accepts a well-formed optional self-check", () => {
+  const markdown = `# Guard behavior
+
+You can trace the guard because direct navigation reaches the loader before protected UI renders.
+
+## Trace the request
+Read src/guard.ts:1 and src/route.ts:1 because the route calls the guard before mutation.
+
+> **Quick check:** Which boundary can reject direct navigation first?
+>
+> - [x] The route loader
+> - [ ] The component gate
+>
+> **Why:** The loader runs before rendering, so it can redirect before protected UI exists.
+
+## Inspect the failure
+Removing the loader guard lets direct navigation reach a protected component.
+
+> **See for yourself:** Observe the loader redirect in local development.
+>
+> 1. Open Network and load the protected route.
+> 2. Inspect the document response status.
+>
+> **Change one thing:** Clear the local session cookie and reload.
+>
+> **Look for:** The document redirects before component requests appear.
+>
+> **Reset:** Sign in again to restore the session.
+
+## Verify the boundary
+Change src/guard.ts and run the route test to observe the rejected request.
+
+${"Concrete supporting prose keeps this focused fixture within its depth range because the valid self-check supplements the causal explanation. ".repeat(25)}`;
+  const result = inspectLesson(markdown, { depth: "concise" });
+  assert.ok(!result.errors.some((error) => /Quick check/i.test(error)));
+  assert.ok(!result.errors.some((error) => /See for yourself/i.test(error)));
+  assert.ok(!result.warnings.some((warning) => /See for yourself/i.test(warning)));
+});

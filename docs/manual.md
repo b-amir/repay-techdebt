@@ -131,10 +131,12 @@ touch-oriented layouts it becomes a closed-by-default drawer with a scrim; choos
 the scrim, or press Escape to close it. Done, Written, and Planned counts filter the rail, and Show
 all clears the filter. Previous and next links at the end of a lesson preserve curriculum order.
 
-Long lessons show a reading-progress line and an On this page table of contents. The current
-section is marked from the top of the page onward and kept visible in the desktop rail. The viewer
-restores the last section or scroll position when you return. Focus mode hides navigation rails
-without changing lesson content.
+Long lessons use the On this page table of contents as their only reading-progress indicator; there
+is no separate line or percentage competing with the text. The current section is marked from the
+top of the page onward, passed sections recede quietly, and the active entry stays visible in the
+desktop rail. The viewer restores a section only when it belongs to the lesson being reopened and
+briefly marks that heading with Resume here. Focus mode hides navigation rails without changing
+lesson content.
 
 View settings provide paper, white, and dark themes; a five-stop 80–120% zoom slider; and teal,
 blue, violet, rose, warm, amber, or slate accents. Before the user chooses a theme, the initial
@@ -150,13 +152,15 @@ theme rather than introducing a colored cast.
 ### Search, code, sources, and diagrams
 
 Open the command palette with `/` or `⌘K` / `Ctrl+K`. An empty query offers Continue, Recent,
-Planned, and Jump actions. Search combines lesson titles with verified claims, source paths, and
-planned topics. Searching, no matches, and a temporarily unavailable search are distinct states;
-failed searches offer Retry.
+Planned, and Jump actions. Search combines lesson titles, sections, explanatory prose, code symbols,
+diagrams, verified claims, source paths, and planned topics. Results identify the match type and
+show a short context excerpt; section matches open at that heading. Searching, no matches, and a
+temporarily unavailable search are distinct states; failed searches offer Retry.
 
-Fenced source examples include a language caption and Copy action. Planned-topic pages provide a
-copyable create command. When an open lesson changes on disk, one non-blocking notice offers to
-refresh it.
+Fenced source examples include a language caption and Copy action. Blocks longer than 18 lines show
+a bounded preview with Show more / Show less; printing includes the full block. Planned-topic pages
+provide a copyable create command. When an open lesson changes on disk, one non-blocking notice
+offers to refresh it.
 
 Write source citations in one self-contained backticked form:
 
@@ -167,10 +171,23 @@ Write source citations in one self-contained backticked form:
 
 Typographic input ranges are normalized to an ASCII hyphen. A pathless range such as `112-116` is
 ambiguous and fails citation validation: repeat the project-relative path. In lesson prose, valid
-citations become small faded reference numbers; complete locations move to the Sources section,
-where they open the first cited line in the editor and link back to the reference. Consecutive
-ranges from the same file share one source note. Prefer behavior and symbol names in prose instead
-of repeatedly spelling out repository locations.
+citations become small faded reference numbers. Hovering or focusing a number shows a compact file
+and line preview; complete locations remain in the Sources section, where they open the first cited
+line in the editor and link back to the reference. Consecutive ranges from the same file share one
+source note. Prefer behavior and symbol names in prose instead of repeatedly spelling out
+repository locations.
+
+Interactive learning appears only where it supports the lesson's causal thread; lessons do not have
+a quiz quota. Prediction and Think first prompts use native disclosures, so the question remains
+visible without JavaScript and print reveals the answer. A Quick check offers two to four predefined
+choices, enables Check answer after selection, and then identifies correct or incorrect without
+relying on color. Its feedback always explains the mechanism; choices are not scored or saved. If
+JavaScript is unavailable, a native Show answer disclosure preserves the teaching content.
+
+See for yourself walkthroughs form a compact DevTools lab inside the reading flow. Each one gives
+ordered setup and observation steps, a safe Change one thing variation, the signal to Look for, and
+an explicit Reset. They name a local, sandboxed, or read-only execution context and must not ask
+readers to expose secrets, change production data, or remove a live protection.
 
 Mermaid diagrams render inline with their accessibility title and description. Compact flowcharts
 prefer a portrait `TD`/`TB` layout that reads without zooming; wide or excessively tall graphs
@@ -178,9 +195,10 @@ should be reduced or split. The visible View control opens a larger dialog whose
 height, and 100% modes preserve the same rendered SVG. If Mermaid cannot render, the inline state
 offers Retry and Show source rather than leaving a blank block.
 
-Marking a lesson done exposes Saving, success, and recoverable failure feedback. A failed save
-keeps the previous completion state, so the lesson control, rail marker, and counts cannot silently
-drift apart.
+When another written lesson follows, the primary action is Mark done and continue. It persists
+completion before navigating. Saving, success, and recoverable failure feedback remain explicit; a
+failed save keeps the reader on the current lesson and preserves the previous completion state, so
+the lesson control, rail marker, and counts cannot silently drift apart.
 
 ### Teach one planned topic (`--create`)
 
@@ -247,6 +265,8 @@ Fast auto-saves and auto-opens the viewer after the batch rule (`openRecommended
 | `/` or `⌘K` / `Ctrl+K` | Command palette (lessons + claims + planned + recent) |
 | `j` / `→` / `]`        | Next written lesson                                   |
 | `k` / `←` / `[`        | Previous written lesson                               |
+| `n` / `p`              | Next / previous lesson section                        |
+| `r`                    | Move to source references                             |
 | `d`                    | Toggle mark done                                      |
 | `f`                    | Focus mode (hide rails); `esc` exits focus            |
 | `s`                    | Toggle sidebar                                        |

@@ -1058,7 +1058,12 @@ export function planLesson(model, options = {}) {
     diagramIntent,
     compositionRules: [
       "Keep the visible lesson to the planned sections; do not print scoring or empty placeholders.",
+      "Open with what the learner can understand or safely change and why that capability matters in this project; do not restate the title or announce the lesson.",
+      "Build the explanation around one verified causal thread from trigger through decision to effect or feedback.",
       "Verify every claim in live source and cite exact project-relative lines before teaching it.",
+      "Pair the normal mechanism with one supported failure, edge case, abuse case, or tempting wrong model from the same subject.",
+      "Use zero to three interactive learning moments only where a pause improves understanding: a single-answer Quick check for a consequential misconception, a Think first reveal for causal reasoning, or a See for yourself walkthrough for safe observable behavior. Never add them to satisfy a quota.",
+      "End with the invariant to preserve, affected consumer or boundary, concrete verification, and the signal that would reveal a regression.",
       "Treat optional sections as invitations to investigate, not proof of a defect or runtime behavior.",
       "Prefer clues that converge across files, relations, manifests, tests, configuration, tools, or confirmed memory.",
       "Prefer compact portrait Mermaid flowcharts (TD/TB) that read at the article width. Use LR/RL only when horizontal order is essential, keep the result narrow, and state the exception in the lesson plan.",

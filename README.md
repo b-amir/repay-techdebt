@@ -49,11 +49,13 @@ repay status   # workbook + config + curriculum summary
 First run: Fast (recommended defaults) or Control (step through choices). Workbook opens in a
 script-owned browser viewer—agents never hand-build HTML.
 
-The local viewer is a complete reading workspace: resume or start from the home page, filter the
-lesson rail, search lessons and verified claims, restore your reading position, mark lessons done,
-open quiet numbered source notes in your editor, and expand evidence-backed Mermaid diagrams.
-Paper, white, and dark themes, proportional text sizes, focus mode, responsive navigation, and
-keyboard shortcuts are built in. See the [viewer guide](docs/manual.md#workbook-viewer).
+The local viewer is a complete reading workspace: resume at the last lesson section, use the table
+of contents as progress, filter the lesson rail, search lessons with typed match context, fold long
+code, inspect quiet numbered source notes, reason through optional answer reveals and self-checks,
+follow guided DevTools observations, mark a lesson done and continue, and expand evidence-backed
+Mermaid diagrams. Paper, white, and dark themes, proportional text sizes, focus mode, responsive
+navigation, and keyboard shortcuts are built in. See the
+[viewer guide](docs/manual.md#workbook-viewer).
 
 ## Modes
 

@@ -5,6 +5,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { test } from "vite-plus/test";
 import { renderHome, renderEmpty, renderLesson } from "../../../src/viewer/shell.js";
+import { CLIENT_SCRIPT } from "../../../src/viewer/client-script.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 
@@ -19,6 +20,10 @@ test("shell HTML has skip link and main landmark id", () => {
   assert.match(html, /lang="en"/);
   assert.match(html, /class="ds-sidebar-scrim"/);
   assert.match(html, /aria-label="Close sidebar"/);
+});
+
+test("viewer client script remains valid JavaScript", () => {
+  assert.doesNotThrow(() => new Function(CLIENT_SCRIPT));
 });
 
 test("home render keeps skip link with compact home", () => {
@@ -78,6 +83,38 @@ test("lesson completion exposes pending and announced result states", () => {
   assert.match(html, /aria-describedby="ds-completion-status"/);
   assert.match(html, /Saving…/);
   assert.match(html, /Could not save\. Try again\./);
+});
+
+test("incomplete lessons make completion and continuation one primary action", () => {
+  const html = renderLesson({
+    workbookTitle: "Demo workbook",
+    sidebar: { chapters: [], counts: { written: 0, done: 0, planned: 0 } },
+    title: "A lesson",
+    bodyHtml: "<p>Body</p>",
+    lessonKey: "lessons/a.md",
+    completed: false,
+    progress: {},
+    prev: null,
+    next: { key: "lessons/b.md", title: "Next lesson" },
+  });
+  assert.match(html, /data-next="\/lesson\/lessons%2Fb\.md"/);
+  assert.match(html, />Mark done and continue</);
+});
+
+test("lesson restores scroll only when progress belongs to that lesson", () => {
+  const html = renderLesson({
+    workbookTitle: "Demo workbook",
+    sidebar: { chapters: [], counts: { written: 0, done: 0, planned: 0 } },
+    title: "A lesson",
+    bodyHtml: "<p>Body</p>",
+    lessonKey: "lessons/a.md",
+    completed: false,
+    progress: { lastRead: "lessons/b.md", lastScroll: "shared-heading" },
+    prev: null,
+    next: null,
+  });
+  assert.doesNotMatch(html, /data-last-scroll=/);
+  assert.match(html, /ds-resume-marker/);
 });
 
 test("a11y checklist fixture exists", async () => {

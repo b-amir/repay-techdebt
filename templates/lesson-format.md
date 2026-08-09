@@ -77,11 +77,67 @@ the complete required/optional section catalog. Do not force every lesson throug
 - Weave PRIMM into the selected shape: invite a prediction, read the evidence, investigate the
   mechanism, propose a modification, and end with a small make-or-verify challenge. These are
   teaching moves, not mandatory headings.
+- Interactive learning is optional. Use it only at a natural decision, misconception, or observable
+  runtime boundary; never add a widget to satisfy a lesson quota. Prefer no more than three varied
+  pauses in one lesson, and keep the surrounding explanation complete without them.
+- When prediction materially improves understanding, use one progressive-disclosure block:
+
+  ```markdown
+  > **Prediction:** What will the caller observe if this guard is removed?
+  >
+  > **Reveal:** The request reaches the mutation because the route no longer rejects it first.
+  ```
+
+  The prompt must still make sense before it is opened, and the revealed answer must explain the
+  mechanism rather than merely mark the guess right or wrong.
+
+- For a question the learner should reason through before reading, use a quieter answer disclosure:
+
+  ```markdown
+  > **Think first:** Why does the route loader reject this request before the component renders?
+  >
+  > **Answer:** Loaders run during route entry, so the component never becomes the security boundary.
+  ```
+
+- For one consequential misconception with plausible alternatives, use a single-answer check. Mark
+  exactly one choice with `[x]`, provide two to four choices, and explain the mechanism—not just the
+  score—in `Why`:
+
+  ```markdown
+  > **Quick check:** Which boundary can reject direct navigation before protected UI renders?
+  >
+  > - [ ] The component permission gate
+  > - [x] The route loader
+  > - [ ] The API response mapper
+  >
+  > **Why:** The loader runs during route entry and can redirect before the component tree exists.
+  ```
+
+- When behavior is safely reproducible in a browser, offer a guided DevTools observation. Name the
+  setup, exact action, expected signal, one safe variation, and how to return to the original state.
+  Never ask the learner to expose secrets, mutate production data, or disable a real security
+  boundary:
+
+  ```markdown
+  > **See for yourself:** Watch the route turn an expired session into a redirect.
+  >
+  > 1. Open **Network**, enable **Preserve log**, and load the protected route in local development.
+  > 2. Select the document request and inspect its status and `Location` response header.
+  >
+  > **Change one thing:** Clear the local session cookie and reload once.
+  >
+  > **Look for:** The redirect occurs before protected page data or component requests appear.
+  >
+  > **Reset:** Sign in again to restore the original session state.
+  ```
+
 - Explain jargon at first use. Prefer short causal sentences and concrete names from this program.
 - Give topic-specific H2s and map `workedPath`, `pitfall`, and `check` to them with frontmatter
   `sectionRoles`; do not copy the checker’s fallback labels as an outline.
-- End with a concrete modify/debug/run-predict/named-test job, not a name-the-symbol quiz. Keep evidence gaps and the Tool Use Ledger at workbook
-  level for a multi-lesson workbook instead of repeating administrative detail in every lesson.
+- End with a concrete modify/debug/run-predict/named-test job, not a name-the-symbol quiz. Name the
+  invariant to preserve, the affected consumer or boundary, the verification to run, and the signal
+  that would reveal a regression. Keep evidence gaps and the Tool Use Ledger at workbook level for a
+  multi-lesson workbook instead of repeating administrative detail in every lesson.
 
 ## Final quality check
 

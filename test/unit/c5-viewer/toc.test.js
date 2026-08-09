@@ -36,6 +36,7 @@ Content 4
   assert.match(html, /href="#section-2a"/);
   assert.match(html, /href="#section-3"/);
   assert.match(html, /href="#section-4"/);
+  assert.doesNotMatch(html, /ds-reading-progress/);
 });
 
 test("TOC jump list is omitted when there are fewer than 4 h2s", async () => {

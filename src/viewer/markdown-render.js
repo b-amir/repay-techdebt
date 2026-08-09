@@ -87,13 +87,16 @@ md.renderer.rules.fence = function renderFence(tokens, idx) {
   const { html, lang: resolvedLang } = highlightCode(code, lang);
   const langClass = resolvedLang ? ` language-${resolvedLang}` : "";
   const displayLang = resolvedLang || "code";
+  const lineCount = code.replace(/\n$/, "").split("\n").length;
+  const collapsible = lineCount > 18;
+  const codeId = `ds-code-${idx}`;
 
-  return `<div class="ds-codeblock">
+  return `<div class="ds-codeblock${collapsible ? " ds-codeblock-collapsible" : ""}" data-lines="${lineCount}">
   <div class="ds-codeblock-header">
     <span class="ds-codeblock-lang">${escapeFenceText(displayLang)}</span>
-    <button type="button" class="ds-btn-copy" aria-label="Copy code">Copy</button>
+    <span class="ds-codeblock-actions">${collapsible ? `<button type="button" class="ds-codeblock-toggle" aria-expanded="false" aria-controls="${codeId}">Show more</button>` : ""}<button type="button" class="ds-btn-copy" aria-label="Copy code">Copy</button></span>
   </div>
-  <pre class="hljs"><code class="hljs${langClass}">${html}</code></pre>
+  <pre class="hljs ds-codeblock-code" id="${codeId}"><code class="hljs${langClass}">${html}</code></pre>
 </div>\n`;
 };
 
@@ -143,7 +146,7 @@ export function renderMarkdown(source, { targetRoot } = {}) {
 }
 
 function enhanceEditorialPatterns(html) {
-  return String(html)
+  const prepared = String(html)
     .replace(
       /<p><strong>What this shows:<\/strong>\s*/gi,
       '<p class="ds-figure-caption"><span class="ds-figure-caption-label">What this shows</span> ',
@@ -153,6 +156,75 @@ function enhanceEditorialPatterns(html) {
       (_, kind) =>
         `<blockquote class="ds-callout ds-callout-${kind.toLowerCase()}"><p><strong class="ds-callout-label">${kind}</strong>`,
     );
+
+  return enhanceDevtoolsLabs(
+    enhanceLearningChecks(enhanceReflectionBlocks(enhancePredictionBlocks(prepared))),
+  );
+}
+
+function enhancePredictionBlocks(html) {
+  return String(html).replace(
+    /<blockquote>\s*<p><strong>Prediction:<\/strong>\s*([\s\S]*?)<\/p>\s*<p><strong>(?:Reveal|Answer):<\/strong>\s*([\s\S]*?)<\/p>\s*<\/blockquote>/gi,
+    (_match, question, answer) =>
+      `<details class="ds-prediction"><summary><span class="ds-prediction-label">Prediction</span><span class="ds-prediction-question">${question}</span></summary><div class="ds-prediction-answer"><span class="ds-prediction-answer-label">Answer</span>${answer}</div></details>`,
+  );
+}
+
+function enhanceReflectionBlocks(html) {
+  return String(html).replace(
+    /<blockquote>\s*<p><strong>Think first:<\/strong>\s*([\s\S]*?)<\/p>\s*<p><strong>Answer:<\/strong>\s*([\s\S]*?)<\/p>\s*<\/blockquote>/gi,
+    (_match, question, answer) =>
+      `<details class="ds-reflection"><summary><span class="ds-reflection-label">Think first</span><span class="ds-reflection-question">${question}</span></summary><div class="ds-reflection-answer"><span class="ds-reflection-answer-label">Answer</span>${answer}</div></details>`,
+  );
+}
+
+function enhanceLearningChecks(html) {
+  return String(html).replace(
+    /<blockquote>\s*<p><strong>Quick check:<\/strong>\s*([\s\S]*?)<\/p>\s*<ul>\s*([\s\S]*?)<\/ul>\s*<p><strong>(?:Why|Explanation):<\/strong>\s*([\s\S]*?)<\/p>\s*<\/blockquote>/gi,
+    (block, question, list, explanation, offset) => {
+      const options = [...String(list).matchAll(/<li>\s*\[([ xX])\]\s*([\s\S]*?)<\/li>/gi)].map(
+        (match) => ({ correct: match[1].toLowerCase() === "x", html: match[2] }),
+      );
+      if (
+        options.length < 2 ||
+        options.length > 4 ||
+        options.filter((item) => item.correct).length !== 1
+      )
+        return block;
+
+      const id = `ds-quiz-${offset}`;
+      const correctOption = options.find((option) => option.correct);
+      const choices = options
+        .map(
+          (option, index) => `<label class="ds-quiz-option" for="${id}-${index}">
+  <input id="${id}-${index}" type="radio" name="${id}" value="${index}" data-correct="${option.correct}">
+  <span class="ds-quiz-control" aria-hidden="true"></span>
+  <span class="ds-quiz-option-text">${option.html}</span>
+  <span class="ds-quiz-option-status" hidden></span>
+</label>`,
+        )
+        .join("");
+
+      return `<form class="ds-quiz" data-quiz>
+  <fieldset>
+    <legend><span class="ds-quiz-label">Quick check</span><span class="ds-quiz-question">${question}</span></legend>
+    <div class="ds-quiz-options">${choices}</div>
+    <div class="ds-quiz-actions"><button type="submit" class="ds-quiz-submit" disabled>Check answer</button></div>
+    <span class="ds-quiz-announcement" role="status" aria-live="polite"></span>
+    <div class="ds-quiz-feedback" id="${id}-feedback" hidden><strong data-quiz-result></strong> <span class="ds-quiz-explanation">${explanation}</span></div>
+    <noscript><details class="ds-quiz-fallback"><summary>Show answer</summary><p><strong>Answer:</strong> ${correctOption.html}. ${explanation}</p></details></noscript>
+  </fieldset>
+</form>`;
+    },
+  );
+}
+
+function enhanceDevtoolsLabs(html) {
+  return String(html).replace(
+    /<blockquote>\s*<p><strong>See for yourself:<\/strong>\s*([\s\S]*?)<\/p>([\s\S]*?)<\/blockquote>/gi,
+    (_match, introduction, body) =>
+      `<aside class="ds-devtools-lab" aria-label="See for yourself"><header class="ds-devtools-lab-header"><span class="ds-devtools-lab-label">See for yourself</span><p>${introduction}</p></header><div class="ds-devtools-lab-body">${body}</div></aside>`,
+  );
 }
 
 /**
@@ -188,6 +260,7 @@ function linkifyCitations(html, targetRoot) {
   const notes = [];
   /** @type {Map<string, number>} */
   const keyToNum = new Map();
+  let referenceOccurrence = 0;
 
   // Eat optional surrounding parens/spaces so prose (`path:line`) → bare footnote number.
   const body = html.replace(
@@ -222,7 +295,11 @@ function linkifyCitations(html, targetRoot) {
         }
       }
       const idAttr = first ? ` id="fnref-${num}"` : "";
-      return `<sup class="ds-fn-ref"><a href="#fn-${num}"${idAttr} aria-describedby="fn-${num}">${num}</a></sup>`;
+      referenceOccurrence += 1;
+      const previewId = `fn-preview-${num}-${referenceOccurrence}`;
+      const fileName = citation.path.split("/").pop() || citation.path;
+      const preview = `${fileName} · ${citation.startLine === citation.endLine ? `line ${citation.startLine}` : `lines ${citation.startLine}-${citation.endLine}`}`;
+      return `<sup class="ds-fn-ref"><a href="#fn-${num}"${idAttr} aria-describedby="${previewId} fn-${num}" data-source-preview>${num}</a><span class="ds-fn-preview" id="${previewId}" role="tooltip" hidden>${escapeAttr(preview)}</span></sup>`;
     },
   );
 

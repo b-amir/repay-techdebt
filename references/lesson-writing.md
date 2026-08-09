@@ -128,6 +128,19 @@ covering these reader needs:
 - the safe change or verification boundary;
 - one answerable check, prediction, or small challenge.
 
+Build those needs around one verified causal thread: trigger, decision or transformation, effect,
+and feedback. Pair the normal mechanism with one supported failure, edge case, abuse case, or
+tempting wrong model from the same subject.
+
+Interactive learning is optional and evidence-driven. Add it where the reader naturally needs to
+commit to a model, pause before an explanation, or observe runtime behavior—not because every lesson
+needs a quiz. Use the documented `Quick check` for one consequential misconception with two to four
+plausible choices and one correct answer; `Think first` for a collapsed causal answer; and `See for
+yourself` for a safe DevTools walkthrough. A walkthrough names the safe execution context, setup,
+action, observable signal, one controlled variation, and an explicit `Reset`. It must not expose
+secrets, alter production data, or ask the reader to defeat a live security boundary. Keep at most
+three useful interactive moments and remove any that merely test symbol recall.
+
 Do not force these labels verbatim. A security lesson and a UI interaction lesson should not look
 like copies of the same form.
 
@@ -141,8 +154,10 @@ Before saving:
 4. Remove repetition, throat-clearing, generic best practices, and AI-flavored filler such as
    “delve,” “seamlessly,” or “game-changer.”
 5. Check that the opening promises a concrete outcome and every section fulfills it.
-6. Check that the ending is a small modify, debug, run/predict, or named-test assertion job. Recall
-   alone does not demonstrate transfer. Provide private rubric or answer guidance.
+6. Check that the ending is a small modify, debug, run/predict, or named-test assertion job. Name the
+   invariant to preserve, affected consumer or boundary, concrete verification, and observable
+   regression signal. Recall alone does not demonstrate transfer. Provide private rubric or answer
+   guidance.
 7. Ensure the lesson establishes clear motivation, teaches a causal mental model, anticipates at least one misconception, and manages cognitive load appropriately.
 8. Run `check-lesson-quality.js`; fix every error. Treat warnings as revision prompts, not noise.
 9. Record reviewer provenance. If the authoring agent also reviews, mark `self`; its score is

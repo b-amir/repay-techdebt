@@ -60,6 +60,16 @@ export const CLIENT_SCRIPT = `
     return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
   }
 
+  function isInteractiveTarget(el) {
+    return Boolean(
+      el &&
+        el.closest &&
+        el.closest(
+          "a, button, summary, input, textarea, select, [contenteditable='true'], [role='dialog']",
+        ),
+    );
+  }
+
   function isNarrowViewport() {
     return Boolean(window.matchMedia && window.matchMedia("(max-width: 900px)").matches);
   }
@@ -590,6 +600,143 @@ export const CLIENT_SCRIPT = `
     });
   }
 
+  function bindCodeFolding() {
+    document.querySelectorAll(".ds-codeblock-toggle").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var block = btn.closest(".ds-codeblock");
+        if (!block) return;
+        var expanded = btn.getAttribute("aria-expanded") === "true";
+        block.classList.toggle("ds-codeblock-expanded", !expanded);
+        btn.setAttribute("aria-expanded", expanded ? "false" : "true");
+        btn.textContent = expanded ? "Show more" : "Show less";
+      });
+    });
+  }
+
+  function bindLearningChecks() {
+    document.querySelectorAll("[data-quiz]").forEach(function (form) {
+      var inputs = Array.from(form.querySelectorAll('input[type="radio"]'));
+      var submit = form.querySelector(".ds-quiz-submit");
+      var feedback = form.querySelector(".ds-quiz-feedback");
+      var announcement = form.querySelector(".ds-quiz-announcement");
+      var result = form.querySelector("[data-quiz-result]");
+      if (!inputs.length || !submit || !feedback || !result) return;
+
+      function clearEvaluation() {
+        var selected = inputs.find(function (input) { return input.checked; });
+        form.removeAttribute("data-state");
+        feedback.hidden = true;
+        result.textContent = "";
+        if (announcement) announcement.textContent = "";
+        submit.disabled = !selected;
+        submit.hidden = false;
+        submit.textContent = "Check answer";
+        inputs.forEach(function (input) {
+          var option = input.closest(".ds-quiz-option");
+          if (!option) return;
+          option.toggleAttribute("data-selected", input.checked);
+          option.removeAttribute("data-result");
+          var status = option.querySelector(".ds-quiz-option-status");
+          if (status) {
+            status.hidden = true;
+            status.textContent = "";
+          }
+        });
+      }
+
+      inputs.forEach(function (input) {
+        input.addEventListener("change", clearEvaluation);
+      });
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        var selected = inputs.find(function (input) { return input.checked; });
+        var correct = inputs.find(function (input) {
+          return input.getAttribute("data-correct") === "true";
+        });
+        if (!selected || !correct) return;
+
+        var isCorrect = selected === correct;
+        var selectedOption = selected.closest(".ds-quiz-option");
+        var correctOption = correct.closest(".ds-quiz-option");
+        var correctText = correctOption && correctOption.querySelector(".ds-quiz-option-text");
+        form.setAttribute("data-state", isCorrect ? "correct" : "incorrect");
+
+        if (selectedOption) {
+          selectedOption.setAttribute("data-result", isCorrect ? "correct" : "incorrect");
+          var selectedStatus = selectedOption.querySelector(".ds-quiz-option-status");
+          if (selectedStatus) {
+            selectedStatus.hidden = false;
+            selectedStatus.textContent = isCorrect ? "Correct" : "Your answer";
+          }
+        }
+        if (!isCorrect && correctOption) {
+          correctOption.setAttribute("data-result", "correct");
+          var correctStatus = correctOption.querySelector(".ds-quiz-option-status");
+          if (correctStatus) {
+            correctStatus.hidden = false;
+            correctStatus.textContent = "Correct answer";
+          }
+        }
+
+        result.textContent = isCorrect
+          ? "Correct."
+          : "Not quite. Correct answer: " + (correctText ? correctText.textContent.trim() : "the highlighted option") + ".";
+        feedback.hidden = false;
+        if (announcement) announcement.textContent = feedback.textContent.trim();
+        submit.disabled = true;
+        submit.hidden = true;
+      });
+    });
+  }
+
+  function bindSourcePreviews() {
+    var active = null;
+
+    function hide(link) {
+      var preview = link && link.nextElementSibling;
+      if (!preview || !preview.classList.contains("ds-fn-preview")) return;
+      preview.hidden = true;
+      preview.removeAttribute("data-placement");
+      if (active === link) active = null;
+    }
+
+    function show(link) {
+      if (active && active !== link) hide(active);
+      var preview = link.nextElementSibling;
+      if (!preview || !preview.classList.contains("ds-fn-preview")) return;
+      preview.hidden = false;
+      var rect = link.getBoundingClientRect();
+      var previewRect = preview.getBoundingClientRect();
+      var gutter = 12;
+      var left = Math.min(
+        window.innerWidth - previewRect.width - gutter,
+        Math.max(gutter, rect.left + rect.width / 2 - previewRect.width / 2),
+      );
+      var top = rect.top - previewRect.height - 8;
+      if (top < gutter) {
+        top = rect.bottom + 8;
+        preview.setAttribute("data-placement", "below");
+      }
+      preview.style.left = Math.round(left) + "px";
+      preview.style.top = Math.round(top) + "px";
+      active = link;
+    }
+
+    document.querySelectorAll("[data-source-preview]").forEach(function (link) {
+      link.addEventListener("mouseenter", function () { show(link); });
+      link.addEventListener("mouseleave", function () { hide(link); });
+      link.addEventListener("focus", function () { show(link); });
+      link.addEventListener("blur", function () { hide(link); });
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && active) hide(active);
+    });
+    window.addEventListener("scroll", function () {
+      if (active) hide(active);
+    }, { passive: true });
+  }
+
   function fallbackCopy(text) {
     var ta = document.createElement("textarea");
     ta.value = text;
@@ -689,11 +836,32 @@ export const CLIENT_SCRIPT = `
     if (scrollAttr) {
       if (/^heading-/.test(scrollAttr) || isNaN(Number(scrollAttr))) {
         var el = document.getElementById(scrollAttr);
-        if (el) setTimeout(function(){ el.scrollIntoView({ behavior: "instant", block: "start" }); }, 10);
+        if (el) setTimeout(function(){
+          el.scrollIntoView({ behavior: "auto", block: "start" });
+          showResumeMarker(el);
+        }, 10);
       } else {
         var y = Number(scrollAttr);
-        if (y > 0) setTimeout(function(){ window.scrollTo({ top: y, behavior: "instant" }); }, 10);
+        if (y > 0) setTimeout(function(){ window.scrollTo({ top: y, behavior: "auto" }); }, 10);
       }
+    }
+
+    function showResumeMarker(heading) {
+      var marker = document.createElement("span");
+      marker.className = "ds-resume-marker";
+      marker.setAttribute("aria-hidden", "true");
+      marker.textContent = "Resume here";
+      heading.appendChild(marker);
+      var armed = false;
+      setTimeout(function () { armed = true; }, 450);
+      function clearMarker() {
+        if (!armed) return;
+        window.removeEventListener("scroll", clearMarker);
+        marker.classList.add("ds-resume-marker-hide");
+        setTimeout(function () { marker.remove(); }, 180);
+      }
+      window.addEventListener("scroll", clearMarker, { passive: true });
+      setTimeout(clearMarker, 5000);
     }
 
     var headings = Array.from(document.querySelectorAll(".ds-section-heading"));
@@ -701,13 +869,6 @@ export const CLIENT_SCRIPT = `
     var activeId = headings.length ? headings[0].id : "";
 
     function updateScroll() {
-      var bar = document.querySelector(".ds-reading-progress-bar");
-      if (bar) {
-        var max = document.documentElement.scrollHeight - window.innerHeight;
-        var pct = max > 0 ? (window.scrollY / max) : 0;
-        bar.style.transform = "scaleX(" + Math.min(1, Math.max(0, pct)) + ")";
-      }
-
       var found = null;
       var scrollOffset = 96;
       var bottomOffset = 160;
@@ -725,7 +886,12 @@ export const CLIENT_SCRIPT = `
       var currentId = found ? found.id : (headings[0] ? headings[0].id : "");
       if (currentId !== activeId) {
         activeId = currentId;
+        var activeIndex = headings.findIndex(function (heading) { return heading.id === activeId; });
         links.forEach(function(l) {
+          var linkIndex = headings.findIndex(function (heading) {
+            return heading.id === l.getAttribute("data-id");
+          });
+          l.classList.toggle("ds-toc-link-passed", linkIndex >= 0 && linkIndex < activeIndex);
           if (l.getAttribute("data-id") === activeId) {
             l.classList.add("ds-toc-link-active");
             l.setAttribute("aria-current", "location");
@@ -819,7 +985,8 @@ export const CLIENT_SCRIPT = `
 
   function matchLabel(match) {
     if (!match) return "lesson";
-    if (match === "primaryPath") return "path";
+    if (match === "primaryPath") return "source";
+    if (match === "body") return "explanation";
     if (match === "planned") return "planned";
     if (match === "recent") return "recent";
     if (match === "continue") return "continue";
@@ -1075,12 +1242,12 @@ export const CLIENT_SCRIPT = `
             if (l.key) stateByKey[l.key] = l.state;
           });
           function isClaimish(match) {
-            return match === "claim" || match === "citation" || match === "path" || match === "primaryPath";
+            return match === "claim" || match === "citation" || match === "path" || match === "primaryPath" || match === "source" || match === "symbol" || match === "diagram";
           }
           (data.results || []).forEach(function (item) {
             var row = {
               title: item.title,
-              href: "/lesson/" + encodeURIComponent(item.key),
+              href: "/lesson/" + encodeURIComponent(item.key) + (item.anchor ? "#" + encodeURIComponent(item.anchor) : ""),
               key: item.key,
               match: item.match,
               snippet: item.snippet || "",
@@ -1123,8 +1290,8 @@ export const CLIENT_SCRIPT = `
             results.appendChild(empty);
             return;
           }
-          appendGroup("Lessons", lessons.slice(0, 8));
-          appendGroup("Claims & paths", claims.slice(0, 8));
+          appendGroup("Lessons & sections", lessons.slice(0, 8));
+          appendGroup("Evidence & code", claims.slice(0, 8));
           appendGroup("Planned", plannedHits.slice(0, 8));
           setActive(0);
         })
@@ -1238,6 +1405,8 @@ export const CLIENT_SCRIPT = `
         "<div><dt><kbd class=\\"ds-kbd\\">/</kbd> or <kbd class=\\"ds-kbd\\">⌘K</kbd></dt><dd>Command palette</dd></div>" +
         "<div><dt><kbd class=\\"ds-kbd\\">j</kbd> / <kbd class=\\"ds-kbd\\">→</kbd> / <kbd class=\\"ds-kbd\\">]</kbd></dt><dd>Next lesson</dd></div>" +
         "<div><dt><kbd class=\\"ds-kbd\\">k</kbd> / <kbd class=\\"ds-kbd\\">←</kbd> / <kbd class=\\"ds-kbd\\">[</kbd></dt><dd>Previous lesson</dd></div>" +
+        "<div><dt><kbd class=\\"ds-kbd\\">n</kbd> / <kbd class=\\"ds-kbd\\">p</kbd></dt><dd>Next / previous section</dd></div>" +
+        "<div><dt><kbd class=\\"ds-kbd\\">r</kbd></dt><dd>Source references</dd></div>" +
         "<div><dt><kbd class=\\"ds-kbd\\">d</kbd></dt><dd>Toggle mark done</dd></div>" +
         "<div><dt><kbd class=\\"ds-kbd\\">f</kbd></dt><dd>Focus mode</dd></div>" +
         "<div><dt><kbd class=\\"ds-kbd\\">s</kbd></dt><dd>Toggle sidebar</dd></div>" +
@@ -1316,9 +1485,33 @@ export const CLIENT_SCRIPT = `
   }
 
   function bindGlobalKeys(searchApi, shortcutsApi) {
+    function goSection(direction) {
+      var headings = Array.from(document.querySelectorAll(".ds-section-heading"));
+      if (!headings.length) return;
+      var active = document.querySelector(".ds-toc-link-active");
+      var activeId = active ? active.getAttribute("data-id") : "";
+      var index = headings.findIndex(function (heading) { return heading.id === activeId; });
+      if (index < 0) index = 0;
+      var targetIndex = Math.max(0, Math.min(headings.length - 1, index + direction));
+      var target = headings[targetIndex];
+      if (!target || targetIndex === index) return;
+      target.scrollIntoView({ behavior: "auto", block: "start" });
+      target.setAttribute("tabindex", "-1");
+      target.focus({ preventScroll: true });
+    }
+
+    function goSources() {
+      var sources = document.querySelector(".ds-footnotes-title");
+      if (!sources) return;
+      sources.scrollIntoView({ behavior: "auto", block: "start" });
+      sources.setAttribute("tabindex", "-1");
+      sources.focus({ preventScroll: true });
+    }
+
     document.addEventListener("keydown", function (e) {
       if (isTypingTarget(e.target)) return;
       if (searchApi.isOpen() || shortcutsApi.isOpen()) return;
+      if (isInteractiveTarget(e.target)) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "j" || e.key === "ArrowRight" || e.key === "]") {
         e.preventDefault();
@@ -1333,6 +1526,21 @@ export const CLIENT_SCRIPT = `
       if (e.key === "d") {
         e.preventDefault();
         toggleCompletion();
+        return;
+      }
+      if (e.key === "n") {
+        e.preventDefault();
+        goSection(1);
+        return;
+      }
+      if (e.key === "p") {
+        e.preventDefault();
+        goSection(-1);
+        return;
+      }
+      if (e.key === "r") {
+        e.preventDefault();
+        goSources();
         return;
       }
       if (e.key === "f") {
@@ -1396,6 +1604,9 @@ export const CLIENT_SCRIPT = `
     bindSidebarToggle();
     bindNavFilter();
     bindCopyButtons();
+    bindCodeFolding();
+    bindLearningChecks();
+    bindSourcePreviews();
     bindMermaidExpand();
     bindNavScroll();
     bindReadingScroll();
@@ -1429,11 +1640,17 @@ export const CLIENT_SCRIPT = `
           })
           .then(function (data) {
             updateCompletionUi(btn, data.completed, data.counts);
+            var nextHref = btn.getAttribute("data-next");
+            if (!completed && data.completed && nextHref) navigateTo(nextHref);
           })
           .catch(function () {
             btn.disabled = false;
             if (completionLabel)
-              completionLabel.textContent = completed ? "Mark not done" : "Mark as done";
+              completionLabel.textContent = completed
+                ? "Mark not done"
+                : btn.getAttribute("data-next")
+                  ? "Mark done and continue"
+                  : "Mark as done";
             if (completionStatus) completionStatus.textContent = "Could not save. Try again.";
           });
       });

@@ -190,6 +190,9 @@ frequency, latency, utilization, and production impact.
 ### Learning aids
 
 - Prediction prompt.
+- Single-answer misconception check with explanatory feedback.
+- Think-first question with a collapsed causal answer.
+- Safe DevTools walkthrough with an observable variation and reset.
 - Compact annotated code excerpt.
 - Sequence, state, dependency, or data-flow diagram.
 - Comparison table or before/after example.
@@ -218,4 +221,9 @@ frequency, latency, utilization, and production impact.
 The internal plan may retain scores, omissions, limitations, and many candidates. The learner-facing
 lesson should normally contain four to eight sections with plain headings. Do not expose a rubric,
 empty optional headings, or an exhaustive inventory. Put evidence beside claims, label uncertainty,
-and give the reader one coherent path through the subject.
+and give the reader one coherent path through the subject. Interactive aids are optional: use only
+the prediction, single-answer check, think-first reveal, or DevTools walkthrough that creates a
+useful pause in the causal thread. Never add one to meet a quota, avoid more than three in a lesson,
+and make every revealed answer explain the mechanism. Teach one supported contrast beside the
+normal path, and close on the safe-change, recovery, or next-test boundary appropriate to the
+selected shape.

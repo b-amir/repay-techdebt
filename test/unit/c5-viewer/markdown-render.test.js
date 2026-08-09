@@ -1,8 +1,10 @@
 // @category C5
 import assert from "node:assert/strict";
+import { JSDOM } from "jsdom";
 import { test } from "vite-plus/test";
 import { renderMarkdown, prepareLessonMarkdown } from "../../../src/viewer/markdown-render.js";
 import { renderLesson } from "../../../src/viewer/shell.js";
+import { CLIENT_SCRIPT } from "../../../src/viewer/client-script.js";
 
 test("renderMarkdown renders GFM tables", () => {
   const html = renderMarkdown(
@@ -31,6 +33,20 @@ test("renderMarkdown highlights untagged fences without a language label", () =>
   assert.doesNotMatch(html, /ds-code-plain/);
 });
 
+test("renderMarkdown folds only long code blocks", () => {
+  const shortHtml = renderMarkdown("```js\nconst value = 1;\n```\n");
+  const longCode = Array.from({ length: 19 }, (_, index) => `const line${index} = ${index};`).join(
+    "\n",
+  );
+  const longHtml = renderMarkdown(`\`\`\`js\n${longCode}\n\`\`\`\n`);
+
+  assert.doesNotMatch(shortHtml, /ds-codeblock-collapsible|ds-codeblock-toggle/);
+  assert.match(longHtml, /ds-codeblock-collapsible/);
+  assert.match(longHtml, /data-lines="19"/);
+  assert.match(longHtml, /aria-expanded="false"/);
+  assert.match(longHtml, />Show more</);
+});
+
 test("renderMarkdown emits mermaid blocks for client rendering", () => {
   const html = renderMarkdown(
     "```mermaid\nflowchart TD\n  accTitle: Test\n  accDescr: Desc\n  A-->B\n```\n",
@@ -51,6 +67,119 @@ test("renderMarkdown gives captions and callouts quiet semantic hooks", () => {
   assert.match(html, /class="ds-callout ds-callout-note"/);
 });
 
+test("renderMarkdown turns one prediction and reveal into native disclosure", () => {
+  const html = renderMarkdown(
+    "> **Prediction:** What happens if the guard is removed?\n>\n> **Reveal:** The mutation runs because nothing rejects the request.\n",
+  );
+  assert.match(html, /<details class="ds-prediction">/);
+  assert.match(html, /<summary>/);
+  assert.match(html, /What happens if the guard is removed\?/);
+  assert.match(html, /class="ds-prediction-answer"/);
+  assert.match(html, /The mutation runs because nothing rejects the request/);
+  assert.doesNotMatch(html, /<blockquote>/);
+});
+
+test("renderMarkdown turns a reflection question into a native answer disclosure", () => {
+  const html = renderMarkdown(
+    "> **Think first:** Why does the route guard run before the component?\n>\n> **Answer:** The loader decides whether rendering may begin.\n",
+  );
+  assert.match(html, /<details class="ds-reflection">/);
+  assert.match(html, /<summary>/);
+  assert.match(html, /Why does the route guard run before the component\?/);
+  assert.match(html, /class="ds-reflection-answer"/);
+  assert.match(html, /The loader decides whether rendering may begin/);
+});
+
+test("renderMarkdown builds an accessible self-check with one predefined answer", () => {
+  const html = renderMarkdown(
+    "> **Quick check:** Which boundary rejects direct navigation first?\n>\n> - [ ] The component gate\n> - [x] The route loader\n> - [ ] The API client\n>\n> **Why:** The loader runs before rendering and can redirect immediately.\n",
+  );
+  assert.match(html, /<form class="ds-quiz" data-quiz>/);
+  assert.match(html, /<fieldset>/);
+  assert.match(html, /<legend>/);
+  assert.equal((html.match(/type="radio"/g) || []).length, 3);
+  assert.equal((html.match(/data-correct="true"/g) || []).length, 1);
+  assert.doesNotMatch(html, /<input[^>]+aria-describedby/);
+  assert.match(html, /class="ds-quiz-submit" disabled>Check answer/);
+  assert.match(html, /class="ds-quiz-announcement" role="status" aria-live="polite"/);
+  assert.match(html, /<noscript><details class="ds-quiz-fallback"><summary>Show answer/);
+  assert.match(html, /The loader runs before rendering/);
+  assert.doesNotMatch(html, /<blockquote>/);
+});
+
+test("self-check behavior handles wrong, retry, correct, and announced feedback states", () => {
+  const quiz = renderMarkdown(
+    "> **Quick check:** Which boundary rejects direct navigation first?\n>\n> - [ ] The component gate\n> - [x] The route loader\n>\n> **Why:** The loader can redirect before the component tree exists.\n",
+  );
+  const dom = new JSDOM(`<!doctype html><body>${quiz}</body>`, {
+    runScripts: "outside-only",
+    url: "http://127.0.0.1/lesson/test",
+  });
+  dom.window.matchMedia = () => ({
+    matches: false,
+    addEventListener() {},
+    removeEventListener() {},
+  });
+  const wasLoading = dom.window.document.readyState === "loading";
+  dom.window.eval(CLIENT_SCRIPT);
+  if (wasLoading) dom.window.document.dispatchEvent(new dom.window.Event("DOMContentLoaded"));
+
+  const form = dom.window.document.querySelector("[data-quiz]");
+  const choices = [...form.querySelectorAll('input[type="radio"]')];
+  const submit = form.querySelector(".ds-quiz-submit");
+  const feedback = form.querySelector(".ds-quiz-feedback");
+  const announcement = form.querySelector(".ds-quiz-announcement");
+
+  choices[0].click();
+  assert.equal(submit.disabled, false);
+  form.requestSubmit(submit);
+  assert.equal(form.getAttribute("data-state"), "incorrect");
+  assert.equal(feedback.hidden, false);
+  assert.equal(submit.hidden, true);
+  assert.match(announcement.textContent, /Not quite.*route loader.*component tree/s);
+  assert.equal(
+    form.querySelector('[data-result="incorrect"] .ds-quiz-option-status').textContent,
+    "Your answer",
+  );
+  assert.equal(
+    form.querySelector('[data-result="correct"] .ds-quiz-option-status').textContent,
+    "Correct answer",
+  );
+
+  choices[1].click();
+  assert.equal(form.hasAttribute("data-state"), false);
+  assert.equal(feedback.hidden, true);
+  assert.equal(announcement.textContent, "");
+  assert.equal(submit.disabled, false);
+  assert.equal(submit.hidden, false);
+  form.requestSubmit(submit);
+  assert.equal(form.getAttribute("data-state"), "correct");
+  assert.match(announcement.textContent, /^Correct\..*loader can redirect/s);
+  assert.equal(submit.disabled, true);
+
+  dom.window.close();
+});
+
+test("renderMarkdown leaves malformed self-checks as ordinary lesson content", () => {
+  const html = renderMarkdown(
+    "> **Quick check:** Pick every correct answer.\n>\n> - [x] First\n> - [x] Second\n>\n> **Why:** This pattern supports exactly one answer.\n",
+  );
+  assert.doesNotMatch(html, /data-quiz/);
+  assert.match(html, /<blockquote>/);
+});
+
+test("renderMarkdown gives See for yourself walkthroughs a dedicated reading surface", () => {
+  const html = renderMarkdown(
+    "> **See for yourself:** Watch the redirect happen in the browser.\n>\n> 1. Open **Network** and preserve the log.\n> 2. Request the protected route.\n>\n> **Change one thing:** Remove the cookie and repeat.\n>\n> **Look for:** A redirect before protected data loads.\n",
+  );
+  assert.match(html, /<aside class="ds-devtools-lab" aria-label="See for yourself">/);
+  assert.match(html, /class="ds-devtools-lab-header"/);
+  assert.match(html, /<ol>/);
+  assert.match(html, /Change one thing/);
+  assert.match(html, /Look for/);
+  assert.doesNotMatch(html, /<blockquote>/);
+});
+
 test("renderMarkdown turns path:line citations into footnotes when targetRoot is provided", () => {
   const html = renderMarkdown(
     "See (`src/auth.js:42`) for the guard. Also `src/auth.js:42` again and (`app/core/api/http-client.ts:123`).",
@@ -59,6 +188,8 @@ test("renderMarkdown turns path:line citations into footnotes when targetRoot is
   assert.match(html, /class="ds-fn-ref"/);
   assert.match(html, /class="ds-footnotes"/);
   assert.match(html, /href="#fn-1"/);
+  assert.match(html, /data-source-preview/);
+  assert.match(html, /role="tooltip" hidden>auth\.js · line 42</);
   assert.match(html, /id="fn-1"/);
   assert.match(html, /class="ds-citation"/);
   assert.match(html, /vscode:\/\/file\/\/work\/app\/src\/auth.js:42/);

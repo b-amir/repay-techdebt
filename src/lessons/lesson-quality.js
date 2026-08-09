@@ -18,6 +18,12 @@ const TEMPLATED_CLAIMS = [
   /Explains how it is called by/i,
   /Explains dependency on/i,
 ];
+const HOLLOW_OPENING =
+  /\b(?:in this lesson|this lesson (?:will|covers|explores|discusses)|we (?:will|are going to) (?:explore|cover|discuss)|welcome to)\b/i;
+const VERIFICATION_LANGUAGE =
+  /\b(?:test|assert|expect|verify|check|run|observe|measure|log|trace|rollback|recover|diagnos|reproduce)\w*\b/i;
+const UNSAFE_DEVTOOLS_ACTION =
+  /\b(?:copy|paste|share|expose|reveal)\b.{0,60}\b(?:secret|token|password|cookie value|authorization header)\b|\b(?:disable|remove|bypass)\b.{0,50}\b(?:auth|guard|permission|security|csrf|validation)\b|\b(?:delete|mutate|edit|change|write(?:\s+to)?)\b.{0,50}\bproduction\b|\bproduction\b.{0,50}\b(?:delete|mutate|edit|change|write)\b/i;
 
 function wordCount(markdown) {
   return markdown
@@ -77,6 +83,25 @@ export function inspectLesson(
     errors.push("Cite at least one source anchor selected for this curriculum topic.");
   if (AI_PUFFERY.test(markdown))
     errors.push("Remove generic or promotional AI phrasing; use concrete project language.");
+
+  const proseWithoutMeta = markdown
+    .replace(/^---[\s\S]*?^---\s*/m, "")
+    .replace(/^#\s+.+\n+/, "")
+    .replace(/```[\s\S]*?```/g, "");
+  const opening = proseWithoutMeta
+    .split(/\n\s*\n/)
+    .find((block) => block.trim() && !block.trim().startsWith("#"));
+  if (opening && HOLLOW_OPENING.test(opening)) {
+    errors.push(
+      "Replace the generic opening with the learner outcome, project consequence, and concrete mechanism.",
+    );
+  }
+  const introductionCount = (markdown.match(/\b(?:in|throughout) this lesson\b/gi) ?? []).length;
+  if (introductionCount > 1) {
+    warnings.push(
+      "Lesson repeatedly announces itself; state the project behavior directly instead.",
+    );
+  }
 
   // Reject templated claims
   const templatedMatches = TEMPLATED_CLAIMS.filter((regex) => regex.test(markdown));
@@ -179,12 +204,110 @@ export function inspectLesson(
     warnings.push(
       `${pathHeavyParagraphs.length} paragraph(s) contain three or more source paths; keep the explanation readable and move supporting locations to compact citations.`,
     );
+  const codeBlocks = [...markdown.matchAll(/^```([^\n`]*)\n([\s\S]*?)^```/gm)].filter(
+    (match) => match[1].trim().split(/\s+/)[0]?.toLowerCase() !== "mermaid",
+  );
+  const oversizedCodeBlocks = codeBlocks.filter(
+    (match) => match[2].replace(/\n$/, "").split("\n").length > 40,
+  );
+  if (oversizedCodeBlocks.length > 0) {
+    warnings.push(
+      `${oversizedCodeBlocks.length} code block(s) exceed 40 lines; excerpt the verified mechanism and move surrounding code behind viewer disclosure.`,
+    );
+  }
+  const sectionBodies = [...markdown.matchAll(/^##\s+(.+)\n([\s\S]*?)(?=^##\s+|(?![\s\S]))/gm)].map(
+    (match) => ({
+      heading: match[1].trim(),
+      words: wordCount(match[2]),
+    }),
+  );
+  const longSections = sectionBodies.filter((section) => section.words > 350);
+  if (longSections.length > 0) {
+    warnings.push(
+      `Section(s) exceed 350 words (${longSections.map((section) => section.heading).join(", ")}); split the reasoning or remove a second teaching job.`,
+    );
+  }
   if (!/\b(?:you|your)\b/i.test(markdown))
     warnings.push(
       "Address the learner directly at least once so the outcome and action are explicit.",
     );
   if (!/\b(?:because|therefore|so that|which means|as a result)\b/i.test(markdown))
     warnings.push("Add at least one explicit cause-and-consequence explanation.");
+
+  const quotedBlocks = markdown.match(/(?:^>.*(?:\n|$))+/gm) ?? [];
+  const learningChecks = quotedBlocks.filter((block) => /\*\*Quick check:\*\*/i.test(block));
+  for (const block of learningChecks) {
+    const options = [...block.matchAll(/^>\s*-\s*\[([ xX])\]\s+.+$/gm)];
+    const correct = options.filter((option) => option[1].toLowerCase() === "x");
+    if (options.length < 2 || options.length > 4 || correct.length !== 1) {
+      errors.push(
+        "Quick check must have two to four choices and exactly one `[x]` correct answer.",
+      );
+    }
+    if (!/^>\s*\*\*(?:Why|Explanation):\*\*/im.test(block)) {
+      errors.push(
+        "Quick check must include a Why/Explanation that teaches the mechanism after the choice.",
+      );
+    }
+  }
+
+  const reflectionBlocks = quotedBlocks.filter((block) => /\*\*Think first:\*\*/i.test(block));
+  for (const block of reflectionBlocks) {
+    if (!/^>\s*\*\*Answer:\*\*/im.test(block)) {
+      errors.push("Think first prompt must include its collapsed Answer in the same quote block.");
+    }
+  }
+
+  const devtoolsLabs = quotedBlocks.filter((block) => /\*\*See for yourself:\*\*/i.test(block));
+  for (const block of devtoolsLabs) {
+    if (!/^>\s*\d+\.\s+/m.test(block)) {
+      warnings.push("See for yourself walkthrough should give the learner ordered DevTools steps.");
+    }
+    if (!/^>\s*\*\*Change one thing:\*\*/im.test(block)) {
+      warnings.push(
+        "See for yourself walkthrough should include one safe variation under Change one thing.",
+      );
+    }
+    if (!/^>\s*\*\*Look for:\*\*/im.test(block)) {
+      warnings.push(
+        "See for yourself walkthrough should name the observable signal under Look for.",
+      );
+    }
+    if (!/^>\s*\*\*Reset:\*\*/im.test(block)) {
+      warnings.push(
+        "See for yourself walkthrough should explain how to restore the starting state under Reset.",
+      );
+    }
+    if (
+      !/\b(?:local(?:host| development)?|development|dev server|test environment|staging|sandbox|read-only|non-production)\b/i.test(
+        block,
+      )
+    ) {
+      warnings.push(
+        "See for yourself walkthrough should name a safe execution context such as local development, a sandbox, or a read-only observation.",
+      );
+    }
+    const unsafeLines = block
+      .split("\n")
+      .filter((line) => !/\b(?:do not|don't|never|without)\b/i.test(line))
+      .filter((line) => UNSAFE_DEVTOOLS_ACTION.test(line));
+    if (unsafeLines.length > 0) {
+      errors.push(
+        "See for yourself walkthrough includes an unsafe action involving secrets, production mutation, or bypassing a protection.",
+      );
+    }
+  }
+
+  const interactiveCount =
+    learningChecks.length +
+    reflectionBlocks.length +
+    devtoolsLabs.length +
+    (markdown.match(/\*\*Prediction:\*\*/gi) ?? []).length;
+  if (interactiveCount > 3) {
+    warnings.push(
+      `Lesson contains ${interactiveCount} interactive moments; keep only the pauses that materially improve understanding.`,
+    );
+  }
 
   const nonMermaidFence = [...markdown.matchAll(/^```([^\n`]*)\n[\s\S]*?^```/gm)].some(
     (match) => match[1].trim().split(/\s+/)[0]?.toLowerCase() !== "mermaid",
@@ -211,6 +334,11 @@ export function inspectLesson(
   ) {
     warnings.push(
       "Check section appears recall-only; end with a modify, debug, run, or prediction job.",
+    );
+  }
+  if (checkSection && !VERIFICATION_LANGUAGE.test(checkSection)) {
+    warnings.push(
+      "Final learning job does not name verification or an observable regression signal.",
     );
   }
 

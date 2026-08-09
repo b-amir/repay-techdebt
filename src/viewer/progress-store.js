@@ -103,10 +103,13 @@ export async function setLastRead(progressPath, lessonPath, workbookRoot, opts) 
   const { nowIso, lastScroll } = opts;
   const key = normalizeLessonKey(lessonPath, workbookRoot);
   const progress = await readProgress(progressPath);
+  const lessonChanged = progress.lastRead !== key;
   progress.lastRead = key;
   progress.lastReadAt = nowIso;
   if (lastScroll !== undefined) {
     progress.lastScroll = lastScroll;
+  } else if (lessonChanged) {
+    progress.lastScroll = null;
   }
   progress.updatedAt = nowIso;
   await atomicWrite(progressPath, progress);
