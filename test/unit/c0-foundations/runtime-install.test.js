@@ -72,19 +72,20 @@ test("runPackageInstall falls back to system pnpm only when corepack is unavaila
   assert.equal(result.packageManagerVersion, "system-fallback");
 });
 
-test("runPackageInstall does not retry after a pinned install failure", async () => {
+test("runPackageInstall retries fallback on failure and throws install-failed error with output", async () => {
   const mockChildFail = {
     on: (event, cb) => {
       if (event === "close") cb(1);
     },
+    kill: vi.fn(),
   };
   /** @type {any} */ (cp.spawn).mockReturnValue(mockChildFail);
 
   await assert.rejects(
     runPackageInstall("/mock/skill"),
-    (err) => err instanceof RuntimeBootstrapError && err.details?.code === "pinned-install-failed",
+    (err) => err instanceof RuntimeBootstrapError && err.details?.code === "install-failed",
   );
-  assert.equal(/** @type {any} */ (cp.spawn).mock.calls.length, 1);
+  assert.equal(/** @type {any} */ (cp.spawn).mock.calls.length, 2);
 });
 
 test("runPackageInstall throws if both fail (no npm)", async () => {

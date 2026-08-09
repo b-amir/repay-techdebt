@@ -15,17 +15,50 @@ export class RuntimeBootstrapError extends Error {
   }
 }
 
-function runCommand(command, args, cwd, env = process.env) {
+function runCommand(command, args, cwd, env = process.env, timeoutMs = 30000) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { cwd, env, stdio: "inherit" });
-    child.on("error", (/** @type {NodeJS.ErrnoException} */ error) => {
-      if (error.code === "ENOENT") reject(Object.assign(error, { errno: "ENOENT" }));
-      else reject(error);
-    });
-    child.on("close", (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`${command} exited with code ${code}`));
-    });
+    let timeoutId;
+    const child = spawn(command, args, { cwd, env, stdio: ["inherit", "pipe", "pipe"] });
+    
+    let output = "";
+    if (child.stdout) {
+      child.stdout.on("data", (data) => {
+        process.stdout.write(data);
+        output += data.toString();
+      });
+    }
+    if (child.stderr) {
+      child.stderr.on("data", (data) => {
+        process.stderr.write(data);
+        output += data.toString();
+      });
+    }
+
+    let isDone = false;
+    const finish = (error, code) => {
+      if (isDone) return;
+      isDone = true;
+      if (timeoutId) clearTimeout(timeoutId);
+      if (error) {
+        if (error.code === "ENOENT") reject(Object.assign(error, { errno: "ENOENT" }));
+        else reject(Object.assign(error, { output }));
+      } else if (code === 0) {
+        resolve();
+      } else {
+        const cmdErr = new Error(`${command} exited with code ${code}`);
+        reject(Object.assign(cmdErr, { output }));
+      }
+    };
+
+    if (timeoutMs) {
+      timeoutId = setTimeout(() => {
+        child.kill();
+        finish(new Error(`Command ${command} timed out after ${timeoutMs}ms`));
+      }, timeoutMs);
+    }
+
+    child.on("error", (error) => finish(error));
+    child.on("close", (code) => finish(null, code));
   });
 }
 
@@ -93,6 +126,11 @@ confirmModulesPurge=false
     { command: "corepack", args: ["pnpm@" + version, ...args], pinned: true },
     { command: "pnpm", args, pinned: false },
   ];
+  
+  let enoentCount = 0;
+  let lastError;
+  let lastOutput = "";
+
   for (const { command, args, pinned } of attempts) {
     try {
       await runCommand(command, args, skillRoot, env);
@@ -102,26 +140,35 @@ confirmModulesPurge=false
         packageManagerVersion: pinned ? version : "system-fallback",
       };
     } catch (error) {
-      if (error.errno === "ENOENT") continue;
-      const managerLabel = pinned ? `pinned pnpm ${version}` : "system pnpm fallback";
-      throw new RuntimeBootstrapError(
-        `Skill dependency install failed with ${managerLabel} (${command}): ${error.message}. ` +
-          "The lockfile was not bypassed; repair package.json and pnpm-lock.yaml together, then rerun node scripts/ensure-runtime.js.",
-        null,
-        {
-          code: "pinned-install-failed",
-          packageManager: command,
-          packageManagerVersion: pinned ? version : "system-fallback",
-          frozenLockfile: hasLockfile,
-          lifecycleScripts: "ignored",
-          repairCommand: "node scripts/ensure-runtime.js --format json",
-        },
-      );
+      if (error.errno === "ENOENT") {
+        enoentCount++;
+      } else {
+        lastError = error;
+        lastOutput = error.output || "";
+      }
+      continue;
     }
   }
+
+  if (enoentCount === attempts.length) {
+    throw new RuntimeBootstrapError(
+      "No package manager available to install skill dependencies. pnpm is required; install via `npm i -g pnpm` or `corepack enable`.",
+      null,
+    );
+  }
+
+  const outputSnippet = lastOutput ? `\nOutput snippet:\n${lastOutput.slice(-1000)}` : "";
   throw new RuntimeBootstrapError(
-    "No package manager available to install skill dependencies. pnpm is required; install via `npm i -g pnpm` or `corepack enable`.",
+    `Skill dependency install failed. (Original error: ${lastError?.message})${outputSnippet}\n\n` +
+    `Check the output above to determine if this is a network issue, a package.json syntax error, or lockfile drift. ` +
+    `If in a sandboxed environment without network, ensure dependencies are cached or pre-installed.`,
     null,
+    {
+      code: "install-failed",
+      frozenLockfile: hasLockfile,
+      lifecycleScripts: "ignored",
+      repairCommand: `cd ${skillRoot} && pnpm install --ignore-scripts`,
+    },
   );
 }
 
