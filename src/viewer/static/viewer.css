@@ -1271,8 +1271,8 @@ html[data-theme="dark"] .ds-settings-panel {
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
-  min-width: 11rem;
-  flex: 0 1 14rem;
+  min-width: 18rem;
+  flex: 0 0 18rem;
   padding-top: 4px;
 }
 
@@ -1297,13 +1297,13 @@ html[data-theme="dark"] .ds-settings-panel {
 }
 
 .ds-home-progress {
-  width: min(16rem, 100%);
+  width: 100%;
 }
 
 .ds-home-progress-track {
   height: 4px;
   border-radius: 999px;
-  background: var(--code-bg);
+  background: color-mix(in srgb, var(--text) 12%, var(--bg));
   overflow: hidden;
 }
 
@@ -1397,6 +1397,7 @@ html[data-theme="dark"] .ds-settings-panel {
   line-height: 1.45;
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .ds-home-progress-summary strong {
