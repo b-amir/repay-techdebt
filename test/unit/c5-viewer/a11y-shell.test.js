@@ -34,7 +34,12 @@ test("home render keeps skip link with compact home", () => {
         {
           title: "Intro",
           items: [
-            { title: "Open lesson", lessonKey: "lessons/open.md", state: "written" },
+            {
+              title: "Open lesson",
+              lessonKey: "lessons/open.md",
+              state: "written",
+              current: true,
+            },
             { title: "Done lesson", lessonKey: "lessons/done.md", state: "done" },
             { title: "Planned topic", id: "topic-planned", state: "planned" },
           ],
@@ -54,6 +59,8 @@ test("home render keeps skip link with compact home", () => {
   assert.match(html, /data-filter-clear/);
   assert.match(html, /data-last-read="lessons\/open\.md"/);
   assert.match(html, /data-nav-state="planned"/);
+  assert.match(html, /ds-nav-written ds-nav-current/);
+  assert.match(html, /aria-current="page"/);
   assert.match(html, /ds-home-primary/);
   assert.match(html, /ds-lesson-card/);
   assert.match(html, /data-focus="off"/);
@@ -130,6 +137,17 @@ test("nav filter CSS forces [hidden] despite display:grid on nav links", async (
   assert.match(css, /\.ds-nav-planned\[hidden\]/);
   assert.match(css, /\.ds-chapter\[hidden\]/);
   assert.match(css, /display:\s*none\s*!important/);
+});
+
+test("sidebar states use monochrome shape and weight hierarchy", async () => {
+  const css = await readFile(resolve(root, "src/viewer/static/viewer.css"), "utf8");
+  assert.match(css, /\.ds-nav-current\s*\{[\s\S]*?background:\s*var\(--nav-current-bg\)/);
+  assert.match(css, /\.ds-nav-current \.ds-nav-mark-dot::before\s*\{[\s\S]*?height:\s*12px/);
+  assert.match(
+    css,
+    /\.ds-nav-planned \.ds-nav-mark-dot::before\s*\{[\s\S]*?border:\s*1px solid currentColor/,
+  );
+  assert.match(css, /\.ds-nav-written\s*\{[\s\S]*?color:\s*var\(--text-secondary\)/);
 });
 
 test("main column stays measure-limited and centered (no TOC expand, zen hides rails)", async () => {

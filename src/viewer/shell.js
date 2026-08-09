@@ -143,14 +143,15 @@ function renderSidebar(sidebar, workbookTitle) {
           if (item.state === "planned") {
             const classes = ["ds-nav", "ds-nav-planned"];
             if (item.current) classes.push("ds-nav-current");
-            return `<a class="${classes.join(" ")}" href="${plannedHref(item.id)}" data-nav-state="planned" data-nav-title="${escapeHtml(item.title)}" title="${escapeHtml(item.outcome ?? "Not written yet")}">${NAV_DOT_MARK}<span class="ds-nav-label">${escapeHtml(item.title)}</span></a>`;
+            const current = item.current ? ' aria-current="page"' : "";
+            return `<a class="${classes.join(" ")}" href="${plannedHref(item.id)}" data-nav-state="planned" data-nav-title="${escapeHtml(item.title)}" title="${escapeHtml(item.outcome ?? "Not written yet")}"${current}>${NAV_DOT_MARK}<span class="ds-nav-label">${escapeHtml(item.title)}</span></a>`;
           }
-          const classes = ["ds-nav"];
+          const classes = ["ds-nav", item.state === "done" ? "ds-nav-done" : "ds-nav-written"];
           if (item.current) classes.push("ds-nav-current");
-          if (item.state === "done") classes.push("ds-nav-done");
           const mark = navMarkFor(item);
           const state = item.state === "done" ? "done" : "open";
-          return `<a class="${classes.join(" ")}" href="${lessonHref(item.lessonKey)}" data-nav-state="${state}" data-nav-title="${escapeHtml(item.title)}" data-lesson-key="${escapeHtml(item.lessonKey)}">${mark}<span class="ds-nav-label">${escapeHtml(item.title)}</span></a>`;
+          const current = item.current ? ' aria-current="page"' : "";
+          return `<a class="${classes.join(" ")}" href="${lessonHref(item.lessonKey)}" data-nav-state="${state}" data-nav-title="${escapeHtml(item.title)}" data-lesson-key="${escapeHtml(item.lessonKey)}"${current}>${mark}<span class="ds-nav-label">${escapeHtml(item.title)}</span></a>`;
         })
         .join("\n");
       return `<div class="ds-chapter"><h2 class="ds-chapter-title">${escapeHtml(chapter.title)}</h2><div class="ds-chapter-items">${items}</div></div>`;

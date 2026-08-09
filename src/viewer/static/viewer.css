@@ -30,6 +30,7 @@ html[data-theme="paper"] {
   --success-soft: rgba(22, 121, 75, 0.1);
   --backdrop: rgba(24, 24, 27, 0.38);
   --nav-hover-bg: rgba(255, 255, 255, 0.65);
+  --nav-current-bg: rgba(255, 255, 255, 0.78);
   --nav-current-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   --brand-icon: #0d9488;
 }
@@ -43,6 +44,7 @@ html[data-theme="white"] {
   --border-subtle: #ececef;
   --code-bg: #f8f8f8;
   --nav-hover-bg: rgba(0, 0, 0, 0.04);
+  --nav-current-bg: rgba(0, 0, 0, 0.055);
   --nav-current-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
@@ -67,6 +69,7 @@ html[data-theme="dark"] {
   --hljs-symbol: #d2a8ff;
   --hljs-name: #7ee787;
   --nav-hover-bg: rgba(255, 255, 255, 0.06);
+  --nav-current-bg: rgba(255, 255, 255, 0.085);
   --nav-current-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
   --brand-icon: var(--accent-muted);
   --backdrop: rgba(0, 0, 0, 0.58);
@@ -608,9 +611,18 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
 }
 
 .ds-nav-mark-dot {
+  position: relative;
   color: var(--text-tertiary);
-  font-size: 1.125rem;
+  font-size: 0;
   line-height: 1;
+}
+
+.ds-nav-mark-dot::before {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
 }
 
 .ds-nav-mark-done {
@@ -622,7 +634,15 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
 }
 
 .ds-nav-planned .ds-nav-mark-dot {
-  font-size: 1.125rem;
+  color: var(--text-tertiary);
+}
+
+.ds-nav-planned .ds-nav-mark-dot::before {
+  width: 5px;
+  height: 5px;
+  box-sizing: border-box;
+  border: 1px solid currentColor;
+  background: transparent;
 }
 
 .ds-nav-label {
@@ -635,9 +655,26 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
   color: var(--text);
 }
 
+.ds-nav-written {
+  color: var(--text-secondary);
+}
+
 .ds-nav-current {
+  background: var(--nav-current-bg);
   color: var(--text);
-  font-weight: 500;
+  font-weight: 600;
+}
+
+.ds-nav-current:hover {
+  background: var(--nav-current-bg);
+}
+
+.ds-nav-current .ds-nav-mark-dot::before {
+  width: 2px;
+  height: 12px;
+  border: 0;
+  border-radius: 1px;
+  background: currentColor;
 }
 
 .ds-nav-done {
