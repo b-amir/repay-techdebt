@@ -101,15 +101,17 @@ Fast still teaches and shows progress — it just **doesn’t stop** for setup o
 ```markdown
 **Progress**
 
-| Step | 3/4                                 |
-| ---- | ----------------------------------- |
-| ✅   | Reading your code                   |
-| ✅   | Picking the 3 most valuable lessons |
-| 🔵   | **Writing lesson 1/3**              |
-| ⬜   | You're set                          |
+| Step | 3/4                              |
+| ---- | -------------------------------- |
+| ✅   | Reading your code                |
+| ✅   | Picking the {N} selected lessons |
+| 🔵   | **Writing lesson {i}/{N}**       |
+| ⬜   | You're set                       |
 ```
 
 In **Fast**, skip a separate **Open workbook** step — open the viewer when the first lesson is ready.
+Use this workbook-batch shape only after `N` is known. Direct lesson actions use the matching
+scenario in `session-status.md` and omit selection entirely.
 
 ### Paths (exact)
 
@@ -155,12 +157,12 @@ In Fast mode, Turn 2 operates continuously without stopping:
 ```markdown
 **Progress**
 
-| Step | 2/4                                     |
-| ---- | --------------------------------------- |
-| ✅   | Reading your code                       |
-| 🔵   | **Picking the 3 most valuable lessons** |
-| ⬜   | Writing lesson 1/3                      |
-| ⬜   | You're set                              |
+| Step | 2/4                                    |
+| ---- | -------------------------------------- |
+| ✅   | Reading your code                      |
+| 🔵   | **Choosing the most valuable lessons** |
+| ⬜   | Writing lessons                        |
+| ⬜   | You're set                             |
 
 ### Was that the right starting point?
 
@@ -181,9 +183,10 @@ Here are some other angles to focus the rest of the study list on. You can pick 
 ```markdown
 ### Keep this study list?
 
-In learning-path mode, we found more topics and will write **3** now so the session stays focused.
-Show the real pending count. In batch-only mode, say: “This workbook will contain exactly the 3
-lessons you requested.” Never show a planned-later row with zero pending topics.
+In learning-path mode, we found more topics and will write **{N}** now so the session stays focused.
+`N` must equal the actual current batch size. Show the real pending count. In batch-only mode, say:
+“This workbook will contain exactly the {N} lessons you requested.” Never show a planned-later row
+with zero pending topics.
 
 | #   | Topic (first batch) |
 | --- | ------------------- |
@@ -230,12 +233,12 @@ lessons you requested.” Never show a planned-later row with zero pending topic
 ```markdown
 **Progress**
 
-| Step | 3/4                                 |
-| ---- | ----------------------------------- |
-| ✅   | Reading your code                   |
-| ✅   | Picking the 3 most valuable lessons |
-| 🔵   | **Writing lesson 2/3**              |
-| ⬜   | You're set                          |
+| Step | 3/4                              |
+| ---- | -------------------------------- |
+| ✅   | Reading your code                |
+| ✅   | Picking the {N} selected lessons |
+| 🔵   | **Writing lesson {i}/{N}**       |
+| ⬜   | You're set                       |
 
 Saved `lessons/….md`. Next lesson next.
 ```
@@ -245,12 +248,12 @@ Saved `lessons/….md`. Next lesson next.
 ```markdown
 **Progress**
 
-| Step | 4/4                                 |
-| ---- | ----------------------------------- |
-| ✅   | Reading your code                   |
-| ✅   | Picking the 3 most valuable lessons |
-| ✅   | Writing lesson 3/3                  |
-| 🔵   | **You're set**                      |
+| Step | 4/4                              |
+| ---- | -------------------------------- |
+| ✅   | Reading your code                |
+| ✅   | Picking the {N} selected lessons |
+| ✅   | Writing lesson {N}/{N}           |
+| 🔵   | **You're set**                   |
 
 ### You’re set
 
@@ -272,7 +275,9 @@ First-run Message 1: `templates/introduction-wizard.md` — paste verbatim.
 
 - [ ] Progress first (`| Step | N/M |`)
 - [ ] `###` on important questions
-- [ ] One why-line for first-timers (where / why 3 / what next)
+- [ ] Progress scenario matches the current user request
+- [ ] Every displayed lesson count comes from the request or current batch
+- [ ] One why-line for first-timers (where / why this count / what next)
 - [ ] Fast: no save/open asks; auto-save + auto-open
 - [ ] No script JSON in chat
 - [ ] Study list chat table ≤5 topic rows

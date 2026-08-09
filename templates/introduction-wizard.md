@@ -1,7 +1,8 @@
 # First-run wizard
 
-Follow `templates/agent-experience.md`. Paste **exactly** as shown. Orient first-timers: what this
-is, Fast vs Control. **Message 1 = intro + progress + Fast vs Control.**
+Follow `templates/agent-experience.md`. Keep the copy and choice table exact, but select progress
+from `templates/session-status.md` using the user's request. Orient first-timers: what this is, Fast
+vs Control. **Message 1 = intro + intent-aware progress + Fast vs Control.**
 
 Fast mode = fewer stops later (auto-save, auto-open viewer). Control = pick settings + confirms.
 
@@ -9,7 +10,8 @@ Fast mode = fewer stops later (auto-save, auto-open viewer). Control = pick sett
 
 ## Message 1
 
-Paste as-is. Keep blank lines.
+Keep blank lines. The example below is for workbook discovery. For a direct lesson request, replace
+only the progress table with that scenario and prepend **Get ready**.
 
 ```markdown
 ### What is this?
@@ -18,12 +20,13 @@ I turn your repo into **short lessons** you read in a **browser workbook**. Your
 
 **Progress**
 
-| Step | 1/4                                 |
-| ---- | ----------------------------------- |
-| 🔵   | **Reading your code**               |
-| ⬜   | Picking the 3 most valuable lessons |
-| ⬜   | Writing lesson 1/3                  |
-| ⬜   | You're set                          |
+| Step | 1/5                                |
+| ---- | ---------------------------------- |
+| 🔵   | **Get ready**                      |
+| ⬜   | Reading your code                  |
+| ⬜   | Choosing the most valuable lessons |
+| ⬜   | Writing lessons                    |
+| ⬜   | You're set                         |
 
 ### How much setup do you want?
 
@@ -44,7 +47,7 @@ Do **not** paste Control settings tables unless they reply `control`. If they re
 
 ## Message 2a — Fast (internal transition)
 
-After `fast` → `init` with flags in Agent notes → mark **Reading your code** ✅.
+After `fast` → `init` with flags in Agent notes → mark **Get ready** ✅.
 Do not ask for more setup confirmations. Proceed directly to the purpose / study list steps.
 
 ---
@@ -54,13 +57,14 @@ Do not ask for more setup confirmations. Proceed directly to the purpose / study
 ```markdown
 **Progress**
 
-| Step | 1/5                                 |
-| ---- | ----------------------------------- |
-| 🔵   | **Reading your code**               |
-| ⬜   | Picking the 3 most valuable lessons |
-| ⬜   | Writing lesson 1/3                  |
-| ⬜   | Open workbook                       |
-| ⬜   | You're set                          |
+| Step | 1/6                                |
+| ---- | ---------------------------------- |
+| 🔵   | **Get ready**                      |
+| ⬜   | Reading your code                  |
+| ⬜   | Choosing the most valuable lessons |
+| ⬜   | Writing lessons                    |
+| ⬜   | Open workbook                      |
+| ⬜   | You're set                         |
 
 ### Pick your settings
 

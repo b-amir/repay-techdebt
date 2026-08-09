@@ -32,60 +32,107 @@ Always include the separator row. Leave **one blank line** before any table that
 | ✅    | Done                  |
 | ⬜    | Later                 |
 
-## Fast mode template (4 steps)
+## Choose the scenario first
+
+Classify the user's requested operation before drawing progress. Do not infer a three-lesson batch
+from Fast mode, workbook defaults, or an existing curriculum.
+
+| User request                        | Scenario        | Count source                                          |
+| ----------------------------------- | --------------- | ----------------------------------------------------- |
+| Analyze the app and choose lessons  | Workbook        | Actual `delivery.sessionBatch.length` once known      |
+| Create one named lesson             | Single create   | Always one                                            |
+| Recreate one existing lesson        | Single recreate | Always one                                            |
+| Update one existing lesson          | Single update   | Always one                                            |
+| Delete one existing lesson          | Single delete   | Always one                                            |
+| Create a number or range of lessons | Lesson batch    | Explicit requested count                              |
+| Teach from a PR/change              | PR lesson       | Actual selected count; single unless stated otherwise |
+| Open/show the workbook              | View only       | No lesson count                                       |
+
+If the lesson count is not known yet, use **Choosing lessons** / **Writing lessons**. Never display
+“3 lessons,” “lesson 1/3,” or “three most valuable” until the actual selected batch contains three
+lessons. The progress header may still be `1/3` when the scenario itself has three steps.
+
+On first run, prepend **Get ready** to the chosen scenario and keep it 🔵 until setup completes.
+Do not replace a direct lesson scenario with workbook discovery merely because setup is needed.
+
+## Workbook discovery
+
+Before the batch count is known:
 
 ```markdown
 **Progress**
 
-| Step | 1/4                                 |
-| ---- | ----------------------------------- |
-| 🔵   | **Reading your code**               |
-| ⬜   | Picking the 3 most valuable lessons |
-| ⬜   | Writing lesson 1/3                  |
-| ⬜   | You're set                          |
+| Step | 1/4                                |
+| ---- | ---------------------------------- |
+| 🔵   | **Reading your code**              |
+| ⬜   | Choosing the most valuable lessons |
+| ⬜   | Writing lessons                    |
+| ⬜   | You're set                         |
 ```
 
-### ✅ when (Fast)
+After planning, substitute the actual values:
 
-| Step                                | ✅ when                                                                            |
-| ----------------------------------- | ---------------------------------------------------------------------------------- |
-| Reading your code                   | Memory OK                                                                          |
-| Picking the 3 most valuable lessons | Curriculum approved                                                                |
-| Writing lesson 1/3                  | 🔵 while drafting; sub-count e.g. 2/3; **auto-save**; open viewer when batch ready |
-| You're set                          | Viewer opened + paths shown                                                        |
+```text
+Picking the {N} most valuable lessons
+Writing lesson {i}/{N}
+```
 
-| 🔵 step                             | Header |
-| ----------------------------------- | ------ |
-| Reading your code                   | 1/4    |
-| Picking the 3 most valuable lessons | 2/4    |
-| Writing lesson 1/3                  | 3/4    |
-| You're set                          | 4/4    |
+Use the exact three-lesson wording only when `N = 3`.
 
-## Control / ask-save template (5 steps)
+## Direct single-lesson operations
+
+### Create
 
 ```markdown
 **Progress**
 
-| Step | 1/5                                 |
-| ---- | ----------------------------------- |
-| 🔵   | **Reading your code**               |
-| ⬜   | Picking the 3 most valuable lessons |
-| ⬜   | Writing lesson 1/3                  |
-| ⬜   | Open workbook                       |
-| ⬜   | You're set                          |
+| Step | 1/3                   |
+| ---- | --------------------- |
+| 🔵   | **Reading your code** |
+| ⬜   | Writing the lesson    |
+| ⬜   | You're set            |
 ```
 
-### ✅ when (Control)
+### Recreate
 
-| Step                                | ✅ when                                        |
-| ----------------------------------- | ---------------------------------------------- |
-| Reading your code                   | Memory OK                                      |
-| Picking the 3 most valuable lessons | Curriculum approved                            |
-| Writing lesson 1/3                  | 🔵 while drafting; sub-count e.g. 2/3          |
-| Open workbook                       | 🔵 → `repay view --open` (or user said `view`) |
-| You're set                          | Viewer opened or `--view` given                |
+```markdown
+**Progress**
 
-## Focused / PR (Fast-like, 4 steps)
+| Step | 1/3                            |
+| ---- | ------------------------------ |
+| 🔵   | **Reading the current lesson** |
+| ⬜   | Recreating the lesson          |
+| ⬜   | You're set                     |
+```
+
+### Update
+
+```markdown
+**Progress**
+
+| Step | 1/3                    |
+| ---- | ---------------------- |
+| 🔵   | **Reading the lesson** |
+| ⬜   | Updating the lesson    |
+| ⬜   | You're set             |
+```
+
+### Delete
+
+```markdown
+**Progress**
+
+| Step | 1/3                    |
+| ---- | ---------------------- |
+| 🔵   | **Finding the lesson** |
+| ⬜   | Removing the lesson    |
+| ⬜   | You're set             |
+```
+
+Do not add a shortlist step to direct operations. Investigation, checking, saving, and silent
+repair stay inside the action step unless the user must make a meaningful choice.
+
+## Explicit batch or range
 
 ```markdown
 **Progress**
@@ -93,37 +140,42 @@ Always include the separator row. Leave **one blank line** before any table that
 | Step | 1/4                   |
 | ---- | --------------------- |
 | 🔵   | **Reading your code** |
-| ⬜   | Investigate & teach   |
-| ⬜   | Save lesson           |
+| ⬜   | Preparing {N} lessons |
+| ⬜   | {Action} lesson 1/{N} |
 | ⬜   | You're set            |
 ```
 
-If save-policy is automatic, merge Save + Open into teach/wrap like Fast workbook.
+`N` comes from the request. While working, use the real `i/N`. `{Action}` is **Writing**,
+**Recreating**, **Updating**, or **Removing**, matching the request.
 
-## Example — Fast, writing lesson 2/3
-
-```markdown
-**Progress**
-
-| Step | 3/4                                 |
-| ---- | ----------------------------------- |
-| ✅   | Reading your code                   |
-| ✅   | Picking the 3 most valuable lessons |
-| 🔵   | **Writing lesson 2/3**              |
-| ⬜   | You're set                          |
-```
-
-## Example — Fast wrap up
+## PR lesson
 
 ```markdown
 **Progress**
 
-| Step | 4/4                                 |
-| ---- | ----------------------------------- |
-| ✅   | Reading your code                   |
-| ✅   | Picking the 3 most valuable lessons |
-| ✅   | Writing lesson 3/3                  |
-| 🔵   | **You're set**                      |
+| Step | 1/3                    |
+| ---- | ---------------------- |
+| 🔵   | **Reading the change** |
+| ⬜   | Writing the lesson     |
+| ⬜   | You're set             |
 ```
+
+For multiple PR lessons, use the explicit batch template with the actual count.
+
+## View only
+
+```markdown
+**Progress**
+
+| Step | 1/2                      |
+| ---- | ------------------------ |
+| 🔵   | **Opening the workbook** |
+| ⬜   | You're set               |
+```
+
+## Control mode
+
+Insert **Open workbook** immediately before **You're set** only when Control mode genuinely needs
+an open confirmation. Fast mode opens automatically without adding a separate step.
 
 Routine: progress + ≤25 useful words. Asks: `###` heading + why-line — see `agent-experience.md`.

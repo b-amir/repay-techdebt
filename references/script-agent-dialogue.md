@@ -65,15 +65,19 @@ consent, secrets, or capability-failure prompts.
 - `STOP extra loops; ship with gaps: […]`
 
 Check the state transitions in `flow-machine.js` (setup → purpose → shortlist → gather → draft → mechanical-check → review → revise → save → next-lesson → wrap).
-User-facing progress steps map directly to the flow state.
+Internal flow states do not determine user-facing copy by themselves. First classify the current
+request using the scenario table in `templates/session-status.md`; then map the active internal
+state into that scenario's relevant action step.
 
 ## User-facing progress table (mandatory)
 
 Every turn: progress from `templates/session-status.md` first — header `| Step | {current}/{total} |`
 (**current** = 1-based index of 🔵, never 0, never ✅-count; **no empty headers**). **One blank line
-between tables.** Ask turns: `###` heading + why-line + ask table + `👉 Reply`. First-run: paste
-`templates/introduction-wizard.md` Message 1 verbatim (only **Get ready** is 🔵 until `init --yes`).
-**Fast** mode: 5 steps, auto-save, auto-open viewer — no save/open yes-no.
+between tables.** Ask turns: `###` heading + why-line + ask table + `👉 Reply`. First-run: compose
+`templates/introduction-wizard.md` Message 1 with the selected scenario (only **Get ready** is 🔵
+until `init --yes`).
+Fast mode changes confirmation behavior, not progress shape. It auto-saves and auto-opens, but uses
+the same intent-aware scenario and actual lesson count as Control mode.
 
 ## Plain-language asks (user chat)
 

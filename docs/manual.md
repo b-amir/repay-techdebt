@@ -226,7 +226,9 @@ After skills.sh sync, `node_modules` may be missing. CLIs auto-run `ensure-runti
 
 Agents follow `templates/agent-experience.md`: **progress table** at top, **`###` headings** on
 important asks, one blank line between tables, ≤25 words status on routine turns, ≤60 on asks,
-`👉 Reply` when needed. See `SKILL.md`.
+`👉 Reply` when needed. Progress is selected from the current operation: workbook discovery,
+single create/recreate/update/delete, explicit batch or range, PR lesson, or view-only. Counts come
+from the request or actual current batch; Fast mode never implies three lessons. See `SKILL.md`.
 
 | Path        | Reply              | Defaults / behavior                                                               |
 | ----------- | ------------------ | --------------------------------------------------------------------------------- |

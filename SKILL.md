@@ -96,19 +96,30 @@ At the **top** of every user-visible message, paste progress from `templates/ses
 header `| Step | {current}/{total} |` where **current is the 1-based index of the 🔵 step** (start at
 `1/N`, never `0`, never ✅-count). Exactly one 🔵. End asks with **👉 Reply**.
 
-| Phase name (user-facing)            | Internal only             |
-| ----------------------------------- | ------------------------- |
-| Reading your code                   | setup, first-run, runtime |
-| Picking the 3 most valuable lessons | B0 purpose, B3 shortlist  |
-| Writing lesson 1/3                  | teach handshake           |
-| You're set                          | end of batch              |
+Choose the progress scenario from the user's current intent **before** drawing the table. Direct
+create/recreate/update/delete requests never use the workbook-shortlist template. Explicit batches
+and ranges use the requested count; workbook batches use `delivery.sessionBatch.length`. Until a
+count is known, say **Choosing lessons** / **Writing lessons** without a number. A count of three is
+not a UI default.
+
+| Intent               | User-facing phases                                                    |
+| -------------------- | --------------------------------------------------------------------- |
+| Discover a workbook  | Reading code → Choosing N lessons → Writing i/N → You're set          |
+| Create one lesson    | Reading code → Writing the lesson → You're set                        |
+| Recreate one lesson  | Reading current lesson → Recreating the lesson → You're set           |
+| Update one lesson    | Reading lesson → Updating the lesson → You're set                     |
+| Delete one lesson    | Finding lesson → Removing the lesson → You're set                     |
+| Explicit batch/range | Reading code → Preparing N lessons → matching action i/N → You're set |
+| PR lesson            | Reading the change → Writing the lesson → You're set                  |
+| View only            | Opening the workbook → You're set                                     |
 
 Never expose B0–B6, RETRIEVEQs, SHORTLIST, or checkpoint codes in user chat.
 
-First-run: paste `templates/introduction-wizard.md` Message 1 **verbatim** (what this is ·
-progress · Fast vs Control). **Fast:** `fast` → `init` immediately with defaults (private + sister +
-workbook + balanced + automatic). **Control:** `control` → full settings. Mid-session: exact blocks
-in `agent-experience.md`. Alias: `express` → `fast`. No skill symlink paths unless asked.
+First-run: compose `templates/introduction-wizard.md` Message 1 with the already-selected progress
+scenario (what this is · progress · Fast vs Control). Prepend **Get ready**; do not replace a direct
+lesson action with workbook discovery. **Fast:** `fast` → `init` immediately with defaults (private +
+sister + workbook + balanced + automatic). **Control:** `control` → full settings. Mid-session:
+exact blocks in `agent-experience.md`. Alias: `express` → `fast`. No skill symlink paths unless asked.
 
 ## Script ↔ agent contract
 

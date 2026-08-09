@@ -20,3 +20,13 @@ export {
   formatPathIncompleteReason,
   refuseSaveIfPathIncomplete,
 } from "./trajectory.js";
+
+export {
+  FLOW_STATES,
+  USER_STEPS,
+  FLOW_TRANSITIONS,
+  PROGRESS_SCENARIOS,
+  buildProgressSteps,
+  canTransition,
+  validateFlow,
+} from "./flow-machine.js";
