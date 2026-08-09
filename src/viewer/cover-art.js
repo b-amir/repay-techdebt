@@ -1,6 +1,14 @@
 const VIEWBOX_WIDTH = 1200;
 const VIEWBOX_HEIGHT = 248;
 
+// Cover composition grammar:
+// - Keep every mark inside the rightmost 28% of the canvas.
+// - Use one dominant cluster with no more than two supporting forms.
+// - Prefer shallow arcs, repeated ripples, or connected points.
+// - Never use broad S curves, double inflections, crossings, or tangencies.
+// - Leave at least one shape-width of calm space between separate forms.
+// - Randomness may shift a composition slightly, but may not alter its geometry.
+
 function hashSeed(value) {
   let hash = 2166136261;
   for (const character of String(value ?? "lesson")) {
@@ -110,13 +118,15 @@ function shapeSequenceArt(random) {
   return `<path class="ds-cover-line ds-cover-line-strong" d="${path}"/>`;
 }
 
-function pastaAndShapesArt(random) {
-  const shift = number(between(random, -5, 5));
-  const curl = `M ${number(870 + shift)} 70 C ${number(918 + shift)} 34, ${number(985 + shift)} 55, ${number(974 + shift)} 104 C ${number(966 + shift)} 139, ${number(902 + shift)} 130, ${number(918 + shift)} 174 C ${number(934 + shift)} 211, ${number(1002 + shift)} 202, ${number(1040 + shift)} 168`;
-  const circleX = number(1104 + shift);
-  const circleY = 66;
-  const triangle = `M ${number(1138 + shift)} 162 L ${number(1176 + shift)} 116 L ${number(1192 + shift)} 178 Z`;
-  return `<path class="ds-cover-line ds-cover-line-strong" d="${curl}"/><circle class="ds-cover-line" cx="${circleX}" cy="${circleY}" r="21"/><path class="ds-cover-line" d="${triangle}"/>`;
+function arcAndShapesArt(random) {
+  const shiftX = number(between(random, -3, 3));
+  const shiftY = number(between(random, -3, 3));
+  const arc = `M ${number(872 + shiftX)} ${number(150 + shiftY)} C ${number(914 + shiftX)} ${number(96 + shiftY)}, ${number(966 + shiftX)} ${number(96 + shiftY)}, ${number(1008 + shiftX)} ${number(150 + shiftY)}`;
+  const arcDots = `M ${number(869.5 + shiftX)} ${number(150 + shiftY)} a 2.5 2.5 0 1 0 5 0 a 2.5 2.5 0 1 0 -5 0 M ${number(1005.5 + shiftX)} ${number(150 + shiftY)} a 2.5 2.5 0 1 0 5 0 a 2.5 2.5 0 1 0 -5 0`;
+  const circleX = number(1072 + shiftX);
+  const circleY = number(82 + shiftY);
+  const triangle = `M ${number(1134 + shiftX)} ${number(166 + shiftY)} L ${number(1164 + shiftX)} ${number(122 + shiftY)} L ${number(1190 + shiftX)} ${number(166 + shiftY)} Z`;
+  return `<path class="ds-cover-line ds-cover-line-strong" d="${arc}"/><path class="ds-cover-dots" d="${arcDots}"/><circle class="ds-cover-line" cx="${circleX}" cy="${circleY}" r="19"/><path class="ds-cover-line" d="${triangle}"/>`;
 }
 
 function zigzagAndCirclesArt(random) {
@@ -144,7 +154,7 @@ const ART_VARIANTS = [
   ["constellation-branch", constellationBranchArt],
   ["ripples", rippleArt],
   ["shape-sequence", shapeSequenceArt],
-  ["pasta-and-shapes", pastaAndShapesArt],
+  ["arc-and-shapes", arcAndShapesArt],
   ["zigzag-and-circles", zigzagAndCirclesArt],
 ];
 
@@ -154,5 +164,5 @@ export function generateCoverArt(seedValue) {
   const random = seededRandom(seed);
   const [variant, renderVariant] = ART_VARIANTS[seed % ART_VARIANTS.length];
   const art = renderVariant(random);
-  return `<svg class="ds-cover-svg" viewBox="0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false" data-cover-variant="${variant}" data-cover-side="right" xmlns="http://www.w3.org/2000/svg"><g vector-effect="non-scaling-stroke">${art}</g></svg>`;
+  return `<svg class="ds-cover-svg" viewBox="0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}" preserveAspectRatio="xMaxYMid slice" aria-hidden="true" focusable="false" data-cover-variant="${variant}" data-cover-side="right" xmlns="http://www.w3.org/2000/svg"><g vector-effect="non-scaling-stroke">${art}</g></svg>`;
 }
