@@ -28,12 +28,12 @@ examples. Analysis-only by default: no silent refactors, no target pollution, no
 The browser viewer turns the project model into a focused reading workspace.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/b-amir/repay-techdebt/main/assets/readme/viewer-curriculum.png" width="100%" alt="Beacon sample workbook curriculum with sixteen topics, progress, and a continue card in the paper-theme desktop viewer">
+  <img src="https://raw.githubusercontent.com/b-amir/repay-techdebt/main/assets/readme/viewer-curriculum.png" width="100%" alt="Beacon sample workbook curriculum with eighteen topics, progress, and a continue card in the paper-theme desktop viewer">
 </p>
 <p align="center"><sub><strong>Curriculum at a glance.</strong> Continue where you left off, scan outcomes, and see what is written, complete, or still planned.</sub></p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/b-amir/repay-techdebt/main/assets/readme/viewer-lesson.png" width="100%" alt="Beacon sample architecture lesson with a lesson rail, table of contents, source-note numbers, callout, and highlighted code">
+  <img src="https://raw.githubusercontent.com/b-amir/repay-techdebt/main/assets/readme/viewer-lesson.png" width="100%" alt="Beacon sample reliability lesson with cover art, a lesson rail, table of contents, source-note numbers, callout, and highlighted code">
 </p>
 <p align="center"><sub><strong>Evidence without clutter.</strong> Read the mechanism first. Quiet source-note numbers preserve traceability without filling the prose with paths.</sub></p>
 
