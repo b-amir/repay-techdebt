@@ -131,8 +131,8 @@ touch-oriented layouts it becomes a closed-by-default drawer with a scrim. Choos
 the scrim, or press Escape to close it. Done, Written, and Planned counts filter the rail, and Show
 all clears the filter. Previous and next links at the end of a lesson preserve curriculum order.
 
-Long lessons use the On this page table of contents as their only reading-progress indicator. There
-is no separate line or percentage competing with the text. The current section is marked from the
+Every written lesson with section headings uses the On this page table of contents as its only
+reading-progress indicator. There is no separate line or percentage competing with the text. The current section is marked from the
 top of the page onward, passed sections recede quietly, and the active entry stays visible in the
 desktop rail. The viewer restores a section only when it belongs to the lesson being reopened and
 briefly marks that heading with Resume here. Focus mode hides navigation rails without changing

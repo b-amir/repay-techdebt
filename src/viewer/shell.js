@@ -466,14 +466,19 @@ export function stripLeadingTitleHtml(html) {
   return String(html ?? "").replace(/^\s*<h1[^>]*>[\s\S]*?<\/h1>\s*/i, "");
 }
 
-function renderTocRail(headings) {
-  if (headings.filter((h) => h.level === 2).length < 4) return "";
-  const listItems = headings
+function renderTocItems(headings) {
+  if (!headings.some((heading) => heading.level === 2)) return "";
+  return headings
     .map((h, index) => {
       const cls = h.level === 3 ? "ds-toc-h3" : "ds-toc-h2";
       return `<li class="${cls}"><a href="#${escapeHtml(h.id)}" class="ds-toc-link${index === 0 ? " ds-toc-link-active" : ""}" data-id="${escapeHtml(h.id)}"${index === 0 ? ' aria-current="location"' : ""}>${h.text}</a></li>`;
     })
     .join("\n");
+}
+
+function renderTocRail(headings) {
+  const listItems = renderTocItems(headings);
+  if (!listItems) return "";
   return `<aside class="ds-rail ds-rail-toc" id="ds-toc-rail" aria-label="On this page">
   <div class="ds-rail-toc-inner">
     <div class="ds-rail-toc-head">${TOC_ICON}<h2 class="ds-rail-toc-title">On this page</h2></div>
@@ -582,21 +587,15 @@ export function renderLesson({
     });
   }
 
-  let jumpList = "";
-  if (headings.filter((h) => h.level === 2).length >= 4) {
-    const listItems = headings
-      .map((h, index) => {
-        const cls = h.level === 3 ? "ds-toc-h3" : "ds-toc-h2";
-        return `<li class="${cls}"><a href="#${escapeHtml(h.id)}" class="ds-toc-link${index === 0 ? " ds-toc-link-active" : ""}" data-id="${escapeHtml(h.id)}"${index === 0 ? ' aria-current="location"' : ""}>${h.text}</a></li>`;
-      })
-      .join("\n");
-    jumpList = `<aside class="ds-toc-mobile" aria-label="On this page">
+  const tocItems = renderTocItems(headings);
+  const jumpList = tocItems
+    ? `<aside class="ds-toc-mobile" aria-label="On this page">
       <details class="ds-toc-details">
         <summary>On this page</summary>
-        <ul class="ds-toc-list">${listItems}</ul>
+        <ul class="ds-toc-list">${tocItems}</ul>
       </details>
-    </aside>`;
-  }
+    </aside>`
+    : "";
 
   const bodyContent = stripClaimsHtml(stripLeadingTitleHtml(bodyHtml));
 

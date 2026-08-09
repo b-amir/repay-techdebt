@@ -26,6 +26,8 @@
 - The first lesson section is current at page top. The active TOC state is exposed through
   `aria-current`, has a non-color indicator, and stays visible in long rails. The TOC is the only
   in-lesson progress model: do not add a top line, percentage, ring, or floating progress control.
+- Render the desktop TOC and mobile On this page disclosure whenever a lesson has at least one
+  section heading. Section count must not decide whether navigation exists.
 
 ## Reading system
 
