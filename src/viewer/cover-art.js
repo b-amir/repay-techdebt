@@ -29,12 +29,22 @@ function number(value) {
   return Number(value.toFixed(1));
 }
 
-function ribbonArt(random) {
-  return Array.from({ length: 3 }, (_, index) => {
-    const y = 62 + index * 58 + between(random, -7, 7);
-    const bend = between(random, -22, 22);
-    return `<path class="ds-cover-line${index === 1 ? " ds-cover-line-strong" : ""}" d="M ${number(860 + between(random, -12, 24))} ${number(y)} C ${number(960 + between(random, -18, 18))} ${number(y + bend)}, ${number(1080 + between(random, -20, 20))} ${number(y - bend)}, 1224 ${number(y + between(random, -8, 8))}"/>`;
+function sparklePath(x, y, radius) {
+  const inner = number(radius * 0.23);
+  return `M ${x} ${number(y - radius)} L ${number(x + inner)} ${number(y - inner)} L ${number(x + radius)} ${y} L ${number(x + inner)} ${number(y + inner)} L ${x} ${number(y + radius)} L ${number(x - inner)} ${number(y + inner)} L ${number(x - radius)} ${y} L ${number(x - inner)} ${number(y - inner)} Z`;
+}
+
+function starClusterArt(random) {
+  const centerX = number(between(random, 1060, 1110));
+  const centerY = number(between(random, 108, 140));
+  const halo = `<ellipse class="ds-cover-line ds-cover-line-strong" cx="${centerX}" cy="${centerY}" rx="${number(between(random, 128, 168))}" ry="${number(between(random, 52, 78))}" transform="rotate(${number(between(random, -16, 16))} ${centerX} ${centerY})"/>`;
+  const stars = Array.from({ length: 3 }, (_, index) => {
+    const x = number(between(random, 930, 1180));
+    const y = number(between(random, 42, 205));
+    const radius = number(between(random, index === 1 ? 6 : 3.5, index === 1 ? 9 : 6));
+    return `<path class="ds-cover-star${index === 1 ? " ds-cover-star-strong" : ""}" d="${sparklePath(x, y, radius)}"/>`;
   }).join("");
+  return `${halo}${stars}`;
 }
 
 function orbitArt(random) {
@@ -96,7 +106,7 @@ function offsetRingsArt(random) {
 
 /** @type {Array<[string, (random: () => number) => string]>} */
 const ART_VARIANTS = [
-  ["ribbons", ribbonArt],
+  ["star-cluster", starClusterArt],
   ["orbits", orbitArt],
   ["constellation", constellationArt],
   ["contours", contourArt],

@@ -137,8 +137,7 @@ function navMarkFor(item) {
 }
 
 function navLabel(title) {
-  const label = escapeHtml(title);
-  return `<span class="ds-nav-label"><span class="ds-nav-label-text">${label}</span><span class="ds-nav-label-reserve" aria-hidden="true">${label}</span></span>`;
+  return `<span class="ds-nav-label">${escapeHtml(title)}</span>`;
 }
 
 function renderSidebar(sidebar, workbookTitle) {

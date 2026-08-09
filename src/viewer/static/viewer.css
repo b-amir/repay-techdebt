@@ -695,21 +695,8 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
 }
 
 .ds-nav-label {
-  display: grid;
   min-width: 0;
   overflow-wrap: anywhere;
-}
-
-.ds-nav-label-text,
-.ds-nav-label-reserve {
-  grid-area: 1 / 1;
-  min-width: 0;
-}
-
-.ds-nav-label-reserve {
-  visibility: hidden;
-  font-weight: 600;
-  pointer-events: none;
 }
 
 .ds-nav:hover {
@@ -724,7 +711,13 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
 .ds-nav-current {
   background: var(--nav-current-bg);
   color: var(--text);
-  font-weight: 600;
+  font-weight: 500;
+}
+
+.ds-nav-current .ds-nav-label {
+  text-shadow:
+    0.2px 0 currentColor,
+    -0.2px 0 currentColor;
 }
 
 .ds-nav-current:hover {
@@ -1640,6 +1633,15 @@ html[data-theme="dark"] .ds-settings-panel {
 
 .ds-cover-dot-strong {
   opacity: 0.5;
+}
+
+.ds-cover-star {
+  fill: currentColor;
+  opacity: 0.36;
+}
+
+.ds-cover-star-strong {
+  opacity: 0.56;
 }
 
 .ds-lesson-title {
@@ -3126,7 +3128,7 @@ html[data-theme="dark"] .ds-settings-panel {
 .ds-rail-toc .ds-toc-link-active::before {
   content: "";
   position: absolute;
-  left: calc(-1rem - 8px);
+  left: calc(-1rem - 3px);
   top: 0.45em;
   width: 2px;
   height: 1em;
