@@ -29,88 +29,123 @@ function number(value) {
   return Number(value.toFixed(1));
 }
 
-function sparklePath(x, y, radius) {
-  const inner = number(radius * 0.23);
-  return `M ${x} ${number(y - radius)} L ${number(x + inner)} ${number(y - inner)} L ${number(x + radius)} ${y} L ${number(x + inner)} ${number(y + inner)} L ${x} ${number(y + radius)} L ${number(x - inner)} ${number(y + inner)} L ${number(x - radius)} ${y} L ${number(x - inner)} ${number(y - inner)} Z`;
+function jitterPoints(random, template, amount = 4) {
+  return template.map(([x, y]) => ({
+    x: number(x + between(random, -amount, amount)),
+    y: number(y + between(random, -amount, amount)),
+  }));
 }
 
-function starClusterArt(random) {
-  const centerX = number(between(random, 1060, 1110));
-  const centerY = number(between(random, 108, 140));
-  const halo = `<ellipse class="ds-cover-line ds-cover-line-strong" cx="${centerX}" cy="${centerY}" rx="${number(between(random, 128, 168))}" ry="${number(between(random, 52, 78))}" transform="rotate(${number(between(random, -16, 16))} ${centerX} ${centerY})"/>`;
-  const stars = Array.from({ length: 3 }, (_, index) => {
-    const x = number(between(random, 930, 1180));
-    const y = number(between(random, 42, 205));
-    const radius = number(between(random, index === 1 ? 6 : 3.5, index === 1 ? 9 : 6));
-    return `<path class="ds-cover-star${index === 1 ? " ds-cover-star-strong" : ""}" d="${sparklePath(x, y, radius)}"/>`;
-  }).join("");
-  return `${halo}${stars}`;
-}
-
-function orbitArt(random) {
-  const centerX = number(between(random, 1060, 1100));
-  const centerY = number(between(random, 112, 138));
-  const rings = Array.from({ length: 2 }, (_, index) => {
-    const rx = 92 + index * 58;
-    const ry = number(rx * between(random, 0.35, 0.6));
-    const rotation = number(between(random, -18, 18));
-    return `<ellipse class="ds-cover-line${index === 0 ? " ds-cover-line-strong" : ""}" cx="${centerX}" cy="${centerY}" rx="${rx}" ry="${ry}" transform="rotate(${rotation} ${centerX} ${centerY})"/>`;
-  }).join("");
-  const dots = Array.from(
-    { length: 2 },
-    (_, index) =>
-      `<circle class="ds-cover-dot${index === 0 ? " ds-cover-dot-strong" : ""}" cx="${number(between(random, 930, 1180))}" cy="${number(between(random, 44, 204))}" r="${number(between(random, 2.2, 3.8))}"/>`,
-  ).join("");
-  return `${rings}${dots}`;
-}
-
-function constellationArt(random) {
-  const points = Array.from({ length: 5 }, () => ({
-    x: number(between(random, 875, 1180)),
-    y: number(between(random, 44, 204)),
-  })).sort((a, b) => a.x - b.x);
-  const lines = `<path class="ds-cover-line ds-cover-line-strong" d="${points
+function connectedDots(points, extraLines = "", extraDots = []) {
+  const linePath = points
     .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`)
-    .join(" ")}"/>`;
-  const dots = points
-    .filter((_, index) => index === 0 || index === 2 || index === 4)
-    .map(
-      (point, index) =>
-        `<circle class="ds-cover-dot${index === 1 ? " ds-cover-dot-strong" : ""}" cx="${point.x}" cy="${point.y}" r="${index === 1 ? 3.6 : 2.4}"/>`,
-    )
-    .join("");
-  return `${lines}${dots}`;
+    .join(" ");
+  const dotPath = [...points, ...extraDots]
+    .map((point, index) => {
+      const radius = index === 2 ? 3.4 : 2.4;
+      return `M ${number(point.x - radius)} ${point.y} a ${radius} ${radius} 0 1 0 ${number(radius * 2)} 0 a ${radius} ${radius} 0 1 0 ${number(radius * -2)} 0`;
+    })
+    .join(" ");
+  return `<path class="ds-cover-line ds-cover-line-strong" d="${linePath}${extraLines}"/><path class="ds-cover-dots" d="${dotPath}"/>`;
 }
 
-function contourArt(random) {
-  const centerX = number(between(random, 1060, 1100));
-  const centerY = number(between(random, 110, 142));
-  return Array.from({ length: 3 }, (_, index) => {
-    const width = 90 + index * 70;
-    const height = number(width * between(random, 0.45, 0.68));
-    const driftX = number(between(random, -5, 5));
-    const driftY = number(between(random, -4, 4));
-    return `<rect class="ds-cover-line${index === 1 ? " ds-cover-line-strong" : ""}" x="${number(centerX - width / 2 + driftX)}" y="${number(centerY - height / 2 + driftY)}" width="${width}" height="${height}" rx="${number(height * 0.48)}" transform="rotate(${number(between(random, -11, 11))} ${centerX} ${centerY})"/>`;
-  }).join("");
+function constellationRiseArt(random) {
+  return connectedDots(
+    jitterPoints(random, [
+      [870, 174],
+      [928, 136],
+      [986, 151],
+      [1048, 96],
+      [1112, 112],
+      [1180, 58],
+    ]),
+  );
 }
 
-function offsetRingsArt(random) {
-  const centerX = number(between(random, 1080, 1130));
-  const centerY = number(between(random, 100, 148));
-  return Array.from({ length: 3 }, (_, index) => {
-    const radius = 52 + index * 54;
-    const shift = number(between(random, -8, 8));
-    return `<circle class="ds-cover-line${index === 1 ? " ds-cover-line-strong" : ""}" cx="${number(centerX + shift)}" cy="${number(centerY - shift)}" r="${radius}"/>`;
-  }).join("");
+function constellationDriftArt(random) {
+  return connectedDots(
+    jitterPoints(random, [
+      [868, 82],
+      [930, 66],
+      [990, 106],
+      [1052, 88],
+      [1116, 136],
+      [1182, 119],
+    ]),
+  );
+}
+
+function constellationBranchArt(random) {
+  const points = jitterPoints(random, [
+    [878, 166],
+    [948, 126],
+    [1018, 143],
+    [1092, 92],
+    [1172, 108],
+  ]);
+  const branch = jitterPoints(random, [[1028, 62]])[0];
+  const extraLine = ` M ${points[2].x} ${points[2].y} L ${branch.x} ${branch.y}`;
+  return connectedDots(points, extraLine, [branch]);
+}
+
+function rippleArt(random) {
+  const shift = number(between(random, -5, 5));
+  const path = [
+    `M ${number(930 + shift)} 60 C ${number(1000 + shift)} 38, ${number(1110 + shift)} 38, 1192 66`,
+    `M ${number(906 + shift)} 120 C ${number(990 + shift)} 88, ${number(1110 + shift)} 88, 1198 120`,
+    `M ${number(940 + shift)} 180 C ${number(1022 + shift)} 154, ${number(1110 + shift)} 154, 1182 179`,
+  ].join(" ");
+  const dots = `M ${number(1188 + shift)} 66 a 3 3 0 1 0 6 0 a 3 3 0 1 0 -6 0 M ${number(903 + shift)} 120 a 2.5 2.5 0 1 0 5 0 a 2.5 2.5 0 1 0 -5 0`;
+  return `<path class="ds-cover-line ds-cover-line-strong" d="${path}"/><path class="ds-cover-dots" d="${dots}"/>`;
+}
+
+function shapeSequenceArt(random) {
+  const shiftX = number(between(random, -5, 5));
+  const shiftY = number(between(random, -4, 4));
+  const path = [
+    `M ${number(892 + shiftX)} ${number(76 + shiftY)} L ${number(932 + shiftX)} ${number(54 + shiftY)} L ${number(962 + shiftX)} ${number(88 + shiftY)} L ${number(922 + shiftX)} ${number(112 + shiftY)} Z`,
+    `M ${number(1010 + shiftX)} ${number(142 + shiftY)} L ${number(1044 + shiftX)} ${number(102 + shiftY)} L ${number(1080 + shiftX)} ${number(142 + shiftY)} Z`,
+    `M ${number(1128 + shiftX)} ${number(72 + shiftY)} L ${number(1172 + shiftX)} ${number(72 + shiftY)} L ${number(1190 + shiftX)} ${number(108 + shiftY)} L ${number(1148 + shiftX)} ${number(126 + shiftY)} L ${number(1118 + shiftX)} ${number(101 + shiftY)} Z`,
+  ].join(" ");
+  return `<path class="ds-cover-line ds-cover-line-strong" d="${path}"/>`;
+}
+
+function pastaAndShapesArt(random) {
+  const shift = number(between(random, -5, 5));
+  const curl = `M ${number(870 + shift)} 70 C ${number(918 + shift)} 34, ${number(985 + shift)} 55, ${number(974 + shift)} 104 C ${number(966 + shift)} 139, ${number(902 + shift)} 130, ${number(918 + shift)} 174 C ${number(934 + shift)} 211, ${number(1002 + shift)} 202, ${number(1040 + shift)} 168`;
+  const circleX = number(1104 + shift);
+  const circleY = 66;
+  const triangle = `M ${number(1138 + shift)} 162 L ${number(1176 + shift)} 116 L ${number(1192 + shift)} 178 Z`;
+  return `<path class="ds-cover-line ds-cover-line-strong" d="${curl}"/><circle class="ds-cover-line" cx="${circleX}" cy="${circleY}" r="21"/><path class="ds-cover-line" d="${triangle}"/>`;
+}
+
+function zigzagAndCirclesArt(random) {
+  const points = jitterPoints(
+    random,
+    [
+      [868, 154],
+      [912, 88],
+      [958, 132],
+      [1006, 64],
+      [1050, 112],
+    ],
+    3,
+  );
+  const constellation = connectedDots(points);
+  const firstX = number(1110 + between(random, -3, 3));
+  const secondX = number(1170 + between(random, -3, 3));
+  return `${constellation}<circle class="ds-cover-line" cx="${firstX}" cy="65" r="17"/><circle class="ds-cover-line ds-cover-line-strong" cx="${secondX}" cy="154" r="25"/>`;
 }
 
 /** @type {Array<[string, (random: () => number) => string]>} */
 const ART_VARIANTS = [
-  ["star-cluster", starClusterArt],
-  ["orbits", orbitArt],
-  ["constellation", constellationArt],
-  ["contours", contourArt],
-  ["offset-rings", offsetRingsArt],
+  ["constellation-rise", constellationRiseArt],
+  ["constellation-drift", constellationDriftArt],
+  ["constellation-branch", constellationBranchArt],
+  ["ripples", rippleArt],
+  ["shape-sequence", shapeSequenceArt],
+  ["pasta-and-shapes", pastaAndShapesArt],
+  ["zigzag-and-circles", zigzagAndCirclesArt],
 ];
 
 /** Create stable, decorative SVG art from a lesson key. */

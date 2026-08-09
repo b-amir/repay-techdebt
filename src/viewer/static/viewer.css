@@ -1626,22 +1626,9 @@ html[data-theme="dark"] .ds-settings-panel {
   opacity: 0.36;
 }
 
-.ds-cover-dot {
+.ds-cover-dots {
   fill: currentColor;
-  opacity: 0.3;
-}
-
-.ds-cover-dot-strong {
-  opacity: 0.5;
-}
-
-.ds-cover-star {
-  fill: currentColor;
-  opacity: 0.36;
-}
-
-.ds-cover-star-strong {
-  opacity: 0.56;
+  opacity: 0.46;
 }
 
 .ds-lesson-title {
