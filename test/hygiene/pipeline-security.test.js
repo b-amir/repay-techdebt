@@ -32,7 +32,7 @@ test("validation workflow keeps immutable actions and deterministic matrix behav
   assert.ok(runSteps.includes("pnpm exec vp check"));
   assert.ok(runSteps.includes("pnpm exec vp run typecheck"));
   assert.ok(runSteps.includes("pnpm exec vp run lint:orphans"));
-  assert.ok(runSteps.includes("pnpm exec vp test"));
+  assert.ok(runSteps.includes("pnpm exec vp test --test-timeout 15000"));
   assert.equal(
     runSteps.some((step) => /^vp\s/u.test(step)),
     false,

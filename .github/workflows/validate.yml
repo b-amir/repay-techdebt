@@ -42,4 +42,6 @@ jobs:
       - name: Run orphans lint
         run: pnpm exec vp run lint:orphans
       - name: Run tests
-        run: pnpm exec vp test
+        # CLI-backed integration tests spawn isolated Node processes and can exceed
+        # Vitest's 5s default under shared-runner contention. Keep a bounded hang guard.
+        run: pnpm exec vp test --test-timeout 15000
