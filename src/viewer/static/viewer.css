@@ -296,6 +296,38 @@ body.ds-shell {
   grid-template-columns: var(--sidebar-width) minmax(0, 1fr) var(--sidebar);
 }
 
+.ds-layout-cover {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.ds-layout-cover > .ds-rail:not(.ds-rail-toc) {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+
+.ds-content {
+  display: contents;
+}
+
+.ds-content > .ds-main {
+  grid-column: 2;
+}
+
+.ds-layout-cover > .ds-content > .ds-lesson-cover {
+  grid-column: 2 / -1;
+  grid-row: 1;
+}
+
+.ds-layout-cover > .ds-content > .ds-main {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.ds-layout-cover > .ds-rail-toc {
+  grid-column: 3;
+  grid-row: 2;
+}
+
 /* ---- Sidebar ---- */
 .ds-rail {
   background: var(--sidebar-bg);
@@ -428,7 +460,7 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
 }
 
 .ds-rail-progress {
-  padding: 0 16px 12px;
+  padding: 0 16px 20px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -539,7 +571,7 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
 }
 
 .ds-nav-list {
-  padding: 8px 10px 12px;
+  padding: 16px 10px 12px;
   flex: 1;
   overflow: auto;
   scrollbar-width: thin;
@@ -618,11 +650,28 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
 }
 
 .ds-nav-mark-dot::before {
-  width: 3px;
-  height: 3px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: currentColor;
   content: "";
+  opacity: 1;
+  scale: 1;
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    scale var(--dur-fast) var(--ease-out);
+}
+
+.ds-nav-mark-dot::after {
+  position: absolute;
+  width: 2px;
+  height: 12px;
+  border-radius: 1px;
+  background: currentColor;
+  content: "";
+  opacity: 0;
+  scale: 1 0.35;
+  transform-origin: center;
 }
 
 .ds-nav-mark-done {
@@ -646,8 +695,21 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
 }
 
 .ds-nav-label {
+  display: grid;
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.ds-nav-label-text,
+.ds-nav-label-reserve {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.ds-nav-label-reserve {
+  visibility: hidden;
+  font-weight: 600;
+  pointer-events: none;
 }
 
 .ds-nav:hover {
@@ -670,11 +732,23 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
 }
 
 .ds-nav-current .ds-nav-mark-dot::before {
-  width: 2px;
-  height: 12px;
-  border: 0;
-  border-radius: 1px;
-  background: currentColor;
+  opacity: 0;
+  scale: 0.65;
+}
+
+.ds-nav-current .ds-nav-mark-dot::after {
+  animation: ds-nav-marker-select 170ms var(--ease-out) both;
+}
+
+@keyframes ds-nav-marker-select {
+  from {
+    opacity: 0;
+    scale: 1 0.35;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
 }
 
 .ds-nav-done {
@@ -1145,6 +1219,10 @@ html[data-theme="dark"] .ds-settings-panel {
   justify-content: center;
 }
 
+.ds-layout-cover > .ds-content > .ds-main {
+  padding-top: calc(28px * var(--content-scale));
+}
+
 /* Always center the reading column - open sidebar, collapsed, TOC, zen, planned. */
 .ds-main-inner {
   width: min(100%, var(--measure));
@@ -1456,10 +1534,11 @@ html[data-theme="dark"] .ds-settings-panel {
   min-width: var(--sidebar);
   height: 100vh;
   overflow: hidden;
+  z-index: 2;
 }
 
 .ds-rail-toc-inner {
-  padding: calc(48px * var(--content-scale)) 16px 120px 20px;
+  padding: calc(32px * var(--content-scale)) 16px 120px 20px;
   overflow: auto;
   flex: 1;
   scrollbar-width: thin;
@@ -1502,8 +1581,65 @@ html[data-theme="dark"] .ds-settings-panel {
   margin-bottom: 24px;
 }
 
-.ds-lesson-header {
-  margin-bottom: 28px;
+.ds-lesson-cover {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--sidebar);
+  align-items: center;
+  min-width: 0;
+  min-height: calc(220px * var(--content-scale));
+  padding: calc(34px * var(--content-scale)) 0;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--accent) 3%, var(--bg));
+}
+
+.ds-lesson-cover-inner {
+  position: relative;
+  z-index: 1;
+  grid-column: 1;
+  width: min(calc(100% - calc(112px * var(--content-scale))), var(--lesson-measure));
+  margin-inline: auto;
+}
+
+.ds-lesson-cover-art {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  color: var(--accent);
+  opacity: 0.52;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ds-cover-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.ds-cover-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.24;
+}
+
+.ds-cover-line-strong {
+  stroke-width: 1.4;
+  opacity: 0.36;
+}
+
+.ds-cover-dot {
+  fill: currentColor;
+  opacity: 0.3;
+}
+
+.ds-cover-dot-strong {
+  opacity: 0.5;
 }
 
 .ds-lesson-title {
@@ -1518,7 +1654,7 @@ html[data-theme="dark"] .ds-settings-panel {
   color: var(--text);
 }
 
-.ds-lesson-header .ds-orientation-strip {
+.ds-lesson-cover .ds-orientation-strip {
   margin-bottom: 0;
 }
 
@@ -3160,7 +3296,7 @@ html[data-theme="dark"] .ds-settings-panel {
   background: var(--accent-hover);
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1420px) {
   .ds-layout-toc {
     grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
   }
@@ -3171,6 +3307,10 @@ html[data-theme="dark"] .ds-settings-panel {
 
   .ds-toc-mobile {
     display: block;
+  }
+
+  .ds-lesson-cover {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -3244,6 +3384,23 @@ html[data-theme="dark"] .ds-settings-panel {
     padding: 64px 16px 80px;
   }
 
+  .ds-layout-cover > .ds-content > .ds-main {
+    padding-top: 32px;
+  }
+
+  .ds-lesson-cover {
+    min-height: calc(190px * var(--content-scale));
+    padding: 56px 16px 32px;
+  }
+
+  .ds-lesson-cover-inner {
+    width: 100%;
+  }
+
+  .ds-lesson-cover-art {
+    opacity: 0.38;
+  }
+
   .ds-lesson-footer-nav {
     grid-template-columns: 1fr;
     gap: 12px;
@@ -3312,6 +3469,11 @@ html[data-theme="dark"] .ds-settings-panel {
   }
   .ds-reload-toast {
     animation: none !important;
+  }
+  .ds-nav-current .ds-nav-mark-dot::after {
+    animation: none !important;
+    opacity: 1;
+    scale: 1;
   }
 }
 
@@ -3668,6 +3830,15 @@ html[data-focus="on"] .ds-layout-toc {
   grid-template-columns: minmax(0, 1fr);
 }
 
+html[data-focus="on"] .ds-lesson-cover,
+html[data-focus="on"] .ds-main {
+  grid-column: 1;
+}
+
+html[data-focus="on"] .ds-lesson-cover {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 html[data-focus="on"] .ds-sidebar-toggle-float {
   display: none;
 }
@@ -3865,6 +4036,7 @@ html[data-focus="on"] .ds-main-inner:has(.ds-plaque) {
   .ds-reload-toast,
   .ds-skip-link,
   .ds-toc-mobile,
+  .ds-lesson-cover-art,
   .ds-focus-exit,
   .ds-kbd-hints {
     display: none !important;
@@ -3883,6 +4055,14 @@ html[data-focus="on"] .ds-main-inner:has(.ds-plaque) {
 
   .ds-main {
     padding: 0 !important;
+  }
+
+  .ds-lesson-cover {
+    min-height: 0;
+    padding: 0 0 20pt;
+    overflow: visible;
+    border: 0;
+    background: transparent;
   }
 
   .ds-plaque {

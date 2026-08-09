@@ -28,6 +28,9 @@
   in-lesson progress model: do not add a top line, percentage, ring, or floating progress control.
 - Render the desktop TOC and mobile On this page disclosure whenever a lesson has at least one
   section heading. Section count must not decide whether navigation exists.
+- On wide screens, the desktop TOC begins in the content row below the lesson cover and sticks from
+  there. Its rail matches the lesson-list rail width, and both rails frame the centered reading
+  column. It must not sit over the cover or move the reading measure when it appears.
 
 ## Reading system
 
@@ -55,9 +58,9 @@
 - Motion communicates only state, focus, and spatial continuity through short opacity/translate
   transitions. Reduced-motion behavior is equivalent. Do not animate lesson prose or scroll
   position.
-- Written and planned lesson pages share the same wide-desktop grid, including the reserved right
-  TOC track, so navigation does not move the reading column. Mobile and intermediate layouts do not
-  reserve that track.
+- Written and planned lesson pages keep the same centered reading measure. Wide desktop uses equal
+  left and right rails, reserving the right rail when a lesson has no TOC. Mobile and intermediate
+  layouts use the inline disclosure.
 - Modal, palette, and navigation backdrops are neutral to the active theme. They may dim or soften
   the reading surface but must not add a blue or accent-colored cast.
 
@@ -87,7 +90,9 @@
 
 ## Visual boundary
 
-The lesson surface is a reading tool, not a marketing page. Do not add AIDA page structure, bento
-spectacle, ornamental imagery, gradients, glassmorphism, parallax, scroll choreography, ambient
-animation, or card containers around ordinary prose. Use hierarchy, measure, whitespace, quiet
-rules, and one restrained accent.
+The lesson surface is a reading tool, not a marketing page. Each written lesson may use one
+script-owned, deterministic SVG cover as a chapter marker. Keep its geometry concentrated on the
+right, its accent tint subtle, its title unobstructed, and its rendering stable across reloads. Do
+not add AIDA page structure, bento spectacle, gradients, glassmorphism, parallax, scroll
+choreography, ambient animation, or card containers around ordinary prose. Use hierarchy, measure,
+whitespace, quiet rules, and one restrained accent.

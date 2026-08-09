@@ -19,6 +19,7 @@ export {
 } from "./markdown-render.js";
 
 export { buildSidebar, buildLessonsSidebar } from "./sidebar.js";
+export { generateCoverArt } from "./cover-art.js";
 
 export {
   escapeHtml,

@@ -2,6 +2,7 @@
 // reading column. Server injects pre-rendered article HTML and a small vanilla client script.
 import { parseCitation } from "../lessons/citation-model.js";
 import { CLIENT_SCRIPT } from "./client-script.js";
+import { generateCoverArt } from "./cover-art.js";
 
 export function escapeHtml(value) {
   return String(value ?? "")
@@ -135,6 +136,11 @@ function navMarkFor(item) {
   return NAV_DOT_MARK;
 }
 
+function navLabel(title) {
+  const label = escapeHtml(title);
+  return `<span class="ds-nav-label"><span class="ds-nav-label-text">${label}</span><span class="ds-nav-label-reserve" aria-hidden="true">${label}</span></span>`;
+}
+
 function renderSidebar(sidebar, workbookTitle) {
   const chapters = sidebar.chapters
     .map((chapter) => {
@@ -144,14 +150,14 @@ function renderSidebar(sidebar, workbookTitle) {
             const classes = ["ds-nav", "ds-nav-planned"];
             if (item.current) classes.push("ds-nav-current");
             const current = item.current ? ' aria-current="page"' : "";
-            return `<a class="${classes.join(" ")}" href="${plannedHref(item.id)}" data-nav-state="planned" data-nav-title="${escapeHtml(item.title)}" title="${escapeHtml(item.outcome ?? "Not written yet")}"${current}>${NAV_DOT_MARK}<span class="ds-nav-label">${escapeHtml(item.title)}</span></a>`;
+            return `<a class="${classes.join(" ")}" href="${plannedHref(item.id)}" data-nav-state="planned" data-nav-title="${escapeHtml(item.title)}" title="${escapeHtml(item.outcome ?? "Not written yet")}"${current}>${NAV_DOT_MARK}${navLabel(item.title)}</a>`;
           }
           const classes = ["ds-nav", item.state === "done" ? "ds-nav-done" : "ds-nav-written"];
           if (item.current) classes.push("ds-nav-current");
           const mark = navMarkFor(item);
           const state = item.state === "done" ? "done" : "open";
           const current = item.current ? ' aria-current="page"' : "";
-          return `<a class="${classes.join(" ")}" href="${lessonHref(item.lessonKey)}" data-nav-state="${state}" data-nav-title="${escapeHtml(item.title)}" data-lesson-key="${escapeHtml(item.lessonKey)}"${current}>${mark}<span class="ds-nav-label">${escapeHtml(item.title)}</span></a>`;
+          return `<a class="${classes.join(" ")}" href="${lessonHref(item.lessonKey)}" data-nav-state="${state}" data-nav-title="${escapeHtml(item.title)}" data-lesson-key="${escapeHtml(item.lessonKey)}"${current}>${mark}${navLabel(item.title)}</a>`;
         })
         .join("\n");
       return `<div class="ds-chapter"><h2 class="ds-chapter-title">${escapeHtml(chapter.title)}</h2><div class="ds-chapter-items">${items}</div></div>`;
@@ -208,6 +214,7 @@ function renderShell({
   documentTitle,
   sidebarHtml,
   mainHtml,
+  coverHtml = "",
   rightRailHtml = "",
   reserveRightRail = false,
   progress = null,
@@ -218,7 +225,13 @@ function renderShell({
   const lastReadAttr = progress?.lastRead
     ? ` data-last-read="${escapeHtml(String(progress.lastRead))}"`
     : "";
-  const layoutClass = rightRailHtml || reserveRightRail ? "ds-layout ds-layout-toc" : "ds-layout";
+  const layoutClass = [
+    "ds-layout",
+    rightRailHtml || reserveRightRail ? "ds-layout-toc" : "",
+    coverHtml ? "ds-layout-cover" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
   return `<!doctype html>
 <html lang="en" data-theme="paper" data-scale="100" data-accent="teal" data-sidebar="open" data-focus="off"${scrollAttr}${lastReadAttr}>
 <head>
@@ -235,7 +248,10 @@ ${prefsBootstrapScript()}
 <div class="${layoutClass}">
 ${sidebarHtml}
 <button type="button" class="ds-sidebar-scrim" aria-label="Close sidebar" tabindex="-1"></button>
-<main class="ds-main" id="ds-main-content" tabindex="-1">${sidebarToggleButton("ds-sidebar-toggle-float", false)}<div class="ds-main-inner">${mainHtml}</div></main>
+<main class="ds-content">
+${coverHtml}
+<div class="ds-main" id="ds-main-content" tabindex="-1">${sidebarToggleButton("ds-sidebar-toggle-float", false)}<div class="ds-main-inner">${mainHtml}</div></div>
+</main>
 ${rightRailHtml}
 </div>
 ${viewSettingsPanel()}
@@ -599,11 +615,15 @@ export function renderLesson({
 
   const bodyContent = stripClaimsHtml(stripLeadingTitleHtml(bodyHtml));
 
-  const main = `<article class="ds-plaque">
-    <header class="ds-lesson-header">
+  const cover = `<header class="ds-lesson-cover">
+    <div class="ds-lesson-cover-art" aria-hidden="true">${generateCoverArt(lessonKey || title)}</div>
+    <div class="ds-lesson-cover-inner">
       <h1 class="ds-lesson-title">${escapeHtml(title)}</h1>
       ${orientationStrip}
-    </header>
+    </div>
+  </header>`;
+
+  const main = `<article class="ds-plaque">
     ${jumpList}
     <div class="ds-plaque-body">${bodyContent}</div>
     ${footer}
@@ -615,7 +635,9 @@ export function renderLesson({
     documentTitle: `${title} · ${workbookTitle}`,
     sidebarHtml: renderSidebar(sidebar, workbookTitle),
     mainHtml: main,
+    coverHtml: cover,
     rightRailHtml,
+    reserveRightRail: true,
     progress: progress?.lastRead === lessonKey ? progress : { ...progress, lastScroll: null },
   });
 }

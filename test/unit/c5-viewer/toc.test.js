@@ -28,6 +28,10 @@ Content 3
 
   assert.match(html, /<aside class="ds-rail ds-rail-toc"/);
   assert.match(html, /ds-rail-toc-head/);
+  assert.ok(
+    html.indexOf('<header class="ds-lesson-cover">') <
+      html.indexOf('<aside class="ds-rail ds-rail-toc"'),
+  );
   assert.match(html, /data-id="section-1" aria-current="location"/);
   assert.match(html, /href="#section-1"/);
   assert.match(html, /href="#section-2"/);
@@ -76,4 +80,5 @@ test("TOC is omitted only when a lesson has no section headings", async () => {
 
   assert.doesNotMatch(html, /<aside class="ds-rail ds-rail-toc"/);
   assert.doesNotMatch(html, /<aside class="ds-toc-mobile"/);
+  assert.match(html, /class="ds-layout ds-layout-toc ds-layout-cover"/);
 });

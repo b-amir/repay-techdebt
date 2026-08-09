@@ -148,6 +148,9 @@ test("sidebar states use monochrome shape and weight hierarchy", async () => {
     /\.ds-nav-planned \.ds-nav-mark-dot::before\s*\{[\s\S]*?border:\s*1px solid currentColor/,
   );
   assert.match(css, /\.ds-nav-written\s*\{[\s\S]*?color:\s*var\(--text-secondary\)/);
+  assert.match(css, /\.ds-nav-mark-dot::before\s*\{[\s\S]*?width:\s*5px[\s\S]*?height:\s*5px/);
+  assert.match(css, /\.ds-rail-progress\s*\{[\s\S]*?padding:\s*0 16px 20px/);
+  assert.match(css, /\.ds-nav-list\s*\{[\s\S]*?padding:\s*16px 10px 12px/);
 });
 
 test("main column stays measure-limited and centered (no TOC expand, zen hides rails)", async () => {
@@ -164,4 +167,21 @@ test("main column stays measure-limited and centered (no TOC expand, zen hides r
   assert.match(css, /\.ds-main-inner\s*\{[\s\S]*?margin-inline:\s*auto/);
   // zen must remove rails from flow, not only opacity:0
   assert.match(css, /html\[data-focus="on"\]\s+\.ds-rail[\s\S]*?display:\s*none/);
+});
+
+test("lesson cover and TOC share a stable wide-screen reading grid", async () => {
+  const css = await readFile(resolve(root, "src/viewer/static/viewer.css"), "utf8");
+  assert.match(
+    css,
+    /\.ds-layout-cover > \.ds-content > \.ds-lesson-cover\s*\{[\s\S]*?grid-row:\s*1/,
+  );
+  assert.match(css, /\.ds-layout-cover > \.ds-rail-toc\s*\{[\s\S]*?grid-row:\s*2/);
+  assert.match(
+    css,
+    /\.ds-layout-toc\s*\{[\s\S]*?grid-template-columns:\s*var\(--sidebar-width\) minmax\(0, 1fr\) var\(--sidebar\)/,
+  );
+  assert.match(css, /\.ds-rail-toc\s*\{[\s\S]*?width:\s*var\(--sidebar\)/);
+  assert.match(css, /\.ds-rail-toc\s*\{[\s\S]*?position:\s*sticky/);
+  assert.match(css, /\.ds-lesson-title\s*\{[\s\S]*?max-width:\s*20ch/);
+  assert.match(css, /\.ds-lesson-cover-art\s*\{[\s\S]*?pointer-events:\s*none/);
 });
