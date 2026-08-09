@@ -931,6 +931,34 @@ export function renderCurriculumMarkdown(curriculum) {
     }
     lines.push("");
   }
+  const previousVersions = curriculum.topics.flatMap((topic) =>
+    (Array.isArray(topic.lessonHistory) ? topic.lessonHistory : []).map((entry) => ({
+      ...entry,
+      title: entry.title || topic.title,
+    })),
+  );
+  const preservedLessons = Array.isArray(curriculum.preservedLessons)
+    ? curriculum.preservedLessons
+    : [];
+  const retainedLessons = [...previousVersions, ...preservedLessons].filter(
+    (entry) => typeof entry?.path === "string" && /^lessons\/[^/]+\.md$/.test(entry.path),
+  );
+  if (retainedLessons.length > 0) {
+    lines.push(
+      "## Previous versions",
+      "",
+      "Earlier lesson versions are preserved here when a topic is recreated.",
+      "",
+      ...retainedLessons.map(
+        (entry, index) =>
+          `- [${String(entry.title || `Earlier lesson ${index + 1}`)
+            .replaceAll("\\", "\\\\")
+            .replaceAll("[", "\\[")
+            .replaceAll("]", "\\]")} — earlier version](${entry.path})`,
+      ),
+      "",
+    );
+  }
   const unresolved = Array.isArray(curriculum.unresolved) ? curriculum.unresolved : [];
   lines.push(
     "## Coverage notes",

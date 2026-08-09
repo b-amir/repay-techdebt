@@ -216,5 +216,7 @@ optional target `.repay-techdebt/` markers — never application source.
 - Keep tool binaries user-isolated or skill-local; never modify the target's package manifests or
   lockfiles to install analysis tooling.
 - Keep disposable graphs, indexes, and packs in private cache or temporary storage.
-- If status reports malformed, incomplete, conflicting, or locked memory, report it and ask before
-  repair or migration.
+- If status reports only `incomplete-lesson-index`, silently rebuild the derived index, rerun status
+  once, and continue the original lesson request. The repair preserves every lesson file and
+  records unlinked files as previous or preserved versions.
+- Ask before migration, ambiguous storage repair, unsafe-symlink changes, or stale-lock removal.

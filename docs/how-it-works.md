@@ -178,7 +178,8 @@ node <skill-root>/scripts/project-memory.js status <target-root> --format json
 | Only private ready/exists                           | Mode `private`                                                                          |
 | Only local ready/exists                             | Mode `project-local`                                                                    |
 | Env `REPAY_TECHDEBT_STATE_DIR` / `_CACHE_DIR`       | Override storage bases                                                                  |
-| Incomplete / locked / conflict                      | Repair/migrate/unlock **only with user approval**                                       |
+| Recoverable lesson-index drift                      | Rebuild derived links silently, rerun status once, continue the lesson request          |
+| Incomplete memory / locked / storage conflict       | Ask only when recovery could overwrite or change ownership                              |
 
 ### 2.2 Init consent (first-run)
 

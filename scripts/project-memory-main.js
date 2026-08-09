@@ -105,7 +105,7 @@ Thin resume helpers:
 
 Maintenance removes only repay-techdebt memory, workbook output, and analyzer cache — never application source.
 Private-external machine memory plus a discoverable sister workbook is the default and leaves the
-target unchanged. --sharing team|local is a legacy alias for --storage team|project-local. Status is read-only. Mutations require consent.
+target unchanged. --sharing team|local is a legacy alias for --storage team|project-local. Status is read-only. User-authored mutations require consent; derived lesson-index recovery may run silently during routine lesson work.
 Agents should ask in conversation and pass --yes; --interactive is for human terminal use.
 `);
 }
@@ -654,7 +654,7 @@ async function status(targetRoot, options) {
         orphanedLessons,
         missingLessons,
         requiredAction:
-          "Ask whether to run project-memory.js repair-index <target-root> --yes before continuing.",
+          "Run project-memory.js repair-index <target-root> --yes --format json silently, rerun status once, then continue the original request. This rebuilds derived workbook state; no user interaction is needed.",
       },
       format,
     );
@@ -1729,6 +1729,21 @@ async function saveLesson(targetRoot, options) {
         ) {
           throw new Error("Validated lesson save lost its trajectory gate before persistence");
         }
+        const replacedLessonPath = topic.lessonPath ?? null;
+        if (replacedLessonPath && replacedLessonPath !== `lessons/${candidate.name}`) {
+          const history = Array.isArray(topic.lessonHistory) ? topic.lessonHistory : [];
+          if (!history.some((entry) => entry?.path === replacedLessonPath)) {
+            topic.lessonHistory = [
+              ...history,
+              {
+                path: replacedLessonPath,
+                title: topic.title,
+                preservedAt: new Date().toISOString(),
+                reason: "recreated-lesson",
+              },
+            ];
+          }
+        }
         topic.status = "written";
         topic.lessonPath = `lessons/${candidate.name}`;
         topic.writtenAt = new Date().toISOString();
@@ -1740,7 +1755,7 @@ async function saveLesson(targetRoot, options) {
         try {
           curriculum.history = curriculum.history || [];
           curriculum.history.push({
-            action: "save-lesson",
+            action: replacedLessonPath ? "recreate-lesson" : "save-lesson",
             topicId: topic.id,
             date: new Date().toISOString(),
           });
@@ -1890,23 +1905,92 @@ async function repairIndex(targetRoot, options) {
         }
 
         const files = new Set(
-          (await readdir(workbook.lessons)).filter((name) => name.endsWith(".md")),
+          (await readdir(workbook.lessons)).filter(
+            (name) => name.endsWith(".md") && name !== "index.md",
+          ),
         );
         let changed = false;
         for (const topic of curriculum.topics) {
           const name = topic.lessonPath?.split("/").at(-1);
-          if (name && files.has(name)) topic.status = "written";
           const isWritten = name && files.has(name);
           if (isWritten && topic.status !== "written") {
             topic.status = "written";
             changed = true;
-          } else if (!isWritten && topic.status !== "planned") {
+          } else if (!isWritten && (topic.status !== "planned" || topic.lessonPath)) {
             topic.status = "planned";
             topic.lessonPath = null;
             delete topic.writtenAt;
             changed = true;
           }
+
+          const history = Array.isArray(topic.lessonHistory) ? topic.lessonHistory : [];
+          const validHistory = history.filter((entry) => {
+            const historyName = entry?.path?.split("/").at(-1);
+            return (
+              historyName &&
+              entry.path === `lessons/${historyName}` &&
+              files.has(historyName) &&
+              entry.path !== topic.lessonPath
+            );
+          });
+          if (validHistory.length !== history.length) changed = true;
+          if (validHistory.length > 0) topic.lessonHistory = validHistory;
+          else if (topic.lessonHistory !== undefined) {
+            delete topic.lessonHistory;
+            changed = true;
+          }
         }
+
+        const preserved = Array.isArray(curriculum.preservedLessons)
+          ? curriculum.preservedLessons
+          : [];
+        const validPreserved = preserved.filter((entry) => {
+          const preservedName = entry?.path?.split("/").at(-1);
+          return (
+            preservedName && entry.path === `lessons/${preservedName}` && files.has(preservedName)
+          );
+        });
+        if (validPreserved.length !== preserved.length) changed = true;
+        curriculum.preservedLessons = validPreserved;
+
+        const referencedPaths = new Set(
+          curriculum.topics.flatMap((topic) => [
+            ...(topic.lessonPath ? [topic.lessonPath] : []),
+            ...(topic.lessonHistory ?? []).map((entry) => entry.path),
+          ]),
+        );
+        for (const entry of curriculum.preservedLessons) referencedPaths.add(entry.path);
+
+        for (const name of [...files].sort((left, right) => left.localeCompare(right))) {
+          const lessonPath = `lessons/${name}`;
+          if (referencedPaths.has(lessonPath)) continue;
+
+          const content = await readFile(resolve(workbook.lessons, name), "utf8");
+          const title = content.match(/^#\s+(.+)$/m)?.[1]?.trim() || name.replace(/\.md$/, "");
+          const matchingTopics = curriculum.topics.filter((topic) => topic.title === title);
+          const recovered = {
+            path: lessonPath,
+            title,
+            preservedAt: new Date().toISOString(),
+            reason: "recovered-unindexed-lesson",
+          };
+          if (matchingTopics.length === 1 && !matchingTopics[0].lessonPath) {
+            matchingTopics[0].lessonPath = lessonPath;
+            matchingTopics[0].status = "written";
+            matchingTopics[0].writtenAt = recovered.preservedAt;
+          } else if (matchingTopics.length === 1) {
+            matchingTopics[0].lessonHistory = [
+              ...(matchingTopics[0].lessonHistory ?? []),
+              recovered,
+            ];
+          } else {
+            curriculum.preservedLessons.push(recovered);
+          }
+          referencedPaths.add(lessonPath);
+          changed = true;
+        }
+
+        if (curriculum.preservedLessons.length === 0) delete curriculum.preservedLessons;
         if (changed) {
           curriculum.history = curriculum.history || [];
           curriculum.history.push({
@@ -1920,7 +2004,7 @@ async function repairIndex(targetRoot, options) {
           type: "lesson-index-repaired",
           status: "ready",
           targetRoot,
-          indexedLessons: curriculum.topics.filter((topic) => topic.lessonPath).length,
+          indexedLessons: files.size,
         });
         return;
       }

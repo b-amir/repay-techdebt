@@ -32,6 +32,10 @@ turns call `node <skill-root>/scripts/…` with the matrix formats. Do not rely 
 
 **User chat:** tables over prose. Follow `templates/agent-experience.md` — ≤10 words outside tables on routine turns.
 
+Recoverable lesson-index drift is internal maintenance, not a dialogue turn. Run the named repair
+silently, rerun status once, and keep the original create/recreate/update/delete/batch request
+active. Never show a paused step or ask the learner to manage orphaned files.
+
 **Caps:** ≤1 extra investigate turn per phase; ≤1 lesson rewrite; then ship with gaps or ask the user.
 
 **Skip:** inventory/propose/retrieve only with ledger reason when stronger evidence exists. Never skip

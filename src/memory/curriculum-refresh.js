@@ -12,6 +12,7 @@ const DURABLE_TOPIC_FIELDS = [
   "writtenAt",
   "evidenceDigests",
   "staleReasons",
+  "lessonHistory",
 ];
 
 /** Preserve written lessons and learner progress when an approved curriculum map is refreshed. */
@@ -61,6 +62,9 @@ export function preserveCurriculumProgress(next, prior) {
     ...next.learnerCompletion,
     ...prior.learnerCompletion,
   };
+  if (Array.isArray(prior.preservedLessons) && prior.preservedLessons.length > 0) {
+    next.preservedLessons = structuredClone(prior.preservedLessons);
+  }
   next.history = [...(prior.history ?? []), ...(next.history ?? [])];
   if (next.scale) next.scale.selectedTopics = next.topics.length;
   if (next.blueprint?.coverage) {

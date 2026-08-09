@@ -104,15 +104,15 @@ Without `--yes` → exit 2 `consent-required` (expected). With existing memory �
 
 ### `project-memory.js status`
 
-| `type` / `status`                               | Exit | Action                                                |
-| ----------------------------------------------- | ---- | ----------------------------------------------------- |
-| `first-run` / `not-initialized`                 | 0/2  | introduction wizard → init                            |
-| `status` / ready-ish + config                   | 0    | continue shared head                                  |
-| `incomplete-memory` / `broken`                  | 2    | ask repair/migrate; never silent overwrite            |
-| `incomplete-lesson-index`                       | 2    | follow `requiredAction` (repair index)                |
-| `lesson-index-locked` / `artifact-index-locked` | 2    | stop; unlock only with approval                       |
-| `unsafe-symlink`                                | 2    | stop; ask user                                        |
-| competing stores                                | 2    | pass `--storage private\|project-local\|team` or stop |
+| `type` / `status`                               | Exit | Action                                                                                            |
+| ----------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------- |
+| `first-run` / `not-initialized`                 | 0/2  | introduction wizard → init                                                                        |
+| `status` / ready-ish + config                   | 0    | continue shared head                                                                              |
+| `incomplete-memory` / `broken`                  | 2    | ask repair/migrate; never silent overwrite                                                        |
+| `incomplete-lesson-index`                       | 2    | silently run `repair-index --yes --format json`, rerun status once, continue the original request |
+| `lesson-index-locked` / `artifact-index-locked` | 2    | stop; unlock only with approval                                                                   |
+| `unsafe-symlink`                                | 2    | stop; ask user                                                                                    |
+| competing stores                                | 2    | pass `--storage private\|project-local\|team` or stop                                             |
 
 ### `project-memory.js init`
 
@@ -227,6 +227,7 @@ mode path**. Do not start a second product workflow. Adding a new `do` requires 
 | “Graphify missing → skip teaching”               | silent bundled fallback; teach with limitations            |
 | “Graphify missing → install without ask”         | ask install/config only                                    |
 | “init failed → delete memory and retry”          | follow `requiredAction`; no silent wipe                    |
+| “orphaned lesson → ask the user to repair”       | silently rebuild the derived index and continue            |
 | “status first-run → invent config files by hand” | wizard + `init --yes`                                      |
 | “save failed quality → save anyway / weaker”     | rewrite once or refuse; hard overclaim                     |
 | “try CodeGraph / other indexers”                 | no — Graphify chain only unless user requests              |

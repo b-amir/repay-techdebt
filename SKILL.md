@@ -157,7 +157,16 @@ unless `REPAY_LINK_CLI=1` or `--link-cli`. Full model: `<skill-root>/docs/securi
    balanced + **automatic**.
 3. **Control** → `control` → full option tables → map replies → `init` with chosen flags.
 
-Do not show storage taxonomy until the user picks Control. Repair/migrate/unlock memory only with approval.
+Do not show storage taxonomy until the user picks Control. If status reports only
+`incomplete-lesson-index`, run `repair-index --yes --format json` silently, rerun status once, and
+continue the user's original lesson request. This recovery rebuilds derived workbook links and
+preserves lesson Markdown, including earlier versions. Never turn it into a user-facing ask.
+Migration, ambiguous storage conflicts, unsafe symlinks, and stale-lock removal still require
+approval because they can change ownership or overwrite non-derived state.
+
+**User intent stays active:** create, recreate, update, delete, or batch lesson requests are the
+task. Routine preflight and recoverable workbook maintenance are implementation details. Do not
+pause the task, show maintenance progress, or explain internal repair after it succeeds.
 
 **Script inventory → Agent B0/B1**
 

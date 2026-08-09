@@ -458,11 +458,130 @@ test("status detects saved lessons missing from the index", async () => {
     );
     const status = await run(["status", target, "--format", "json"]);
     assert.equal(status.code, 2);
-    assert.equal(JSON.parse(status.stdout).type, "incomplete-lesson-index");
+    const statusOutput = JSON.parse(status.stdout);
+    assert.equal(statusOutput.type, "incomplete-lesson-index");
+    assert.doesNotMatch(statusOutput.requiredAction, /ask|whether|confirm/i);
+    assert.match(statusOutput.requiredAction, /silently/i);
     const repaired = await run(["repair-index", target, "--yes"]);
     assert.equal(repaired.code, 0, repaired.stderr);
     assert.equal(JSON.parse(repaired.stdout).indexedLessons, 1);
     assert.equal((await run(["status", target, "--format", "json"])).code, 0);
+  } finally {
+    await rm(target, { force: true, recursive: true });
+  }
+});
+
+test("recreating a curriculum lesson preserves its prior version without breaking status", async () => {
+  const target = await mkdtemp(resolve(tmpdir(), "repay-techdebt-memory-recreate-"));
+  const firstDraft = resolve(target, "first-draft.md");
+  const secondDraft = resolve(target, "second-draft.md");
+  try {
+    await writeLessonEvidence(target);
+    await writeFile(firstDraft, validConciseLesson());
+    await writeFile(secondDraft, validConciseLesson());
+    await recordJudgment(firstDraft, PASSING_JUDGMENT);
+    await recordJudgment(secondDraft, PASSING_JUDGMENT);
+    const initialized = await run([
+      "init",
+      target,
+      "--sharing",
+      "local",
+      "--output-location",
+      "private",
+      "--depth",
+      "concise",
+      "--yes",
+    ]);
+    assert.equal(initialized.code, 0, initialized.stderr);
+    const memoryRoot = JSON.parse(initialized.stdout).memoryRoot;
+    await writeCompleteGate(memoryRoot);
+    const curriculum = await saveTeachingCurriculum(target, [
+      {
+        title: "Dependency Direction",
+        focus: "dependency-direction-boundary",
+        evidencePaths: ["src/routes/admin.ts", "src/auth/permission.ts"],
+      },
+    ]);
+    const topicId = curriculum.topics[0].id;
+    const first = await run([
+      "save-lesson",
+      target,
+      "--topic-id",
+      topicId,
+      "--title",
+      "Dependency Direction",
+      "--input",
+      firstDraft,
+      "--yes",
+    ]);
+    assert.equal(first.code, 0, first.stderr);
+    const firstPath = JSON.parse(first.stdout).file;
+
+    const second = await run([
+      "save-lesson",
+      target,
+      "--topic-id",
+      topicId,
+      "--title",
+      "Dependency Direction",
+      "--input",
+      secondDraft,
+      "--yes",
+    ]);
+    assert.equal(second.code, 0, second.stderr);
+    const secondPath = JSON.parse(second.stdout).file;
+    assert.notEqual(secondPath, firstPath);
+
+    const savedCurriculum = JSON.parse(
+      await readFile(resolve(memoryRoot, "curriculum.json"), "utf8"),
+    );
+    const savedTopic = savedCurriculum.topics.find((topic) => topic.id === topicId);
+    assert.equal(savedTopic.lessonPath, secondPath);
+    assert.deepEqual(
+      savedTopic.lessonHistory.map((entry) => entry.path),
+      [firstPath],
+    );
+    assert.equal(savedCurriculum.history.at(-1).action, "recreate-lesson");
+    const index = await readFile(resolve(memoryRoot, "lessons", "index.md"), "utf8");
+    assert.match(index, /## Previous versions/);
+    assert.match(index, new RegExp(firstPath.replace("lessons/", "")));
+
+    const status = await run(["status", target, "--format", "json"]);
+    assert.equal(status.code, 0, status.stderr || status.stdout);
+  } finally {
+    await rm(target, { force: true, recursive: true });
+  }
+});
+
+test("repair-index restores an orphaned curriculum lesson without user interaction", async () => {
+  const target = await mkdtemp(resolve(tmpdir(), "repay-techdebt-memory-repair-orphan-"));
+  try {
+    await run(["init", target, "--sharing", "local", "--output-location", "private", "--yes"]);
+    const curriculum = await saveTeachingCurriculum(target, [
+      {
+        title: "Dependency Direction",
+        focus: "dependency-direction-boundary",
+        evidencePaths: ["src/routes/admin.ts", "src/auth/permission.ts"],
+      },
+    ]);
+    const orphanName = "2026-08-01-dependency-direction.md";
+    await writeFile(
+      resolve(target, ".repay-techdebt", "lessons", orphanName),
+      "# Dependency Direction\n\nEarlier version.\n",
+    );
+
+    const before = await run(["status", target, "--format", "json"]);
+    assert.equal(before.code, 2);
+    const repaired = await run(["repair-index", target, "--yes", "--format", "json"]);
+    assert.equal(repaired.code, 0, repaired.stderr);
+    const savedCurriculum = JSON.parse(
+      await readFile(resolve(target, ".repay-techdebt", "curriculum.json"), "utf8"),
+    );
+    assert.equal(savedCurriculum.topics[0].lessonPath, `lessons/${orphanName}`);
+    assert.equal(savedCurriculum.topics[0].status, "written");
+    assert.equal(curriculum.topics[0].title, "Dependency Direction");
+    const after = await run(["status", target, "--format", "json"]);
+    assert.equal(after.code, 0, after.stderr || after.stdout);
   } finally {
     await rm(target, { force: true, recursive: true });
   }

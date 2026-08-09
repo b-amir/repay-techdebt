@@ -17,17 +17,22 @@ argv, or raw CLI dumps into chat.
 
 ## Hard rules
 
-| Do not                              | Do                                          |
-| ----------------------------------- | ------------------------------------------- |
-| Stack tables with no blank line     | **One blank line between every table**      |
-| Empty header cells                  | **Every header cell has a short label**     |
-| Important ask with only a tiny lead | **`###` heading** + one why-line            |
-| Script JSON / `--open` argv in chat | Silent scripts; show human paths + URL only |
-| Ask save / open in **Fast** mode    | Auto-save + auto-open viewer                |
-| “I’ll now…”, filler                 | Run work; show oriented tables              |
-| Bullets for progress                | Progress table from `session-status.md`     |
-| “Continue weaker?” / soft half-save | Unsupported → shrink scope or refuse        |
-| Tool jargon / ask-every-fallback    | Silent bundled fallback; ask only install   |
+| Do not                              | Do                                                 |
+| ----------------------------------- | -------------------------------------------------- |
+| Stack tables with no blank line     | **One blank line between every table**             |
+| Empty header cells                  | **Every header cell has a short label**            |
+| Important ask with only a tiny lead | **`###` heading** + one why-line                   |
+| Script JSON / `--open` argv in chat | Silent scripts; show human paths + URL only        |
+| Ask save / open in **Fast** mode    | Auto-save + auto-open viewer                       |
+| “I’ll now…”, filler                 | Run work; show oriented tables                     |
+| Bullets for progress                | Progress table from `session-status.md`            |
+| “Continue weaker?” / soft half-save | Unsupported → shrink scope or refuse               |
+| Tool jargon / ask-every-fallback    | Silent bundled fallback; ask only install          |
+| Pause for orphan/index repair       | Self-heal silently; keep the requested step active |
+
+Routine lesson creation, recreation, updates, deletion, and batches stay user-intent-first. Do not
+show `Paused`, index state, orphan terminology, repair commands, or maintenance progress for a
+recoverable derived-index issue. Repair it, rerun the check once, and continue the same request.
 
 ## Modes
 
