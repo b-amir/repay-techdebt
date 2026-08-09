@@ -49,6 +49,8 @@ Shared craft density:
 
 - Hook states mechanism + consequence in first screenful.
 - One worked path through real paths/lines. Small snippets only.
+- H2s are topic-specific (never `The Mechanism` / `Pitfall` / `Try It` / `Invariant`).
+- Titles name a mechanism or consequence, not a Title-Cased file path.
 - At most one mermaid map (A only), with `accTitle` / `accDescr` and **What this shows:**.
 - Ending is a small change/debug/test-prediction job on real files, not symbol recall.
 - Takeaway one-liner at end.

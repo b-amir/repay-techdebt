@@ -44,6 +44,8 @@ a number. Depth adds evidence or examines a mechanism more closely. It does not 
 ## Required anatomy
 
 Every lesson must contain these five elements to ensure it teaches effectively rather than just describing code.
+**The elements are teaching moves, never a shared H2 outline.** Different lessons must not reuse the same
+section titles.
 
 | Element                 | Description                                                                                  | Example                                                                                                                                              |
 | ----------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -52,6 +54,36 @@ Every lesson must contain these five elements to ensure it teaches effectively r
 | **Worked-trace**        | An ordered trace through the mechanism or flow.                                              | _1. `POST /order` → 2. `checkPermission` → 3. `computePrice` → 4. `invalidateCache`._                                                                |
 | **Contrast**            | A comparison showing what goes wrong if the mechanism is omitted or implemented incorrectly. | _`diff\n- old buggy code\n+ fixed code\n` or a "What goes wrong if you skip X" subsection._                                                          |
 | **Takeaway**            | A concluding sentence anchoring the most important insight.                                  | _**If you remember one thing:** the permission decision owns the request - never let pricing or caching run first._                                  |
+
+### Forbidden stamped outline
+
+These H2s are role labels. Scripts reject them. Invent topic-specific headings instead and map them
+through `sectionRoles`:
+
+```markdown
+## The Mechanism
+
+## Pitfall
+
+## Try It
+
+## Invariant
+```
+
+Also forbidden as titles or H2s: path basenames in Title Case (`Core Api Http Client Ts`),
+`Walk the path in code`, `The pitfall people miss`, `Check yourself`, `Change it safely`,
+`How it works`, `Why this matters`, and other checker/planner vocabulary used as an outline.
+
+Bad title + stamp (reject):
+
+> `# Core Api Http Client Ts` with `## The Mechanism` / `## Pitfall` / `## Try It`
+
+Good (accept):
+
+> `# Every Browser Request Enters Through /bff` with `## The prefix decides which server sees the call`
+> / `## What breaks when a feature finds another door` / `## Prove the boundary before adding an endpoint`
+
+If two lessons in the same workbook could swap headings without sounding wrong, rewrite both.
 
 ## Choose importance before novelty
 

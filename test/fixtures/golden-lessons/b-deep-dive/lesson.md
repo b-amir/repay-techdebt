@@ -11,9 +11,9 @@ skipReasons:
     Single helper and return object. No multi-module structure question that a
     diagram would answer better than the snippet.
 sectionRoles:
-  workedPath: Read the whole mechanism
+  workedPath: Open settle and read its return object
   pitfall: What breaks if you “simplify” it
-  check: Safely evolve the return contract
+  check: Rename status without breaking capture
 ---
 
 # What settle actually returns
@@ -26,7 +26,7 @@ Capture already proved an order id exists. Settlement only needs identifiers and
 
 You do not need a system map here: there is one function and one return. The map skip is intentional - the teaching target is the object, not module topology.
 
-## Read the whole mechanism
+## Open settle and read its return object
 
 Open `billing/settlement.js:2`. The function signature is plain:
 
@@ -63,7 +63,7 @@ Capture still returns successfully, but anything that reads `.status` or `.order
 
 That change invents a second status without updating callers or tests. The lesson is not “never evolve status” - it is “the return object _is_ the contract,” so edit it as a contract.
 
-## Safely evolve the return contract
+## Rename status without breaking capture
 
 Suppose you must rename `status` to `state` in `billing/settlement.js`. Before editing, write the
 assertion you expect a `capturePayment` caller to fail. Then name the smallest compatibility change

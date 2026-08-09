@@ -310,15 +310,18 @@ topics, **must** open the viewer with
    After retrieve, complete B5 (verify ≤3 anchors).
 2. Read `templates/lesson-format.md`, `references/lesson-composition.md`,
    `references/lesson-writing.md`, and B4b/B6 in `references/bottleneck-checkpoints.md`.
-3. **Agent draft** one topic, 3–8 topic-specific sections declared through `sectionRoles`, at least
-   one verified source fence, self-contained `` `path:line` `` or `` `path:start-end` `` citations,
-   honest evidence language, and a modify/debug/test job ending. Keep raw locations out of prose.
-   never use a pathless range. Follow the plan's `diagramIntent`: use verified nodes/edges, keep the
+3. **Agent draft** one topic with **unique, topic-specific H2s** declared through `sectionRoles`
+   (never `The Mechanism` / `Pitfall` / `Try It` / `Invariant`, never a Title-Cased file path as the
+   title). Include at least one verified source fence, self-contained `` `path:line` `` or
+   `` `path:start-end` `` citations, honest evidence language, and a modify/debug/test job ending.
+   Keep raw locations out of prose. Never use a pathless range. Follow the plan's `diagramIntent`:
+   use verified nodes/edges, keep the
    subgraph small, prefer a compact portrait or near-square layout (`TD`/`TB` for flowcharts), avoid
    both wide graphs and long single-column chains, explain any horizontal exception, give omissions
    a topic-specific reason, and fix Mermaid syntax before save. Copy the reviewed learning-moment
    decisions into frontmatter as `learningMoments.quickCheck`, `thinkFirst`, and
-   `seeForYourself`. Each value starts with `included -` or `omitted -` and gives a specific reason.
+   `seeForYourself`. Each value starts with `included -` or `omitted -` and gives a **topic-specific**
+   reason (never paste planner `teachingGoal` boilerplate).
    An included decision must have the matching block in the draft.
 4. **Script check:**
 

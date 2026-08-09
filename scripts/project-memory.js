@@ -18,7 +18,10 @@ if (isJson && !process.env.REPAY_TECHDEBT_NO_STDERR) {
     const stderrStr = result.stderr.toString();
     const filtered = stderrStr
       .split("\n")
-      .filter((line) => !line.includes("SecTrustSettingsCopyCertificates") && !line.includes("certificate"))
+      .filter(
+        (line) =>
+          !line.includes("SecTrustSettingsCopyCertificates") && !line.includes("certificate"),
+      )
       .join("\n");
     if (filtered.trim()) {
       process.stderr.write(filtered);
@@ -41,7 +44,11 @@ try {
   if (error instanceof RuntimeBootstrapError) {
     if (isJson) {
       process.stdout.write(
-        JSON.stringify({ type: "error", status: "fail", message: error.message, details: error.details }, null, 2) + "\n"
+        JSON.stringify(
+          { type: "error", status: "fail", message: error.message, details: error.details },
+          null,
+          2,
+        ) + "\n",
       );
     } else {
       process.stderr.write(`Project memory runtime failed: ${error.message}\n`);
@@ -50,7 +57,7 @@ try {
   } else {
     if (isJson) {
       process.stdout.write(
-        JSON.stringify({ type: "error", status: "fail", message: error.message }, null, 2) + "\n"
+        JSON.stringify({ type: "error", status: "fail", message: error.message }, null, 2) + "\n",
       );
     } else {
       process.stderr.write(`Project memory failed: ${error.message}\n`);

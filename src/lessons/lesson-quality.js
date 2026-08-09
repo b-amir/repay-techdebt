@@ -4,7 +4,8 @@ import { parseClaimsBlock } from "./claim-faithfulness.js";
 import { inspectLessonShape } from "./lesson-shape.js";
 import { inspectLearningMoments } from "./learning-moments.js";
 import { USEFULNESS_FLOORS } from "./usefulness-floors.js";
-import { parseLessonFrontmatter } from "./lesson-frontmatter.js";
+import { parseLessonFrontmatter, craftFieldsFromFrontmatter } from "./lesson-frontmatter.js";
+import { inspectHeadingVariety } from "./heading-variety.js";
 
 const DEPTH_RANGES = {
   concise: [USEFULNESS_FLOORS.minBodyWords.concise, USEFULNESS_FLOORS.maxBodyWords.concise],
@@ -13,7 +14,7 @@ const DEPTH_RANGES = {
 };
 
 const EMPTY_HEADING =
-  /^(?:introduction|overview|details|more information|conclusion|predict|read|run|investigate|modify|make)$/i;
+  /^(?:introduction|overview|details|more information|conclusion|predict|read|run|investigate|modify|make|the mechanism|mechanism|pitfall|try it|invariant|takeaway|the tricky part|tricky part|check yourself|your turn|walk the path(?: in code)?|read the whole mechanism|how it works|change(?: it)? safely)$/i;
 const AI_PUFFERY =
   /\b(?:delve|game[- ]changer|revolutionary|cutting[- ]edge|robust and scalable|seamlessly|in today(?:'s)? (?:fast-paced|digital) world)\b/i;
 const TEMPLATED_CLAIMS = [
@@ -65,6 +66,8 @@ export function inspectLesson(
   } = {},
 ) {
   if (!DEPTH_RANGES[depth]) throw new Error("depth must be concise, balanced, or deep");
+  const { frontmatter } = parseLessonFrontmatter(markdown);
+  const craft = craftFieldsFromFrontmatter(frontmatter);
   const headings = [...markdown.matchAll(/^##\s+(.+)$/gm)].map((match) => match[1].trim());
   const evidence = extractLessonCitations(markdown);
   const paragraphs = markdown
@@ -92,6 +95,18 @@ export function inspectLesson(
   const generic = headings.filter((heading) => EMPTY_HEADING.test(heading));
   if (generic.length > 0)
     errors.push(`Replace process labels with subject headings: ${generic.join(", ")}.`);
+  const titleMatch = markdown.match(/^#\s+(.+)$/m);
+  const variety = inspectHeadingVariety(headings, {
+    title: craft.title ?? titleMatch?.[1]?.trim() ?? null,
+    focus: craft.focus ?? craft.primaryPaths[0] ?? null,
+    sectionRoles: craft.sectionRoles,
+  });
+  for (const error of variety.errors) {
+    if (!errors.includes(error)) errors.push(error);
+  }
+  for (const warning of variety.warnings) {
+    if (!warnings.includes(warning)) warnings.push(warning);
+  }
   const citedPaths = [
     ...new Set(evidence.map((item) => parseCitation(item)?.path).filter(Boolean)),
   ];

@@ -6,7 +6,7 @@ primaryPaths:
 sectionRoles:
   workedPath: Follow the call
   pitfall: Why the boundary matters
-  check: Change it safely
+  check: Try a non-positive amount guard
 ---
 
 ## What you will learn
@@ -25,13 +25,13 @@ Before you open the files, predict: does capture write ledger rows itself, or do
 
 Splitting capture from settle lets you change settlement policy without rewriting every payment entry point. Therefore you can test settle failures separately from order validation.
 
-## Change it safely
+## Try a non-positive amount guard
 
 Try a modify challenge: add a guard in `billing/settlement.js` that rejects non-positive amounts,
 then predict what capture returns when amount is zero. Private rubric: settle should throw before
 returning settled status. Capture should surface that error.
 
-## Recap
+## Keep the ownership split
 
 Capture owns entry validation. Settle owns settlement status. Cite both files when you claim the handoff.
 

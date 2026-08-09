@@ -150,7 +150,9 @@ the complete required/optional section catalog. Do not force every lesson throug
 
 - Explain jargon at first use. Prefer short causal sentences and concrete names from this program.
 - Give topic-specific H2s and map `workedPath`, `pitfall`, and `check` to them with frontmatter
-  `sectionRoles`. Do not copy the checker’s fallback labels as an outline.
+  `sectionRoles`. **Never** copy role labels into the outline: `The Mechanism`, `Pitfall`, `Try It`,
+  `Invariant`, `Walk the path in code`, `Check yourself`, and Title-Cased path basenames all fail
+  quality checks. If another lesson in the workbook could reuse your H2s unchanged, rewrite them.
 - End with a concrete modify/debug/run-predict/named-test job, not a name-the-symbol quiz. Name the
   invariant to preserve, the affected consumer or boundary, the verification to run, and the signal
   that would reveal a regression. Keep evidence gaps and the Tool Use Ledger at workbook level for a

@@ -51,17 +51,23 @@ test("lesson quality warns on empty-form craft proxies", () => {
     (_, index) =>
       `${index + 1}. "export function helper${index} exists" - src/helper${index}.ts:1 - support: yes`,
   ).join("\n");
-  const markdown = `# Helpers
+  const markdown = `---
+sectionRoles:
+  workedPath: Open the helper surface
+  pitfall: Exports are not behavior
+  check: Name the exported symbol
+---
+# Helpers
 
 This opening explains the helper surface because callers otherwise change an export without checking the behavior.
 
-## Walk the path in code
+## Open the helper surface
 Read src/helper0.ts:1 and src/helper1.ts:1 before changing the public surface.
 
-## The pitfall people miss
+## Exports are not behavior
 The wrong model treats an exported name as proof of behavior.
 
-## Check yourself
+## Name the exported symbol
 In src/helper0.ts, what is the exported symbol called?
 
 CLAIMS:
@@ -75,17 +81,23 @@ ${"Enough concrete explanation keeps length from hiding the craft warnings durin
 });
 
 test("malformed visible CLAIMS are quality errors instead of auto-mode escape", () => {
-  const markdown = `# Claim
+  const markdown = `---
+sectionRoles:
+  workedPath: Read the claim anchors
+  pitfall: Malformed claims hide support
+  check: Fix the claim line and re-run
+---
+# Claim
 
 This opening has enough words because a malformed claim must not bypass explicit faithfulness checks.
 
-## Walk the path in code
+## Read the claim anchors
 Read src/a.ts:1 and src/b.ts:1.
 
-## The pitfall people miss
+## Malformed claims hide support
 Malformed syntax hides declared support.
 
-## Check yourself
+## Fix the claim line and re-run
 Change src/a.ts and run its test.
 
 CLAIMS:
@@ -99,7 +111,13 @@ test("lesson quality rejects generic openings and flags oversized support materi
   const longCode = Array.from({ length: 41 }, (_, index) => `const value${index} = ${index};`).join(
     "\n",
   );
-  const markdown = `# Guard behavior
+  const markdown = `---
+sectionRoles:
+  workedPath: Trace the request
+  pitfall: What breaks without the guard
+  check: Verify the boundary
+---
+# Guard behavior
 
 In this lesson we will explore the guard and discuss how it works for the application.
 
@@ -110,7 +128,7 @@ Open src/guard.ts:1 and src/route.ts:1 because the route calls the guard before 
 ${longCode}
 \`\`\`
 
-## What goes wrong
+## What breaks without the guard
 Removing the guard lets the mutation run with an unchecked request.
 
 ## Verify the boundary
@@ -123,7 +141,13 @@ ${"Concrete supporting prose keeps the fixture inside the concise depth while pr
 });
 
 test("lesson quality validates optional interactive learning blocks when authors use them", () => {
-  const markdown = `# Guard behavior
+  const markdown = `---
+sectionRoles:
+  workedPath: Trace the request
+  pitfall: Inspect it in the browser
+  check: Verify the boundary
+---
+# Guard behavior
 
 You can trace the guard because direct navigation reaches the loader before any protected UI renders.
 
@@ -157,7 +181,13 @@ ${"Concrete supporting prose keeps this focused fixture within its depth range b
 });
 
 test("lesson quality accepts a well-formed optional self-check", () => {
-  const markdown = `# Guard behavior
+  const markdown = `---
+sectionRoles:
+  workedPath: Trace the request
+  pitfall: Inspect the failure
+  check: Verify the boundary
+---
+# Guard behavior
 
 You can trace the guard because direct navigation reaches the loader before protected UI renders.
 

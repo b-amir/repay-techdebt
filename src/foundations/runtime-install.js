@@ -19,7 +19,7 @@ function runCommand(command, args, cwd, env = process.env, timeoutMs = 30000) {
   return new Promise((resolve, reject) => {
     let timeoutId;
     const child = spawn(command, args, { cwd, env, stdio: ["inherit", "pipe", "pipe"] });
-    
+
     let output = "";
     if (child.stdout) {
       child.stdout.on("data", (data) => {
@@ -126,7 +126,7 @@ confirmModulesPurge=false
     { command: "corepack", args: ["pnpm@" + version, ...args], pinned: true },
     { command: "pnpm", args, pinned: false },
   ];
-  
+
   let enoentCount = 0;
   let lastError;
   let lastOutput = "";
@@ -160,8 +160,8 @@ confirmModulesPurge=false
   const outputSnippet = lastOutput ? `\nOutput snippet:\n${lastOutput.slice(-1000)}` : "";
   throw new RuntimeBootstrapError(
     `Skill dependency install failed. (Original error: ${lastError?.message})${outputSnippet}\n\n` +
-    `Check the output above to determine if this is a network issue, a package.json syntax error, or lockfile drift. ` +
-    `If in a sandboxed environment without network, ensure dependencies are cached or pre-installed.`,
+      `Check the output above to determine if this is a network issue, a package.json syntax error, or lockfile drift. ` +
+      `If in a sandboxed environment without network, ensure dependencies are cached or pre-installed.`,
     null,
     {
       code: "install-failed",

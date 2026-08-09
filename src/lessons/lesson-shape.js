@@ -8,6 +8,7 @@ import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseLessonFrontmatter, craftFieldsFromFrontmatter } from "./lesson-frontmatter.js";
+import { inspectHeadingVariety } from "./heading-variety.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const skillRoot = resolve(here, "../..");
@@ -32,6 +33,7 @@ export const DEFAULT_PATH_SECTIONS = Object.freeze([
     role: "worked-path",
     required: true,
     headingHints: [
+      // Detection only for legacy drafts. Never copy these phrases as H2s.
       /walk the path/i,
       /read the whole mechanism/i,
       /entry to effect/i,
@@ -48,6 +50,7 @@ export const DEFAULT_PATH_SECTIONS = Object.freeze([
     role: "pitfall",
     required: true,
     headingHints: [
+      // Detection only for legacy drafts. Never copy these phrases as H2s.
       /pitfall/i,
       /trap/i,
       /miss/i,
@@ -63,7 +66,14 @@ export const DEFAULT_PATH_SECTIONS = Object.freeze([
     id: "check-yourself",
     role: "check-yourself",
     required: true,
-    headingHints: [/check yourself/i, /try it/i, /your turn/i, /exercise/i, /challenge/i],
+    headingHints: [
+      // Detection only for legacy drafts. Never copy these phrases as H2s.
+      /check yourself/i,
+      /try it/i,
+      /your turn/i,
+      /exercise/i,
+      /challenge/i,
+    ],
   },
 ]);
 
@@ -177,6 +187,14 @@ export function inspectLessonShape(markdown, opts = {}) {
   });
   if (!mapXor.ok) errors.push(...mapXor.errors);
 
+  const variety = inspectHeadingVariety(headings, {
+    title: craft.title ?? (typeof frontmatter.title === "string" ? frontmatter.title : null),
+    focus: craft.focus ?? (typeof frontmatter.focus === "string" ? frontmatter.focus : null),
+    sectionRoles: craft.sectionRoles,
+  });
+  errors.push(...variety.errors);
+  warnings.push(...variety.warnings);
+
   const sections = {
     workedPath: resolveRoleSection({
       markdown: body || markdown,
@@ -184,9 +202,11 @@ export function inspectLessonShape(markdown, opts = {}) {
       declaredHeading: craft.sectionRoles.workedPath,
       hints: DEFAULT_PATH_SECTIONS.find((s) => s.id === "worked-path").headingHints,
       role: "workedPath",
+      // Do not name Mechanism/Pitfall/Try It here - agents copy error text into H2s.
       fallbackError:
-        "Lesson needs a worked-path section (walk the path / mechanism / in code / trace).",
+        "Declare sectionRoles.workedPath with a topic-specific H2 that traces this lesson's concrete path.",
       errors,
+      requireDeclared: true,
     }),
     pitfall: resolveRoleSection({
       markdown: body || markdown,
@@ -194,8 +214,10 @@ export function inspectLessonShape(markdown, opts = {}) {
       declaredHeading: craft.sectionRoles.pitfall,
       hints: DEFAULT_PATH_SECTIONS.find((s) => s.id === "pitfall").headingHints,
       role: "pitfall",
-      fallbackError: "Lesson needs a pitfall/contrast section (what breaks, trap, wrong model).",
+      fallbackError:
+        "Declare sectionRoles.pitfall with a topic-specific H2 that names this lesson's wrong model or failure.",
       errors,
+      requireDeclared: true,
     }),
     check: resolveRoleSection({
       markdown: body || markdown,
@@ -204,8 +226,9 @@ export function inspectLessonShape(markdown, opts = {}) {
       hints: DEFAULT_PATH_SECTIONS.find((s) => s.id === "check-yourself").headingHints,
       role: "check",
       fallbackError:
-        "Lesson needs a Check yourself / try-it section that names a real file or symbol.",
+        "Declare sectionRoles.check with a topic-specific H2 that names the modify/debug/verify job.",
       errors,
+      requireDeclared: true,
     }),
   };
 
@@ -239,6 +262,7 @@ function resolveRoleSection({
   role,
   fallbackError,
   errors,
+  requireDeclared = false,
 }) {
   if (declaredHeading) {
     if (!headings.includes(declaredHeading)) {
@@ -247,6 +271,11 @@ function resolveRoleSection({
     }
     return extractSectionByHeading(markdown, declaredHeading);
   }
+  if (requireDeclared) {
+    errors.push(fallbackError);
+    return "";
+  }
+  // Legacy drafts only: never document these hint phrases as an outline to copy.
   const matchedHeading = headings.find((heading) => hints.some((regex) => regex.test(heading)));
   if (!matchedHeading) {
     errors.push(fallbackError);

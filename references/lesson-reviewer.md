@@ -17,6 +17,11 @@ Inventory is not insight. Score `insight` ≤2 when the lesson mainly lists file
 surface without one non-obvious causal claim. Add `mustFix` when the lesson lacks a verified source
 snippet or ends in symbol recall instead of a small change/debug/test-prediction job.
 
+Score `pacing` ≤2 and add `mustFix` when H2s are role stamps (`The Mechanism`, `Pitfall`, `Try It`,
+`Invariant`, `Walk the path in code`, `Check yourself`) or when the title is a path basename in
+Title Case. A batch of lessons that share the same outline is a failing review even if each file
+passes mechanical citation checks.
+
 Review the author-only `learningMoments` ledger as a decision record, not a quota. Confirm every
 included Quick check, Think first, or See for yourself block exists and earns its place. Challenge
 an omission when the draft contains a consequential misconception, a useful causal pause, or a

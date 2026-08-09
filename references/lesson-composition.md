@@ -60,6 +60,9 @@ Do not write boring, generic lessons. Avoid these patterns:
 - Abstract best-practice paragraphs without project specifics.
 - Using promotional adjectives when a concrete behavior or constraint would be clearer.
 - Restating the title as the BLUF.
+- Reusing the same H2 skeleton across lessons (`The Mechanism` / `Pitfall` / `Try It` / `Invariant`).
+- Title-casing a file path (`Instrumentation Server Mjs`) instead of naming the mechanism.
+- Pasting planner `teachingGoal` text into `learningMoments` reasons.
 
 ## Required core module inventory
 

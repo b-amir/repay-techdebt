@@ -115,7 +115,7 @@ function stripQuotes(value) {
 
 /**
  * @param {Record<string, unknown>} fm
- * @returns {{ mapAnswers: string | null, skipReasons: { map?: string, purpose?: string, verify?: string }, subject: string | null, primaryPaths: string[], shape: string | null, sectionRoles: { workedPath?: string, pitfall?: string, check?: string }, learningMoments: { quickCheck?: string, thinkFirst?: string, seeForYourself?: string }, diagramDecision: string | null, diagramReason: string | null }}
+ * @returns {{ mapAnswers: string | null, skipReasons: { map?: string, purpose?: string, verify?: string }, subject: string | null, primaryPaths: string[], shape: string | null, sectionRoles: { workedPath?: string, pitfall?: string, check?: string }, learningMoments: { quickCheck?: string, thinkFirst?: string, seeForYourself?: string }, diagramDecision: string | null, diagramReason: string | null, title: string | null, focus: string | null }}
  */
 export function craftFieldsFromFrontmatter(fm) {
   const skipRaw = fm.skipReasons && typeof fm.skipReasons === "object" ? fm.skipReasons : {};
@@ -161,6 +161,8 @@ export function craftFieldsFromFrontmatter(fm) {
     typeof fm.diagramReason === "string" && fm.diagramReason.trim()
       ? fm.diagramReason.trim()
       : null;
+  const title = typeof fm.title === "string" && fm.title.trim() ? fm.title.trim() : null;
+  const focus = typeof fm.focus === "string" && fm.focus.trim() ? fm.focus.trim() : null;
   return {
     mapAnswers,
     skipReasons,
@@ -171,5 +173,7 @@ export function craftFieldsFromFrontmatter(fm) {
     learningMoments,
     diagramDecision,
     diagramReason,
+    title,
+    focus,
   };
 }

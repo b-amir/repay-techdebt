@@ -1,4 +1,5 @@
 import { craftFieldsFromFrontmatter, parseLessonFrontmatter } from "./lesson-frontmatter.js";
+import { isPlannerBoilerplateReason } from "./heading-variety.js";
 
 export const LEARNING_MOMENT_KINDS = ["quickCheck", "thinkFirst", "seeForYourself"];
 
@@ -187,7 +188,12 @@ function parseDecision(raw) {
 function isSpecificReason(reason) {
   const normalized = String(reason ?? "").trim();
   if (normalized.length < 18) return false;
-  return !/^(?:not needed|none|optional|no opportunity|n\/a|not applicable)\.?$/i.test(normalized);
+  if (/^(?:not needed|none|optional|no opportunity|n\/a|not applicable)\.?$/i.test(normalized)) {
+    return false;
+  }
+  // Reject pasted planLearningMoments teachingGoal strings.
+  if (isPlannerBoilerplateReason(normalized)) return false;
+  return true;
 }
 
 /**
@@ -271,7 +277,7 @@ export function inspectLearningMoments(
     }
     if (!isSpecificReason(decision.reason)) {
       errors.push(
-        `learningMoments.${kind} needs a specific teaching purpose or omission reason (at least 18 characters).`,
+        `learningMoments.${kind} needs a topic-specific teaching purpose or omission reason (not planner boilerplate, and at least 18 characters).`,
       );
     }
     if (decision.decision === "include" && present[kind] === 0) {

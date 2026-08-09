@@ -167,7 +167,7 @@ Hi
 `;
   const shape = inspectLessonShape(md);
   assert.equal(shape.ok, false);
-  assert.ok(shape.errors.some((e) => /worked-path|pitfall|Check yourself|hook/i.test(e)));
+  assert.ok(shape.errors.some((e) => /workedPath|pitfall|check|hook|sectionRoles/i.test(e)));
 });
 
 test("topic-specific headings satisfy shape through declared section roles", () => {
@@ -408,22 +408,26 @@ subject: flow
 mapAnswers: none really
 primaryPaths:
   - billing/capture.js
+sectionRoles:
+  workedPath: See the architecture generally
+  pitfall: Many teams skip maps
+  check: Think about architecture
 ---
 
 # Overview of the system
 
 In this lesson we will explore a comprehensive overview of the entire system.
 
-## Why this matters
+## Why teams keep asking for a map
 Generic overview of the system without a path.
 
-## Walk the path in code
+## See the architecture generally
 See the architecture generally.
 
-## The pitfall people miss
+## Many teams skip maps
 Many teams skip maps.
 
-## Check yourself
+## Think about architecture
 Think about architecture.
 ${"Filler words for length so word floors do not dominate the hollow overview refuse path. ".repeat(20)}
 `;
@@ -452,6 +456,10 @@ test("evaluateLessonForSave refuses pathless topic via craft subject gate", asyn
     const body = `---
 subject: flow
 mapAnswers: abstract
+sectionRoles:
+  workedPath: No real file named
+  pitfall: Guessing the structure
+  check: Name a feeling instead
 ---
 
 # Abstract topic
@@ -461,13 +469,13 @@ ${"The mechanism matters because production fails without the guard in place for
 ## Why this path exists
 Because architecture.
 
-## Walk the path in code
+## No real file named
 No real file named.
 
-## The pitfall people miss
+## Guessing the structure
 Guessing.
 
-## Check yourself
+## Name a feeling instead
 Name a feeling.
 `;
     const draft = resolve(directory, "draft.md");

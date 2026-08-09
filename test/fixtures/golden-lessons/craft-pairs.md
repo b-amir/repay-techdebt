@@ -135,3 +135,41 @@ justify the topic.
 > propose the smallest compatibility return shape and the assertion that proves it.
 
 **Why good:** Small, answerable, anchored to the taught contract, and ends in a safe-change job.
+
+---
+
+## Headings (anti-stamp)
+
+### Pair 6 - role-label outline vs topic-specific H2s
+
+**Bad**
+
+```markdown
+# Core Api Http Client Ts
+
+## The Mechanism
+
+## Pitfall
+
+## Try It
+
+## Invariant
+```
+
+**Why bad:** Title is a path basename. Every H2 is a teaching-role stamp. Another lesson could reuse the
+same skeleton unchanged. Weak agents copy these labels from shape hints and fail the learner.
+
+**Good**
+
+```markdown
+# Every Browser Request Enters Through /bff
+
+## The prefix decides which server sees the call
+
+## What breaks when a feature finds another door
+
+## Prove the boundary before adding an endpoint
+```
+
+**Why good:** Title names the invariant. Each H2 would sound wrong on a different topic. `sectionRoles`
+maps worked/pitfall/check to those specific headings.
