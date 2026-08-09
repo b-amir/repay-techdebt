@@ -29,13 +29,13 @@ Splitting capture from settle lets you change settlement policy without rewritin
 
 Try a modify challenge: add a guard in `billing/settlement.js` that rejects non-positive amounts,
 then predict what capture returns when amount is zero. Private rubric: settle should throw before
-returning settled status; capture should surface that error.
+returning settled status. Capture should surface that error.
 
 ## Recap
 
-Capture owns entry validation; settle owns settlement status. Cite both files when you claim the handoff.
+Capture owns entry validation. Settle owns settlement status. Cite both files when you claim the handoff.
 
 CLAIMS:
 
-1. "capturePayment returns the result of settle" — billing/capture.js:6 — support: yes — state: observed
-2. "settle returns a settled status object" — billing/settlement.js:3 — support: yes — state: observed
+1. "capturePayment returns the result of settle" - billing/capture.js:6 - support: yes - state: observed
+2. "settle returns a settled status object" - billing/settlement.js:3 - support: yes - state: observed

@@ -1,6 +1,6 @@
 /**
  * Minimal lesson frontmatter parse + craft fields.
- * No full YAML engine — only keys we gate on.
+ * No full YAML engine - only keys we gate on.
  */
 
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;

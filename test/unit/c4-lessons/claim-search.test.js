@@ -27,7 +27,7 @@ primaryPaths:
 # Capture path
 
 CLAIMS:
-1. "capture validates amount before settle" — billing/capture.js:12 — support:yes
+1. "capture validates amount before settle" - billing/capture.js:12 - support:yes
 
 See also billing/capture.js:12 and billing/settlement.js:4.
 `;

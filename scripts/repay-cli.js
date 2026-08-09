@@ -69,7 +69,7 @@ const BOOLEAN_FLAGS = new Set(["--yes", "--interactive", "--allow-non-git", "--h
 /**
  * Spawn local script with inherit stdio. Optional label → dim lead-in + ✓/✗ trailer.
  * Exit 2 (consent / already-exists) → yellow soft trailer; other non-zero → red.
- * (Spinner lives in child long work via createSpinner — inherit owns the TTY mid-run.)
+ * (Spinner lives in child long work via createSpinner - inherit owns the TTY mid-run.)
  * @param {string} command
  * @param {string[]} args
  * @param {{ label?: string }} [options]
@@ -90,7 +90,7 @@ function run(command, args, options = {}) {
         resolvePromise();
         return;
       }
-      // Consent / already-exists are expected soft stops — not hard failure chrome.
+      // Consent / already-exists are expected soft stops - not hard failure chrome.
       if (label) {
         if (code === 2) {
           stderr.write(
@@ -156,7 +156,7 @@ export function sanitizeArgs(rest, allowedFlags) {
   return out;
 }
 
-/** @deprecated use sanitizeArgs — kept for older tests */
+/** @deprecated use sanitizeArgs - kept for older tests */
 export function sanitizeInvokeArgs(rest) {
   return sanitizeArgs(
     rest,
@@ -181,7 +181,7 @@ export function sanitizeInvokeArgs(rest) {
 
 function printHelp() {
   const pipe = dim("│");
-  const head = `${paint(["bold", "cyan"], "repay")} ${dim("— Local skill scripts only")}`;
+  const head = `${paint(["bold", "cyan"], "repay")} ${dim("· Local skill scripts only")}`;
   stdout.write(`${head}\n`);
   stdout.write(`${pipe}\n`);
   stdout.write(`${pipe} ${bold("Usage")}\n`);

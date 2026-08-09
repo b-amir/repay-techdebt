@@ -114,7 +114,7 @@ function markdown(result) {
     "",
     `Target: \`${result.target.root}\``,
     `Scope: \`${result.target.scope}\``,
-    `Coverage: **${result.status}**${result.coverage.reasonCodes.length > 0 ? ` — ${result.coverage.reasonCodes.join(", ")}` : ""}`,
+    `Coverage: **${result.status}**${result.coverage.reasonCodes.length > 0 ? ` - ${result.coverage.reasonCodes.join(", ")}` : ""}`,
     "",
     `Found ${result.summary.direct} direct and ${result.summary.transitiveOnly} lockfile/transitive-only dependencies; ${result.summary.withObservedSourceUsage} have observed source usage.`,
     "",

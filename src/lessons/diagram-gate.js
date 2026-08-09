@@ -138,7 +138,7 @@ export function checkDiagramGate(markdown, opts = {}) {
         "Structure map must answer one lesson question (accTitle, mapAnswers, or **What this shows:**).",
       );
     } else if (!hasWhatShows) {
-      // quality.js already requires What this shows — keep soft here if accTitle present
+      // quality.js already requires What this shows - keep soft here if accTitle present
     }
   }
 

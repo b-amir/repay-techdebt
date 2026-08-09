@@ -1,4 +1,4 @@
-// Minimal TTY helpers — stdlib only (Node 22+ styleText). No chalk/ora.
+// Minimal TTY helpers - stdlib only (Node 22+ styleText). No chalk/ora.
 // Colors off when non-TTY, NO_COLOR set, or FORCE_COLOR=0.
 
 import { env, stderr, stdout } from "node:process";

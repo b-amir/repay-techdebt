@@ -20,7 +20,7 @@ function help() {
 
 Stdio JSON-RPC server for optional repay tools (doctor, trajectory, claims, PR,
 save-evaluate, workbook, capabilities, status, list/get lesson, quality/evidence/faithfulness, progress).
-Optional enhance — bundled scripts remain the default path when this process is not running.
+Optional enhance - bundled scripts remain the default path when this process is not running.
 `);
 }
 

@@ -94,7 +94,7 @@ function markdown(plan) {
     `**Suggested title:** ${plan.titleHint}`,
     "",
     ...plan.simplePlan.flatMap((section, index) => [
-      `${index + 1}. **${section.title}** — ${section.purpose}`,
+      `${index + 1}. **${section.title}:** ${section.purpose}`,
       ...(section.evidencePaths.length > 0
         ? [
             `   Evidence to verify: ${section.evidencePaths.map((path) => `\`${path}\``).join(", ")}.`,
@@ -106,7 +106,7 @@ function markdown(plan) {
     "",
     ...plan.learningMoments.opportunities.map(
       (moment) =>
-        `- **${moment.kind} · ${moment.decision}**${moment.afterSectionId ? ` after \`${moment.afterSectionId}\`` : ""} — ${moment.teachingGoal} ${moment.reason}`,
+        `- **${moment.kind} · ${moment.decision}**${moment.afterSectionId ? ` after \`${moment.afterSectionId}\`` : ""}: ${moment.teachingGoal} ${moment.reason}`,
     ),
     "",
     "## Evidence gaps",

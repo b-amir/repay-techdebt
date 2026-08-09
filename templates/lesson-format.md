@@ -10,7 +10,7 @@ model, then emit a small lesson that feels purpose-built for the selected code a
    merely an interesting analyzer result.
 3. Inspect the plan's focus anchors, signal evidence, limitations, coverage, and evidence gaps.
 4. Cross-check every selected claim in live source. Tool output and the program model select what to
-   inspect; they are not substitutes for source verification.
+   inspect. They are not substitutes for source verification.
 5. Add enhanced-tool evidence only after the operation succeeded. If it failed, follow the skill's
    transparent fallback gate before continuing.
 6. Use confirmed project memory for preferences and historical reasons only. Never use it as proof
@@ -25,19 +25,19 @@ model, then emit a small lesson that feels purpose-built for the selected code a
 An optional lesson module may appear only when it is relevant to the focus and supported by either:
 
 - two independent, mutually reinforcing target signals, such as a route plus an authorization
-  helper, an import edge plus a test, or a manifest declaration plus observed source use; or
+  helper, an import edge plus a test, or a manifest declaration plus observed source use. Or
 - one authoritative signal, such as verified source control flow, a successful focused analyzer,
   runtime evidence, official version-matched documentation, or a user-confirmed decision.
 
 A filename alone, a framework's presence, a generic best practice, or a ranked lens alone is not
 enough. Prefer signals that connect different parts of the application:
 
-- entry point + module relation + state effect + test;
-- route + permission control + data access + forbidden-state handling;
-- manifest + lockfile + source import + deployment constraint;
-- component + API contract + cache/state owner + interaction states;
-- job producer + queue + consumer + retry/idempotency path + observability;
-- schema/migration + repository + transaction + downstream reader;
+- entry point + module relation + state effect + test.
+- route + permission control + data access + forbidden-state handling.
+- manifest + lockfile + source import + deployment constraint.
+- component + API contract + cache/state owner + interaction states.
+- job producer + queue + consumer + retry/idempotency path + observability.
+- schema/migration + repository + transaction + downstream reader.
 - configuration + startup registration + runtime branch + health/recovery behavior.
 
 If the evidence establishes relevance but not a conclusion, teach the investigation and the
@@ -68,8 +68,8 @@ the complete required/optional section catalog. Do not force every lesson throug
   prose and let the viewer move raw locations into numbered Sources notes. Include only small,
   verified, redacted code excerpts, including at least one fenced source snippet from the primary
   path.
-- Follow the plan's `diagramIntent`. A `required` visual must be included; a `recommended` visual
-  may be omitted only with a topic-specific `diagramReason`; `omit` must not include Mermaid.
+- Follow the plan's `diagramIntent`. A `required` visual must be included. A `recommended` visual
+  may be omitted only with a topic-specific `diagramReason`. `omit` must not include Mermaid.
   Diagrams use only verified nodes and edges, stay small, and must parse before save. Prefer a
   compact portrait or near-square layout that reads without zooming: flowcharts default to `TD` or
   `TB`, while `LR`/`RL` need a topic-specific reason. Avoid long single-column chains by pruning,
@@ -79,7 +79,7 @@ the complete required/optional section catalog. Do not force every lesson throug
   teaching moves, not mandatory headings.
 - Interactive learning is optional, but reviewing its opportunities is required. Inspect every
   `learningMoments` entry from the plan against live source. Include recommended moments unless a
-  concrete evidence, safety, redundancy, or pacing reason justifies omission; decide candidates
+  concrete evidence, safety, redundancy, or pacing reason justifies omission. Decide candidates
   explicitly. Never add a widget to satisfy a lesson quota. Prefer no more than three varied pauses
   and keep the surrounding explanation complete without them.
 - Record the decision ledger in frontmatter. The ledger is author metadata and is hidden by the
@@ -117,8 +117,8 @@ the complete required/optional section catalog. Do not force every lesson throug
   ```
 
 - For one consequential misconception with plausible alternatives, use a single-answer check. Mark
-  exactly one choice with `[x]`, provide two to four choices, and explain the mechanism—not just the
-  score—in `Why`:
+  exactly one choice with `[x]`, provide two to four choices, and explain the mechanism behind the
+  score in `Why`:
 
   ```markdown
   > **Quick check:** Which boundary can reject direct navigation before protected UI renders?
@@ -150,7 +150,7 @@ the complete required/optional section catalog. Do not force every lesson throug
 
 - Explain jargon at first use. Prefer short causal sentences and concrete names from this program.
 - Give topic-specific H2s and map `workedPath`, `pitfall`, and `check` to them with frontmatter
-  `sectionRoles`; do not copy the checker’s fallback labels as an outline.
+  `sectionRoles`. Do not copy the checker’s fallback labels as an outline.
 - End with a concrete modify/debug/run-predict/named-test job, not a name-the-symbol quiz. Name the
   invariant to preserve, the affected consumer or boundary, the verification to run, and the signal
   that would reveal a regression. Keep evidence gaps and the Tool Use Ledger at workbook level for a
@@ -160,13 +160,13 @@ the complete required/optional section catalog. Do not force every lesson throug
 
 Before publishing, confirm:
 
-- the title describes the actual learning outcome;
+- the title describes the actual learning outcome.
 - the lesson connects purpose, relationships, exact mechanics, and consequences at the appropriate
-  zoom levels;
-- every optional section passed the activation gate;
-- facts, derived conclusions, inferences, hypotheses, and historical decisions are distinguishable;
-- security, performance, compatibility, and production claims have the required evidence;
-- the lesson remains easy to scan despite the richer internal analysis;
+  zoom levels.
+- every optional section passed the activation gate.
+- facts, derived conclusions, inferences, hypotheses, and historical decisions are distinguishable.
+- security, performance, compatibility, and production claims have the required evidence.
+- the lesson remains easy to scan despite the richer internal analysis.
 - unresolved questions are visible and no tool failure was hidden.
 - `check-lesson-quality.js` passes before the lesson is saved.
 

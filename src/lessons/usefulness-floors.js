@@ -9,7 +9,7 @@ import { extractLessonCitations } from "./lesson-citation-check.js";
 
 /** Derived from golden A (balanced ~450) and B (concise ~380). */
 export const USEFULNESS_FLOORS = Object.freeze({
-  // From GOLDEN_SITTING_SIZE — do not invent abstract caps unrelated to goldens.
+  // From GOLDEN_SITTING_SIZE - do not invent abstract caps unrelated to goldens.
   source: "test/fixtures/golden-lessons (A path+map ~450w / B deep-dive ~380w)",
   minBodyWords: {
     concise: 280, // below B still fails; B~380 passes

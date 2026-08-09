@@ -18,7 +18,7 @@ import { runTeachFloors } from "../../../src/lessons/save-lesson.js";
 
 test("extractLessonCitations dedupes and preserves normalized line ranges", () => {
   const md =
-    "See billing/capture.js:4 and billing/capture.js:4 again, plus src/a.js:1–3 and src/b.js:7—9.";
+    "See billing/capture.js:4 and billing/capture.js:4 again, plus src/a.js:1–3 and src/b.js:7\u20149.";
   assert.deepEqual(extractLessonCitations(md), [
     "billing/capture.js:4",
     "src/a.js:1-3",
@@ -62,8 +62,8 @@ test("parseClaimsBlock reads explicit CLAIMS and tolerates blank input", () => {
   const md = `Body
 
 CLAIMS:
-1. "capture calls settle" — billing/capture.js:4 — support: yes — state: observed
-2. "queue is async" — billing/queue.js:1 — support: no
+1. "capture calls settle" - billing/capture.js:4 - support: yes - state: observed
+2. "queue is async" - billing/queue.js:1 - support: no
 `;
   const claims = parseClaimsBlock(md);
   assert.equal(claims.length, 2);
@@ -76,14 +76,14 @@ CLAIMS:
 test("parseClaimsBlock detailed mode reports malformed visible claim entries", () => {
   const result = parseClaimsBlock(
     `CLAIMS:
-1. "valid claim" — src/a.ts:1 — support: yes
-2. "bad separators" - src/b.ts:1 - support: yes
+1. "valid claim" - src/a.ts:1 - support: yes
+2. "bad separators" | src/b.ts:1 | support: yes
 `,
     { detailed: true },
   );
   assert.equal(result.present, true);
   assert.equal(result.claims.length, 1);
-  assert.deepEqual(result.malformedLines, ['2. "bad separators" - src/b.ts:1 - support: yes']);
+  assert.deepEqual(result.malformedLines, ['2. "bad separators" | src/b.ts:1 | support: yes']);
 });
 
 async function fixture() {
@@ -105,7 +105,7 @@ test("assessClaimFaithfulness: explicit supported claim → ok, explicit-claims 
 words
 
 CLAIMS:
-1. "capturePayment settle function" — billing/capture.js:1 — support: yes — state: observed
+1. "capturePayment settle function" - billing/capture.js:1 - support: yes - state: observed
 `;
     const result = await assessClaimFaithfulness(dir, md);
     assert.equal(result.mode, "explicit-claims");
@@ -124,7 +124,7 @@ test("assessClaimFaithfulness: declared support:yes but snippet disagrees → pr
 words
 
 CLAIMS:
-1. "kafka broker topics async" — billing/capture.js:1 — support: yes — state: observed
+1. "kafka broker topics async" - billing/capture.js:1 - support: yes - state: observed
 `;
     const result = await assessClaimFaithfulness(dir, md);
     assert.equal(result.mode, "explicit-claims");
@@ -145,7 +145,7 @@ test("natural engineering prose can use multiple cited windows without mirroring
       "export async function uploadCompletion() { return 'complete'; }\n",
     );
     const md = `CLAIMS:
-1. "capturePayment waits for uploadCompletion before settlement continues" — billing/capture.js:1, billing/settlement.js:1 — support: yes — state: observed
+1. "capturePayment waits for uploadCompletion before settlement continues" - billing/capture.js:1, billing/settlement.js:1 - support: yes - state: observed
 `;
     const result = await assessClaimFaithfulness(dir, md);
     assert.equal(result.ok, true, result.problems.join("; "));
@@ -161,7 +161,7 @@ test("absolute or negative claims remain semantic gaps", async () => {
   const dir = await fixture();
   try {
     const md = `CLAIMS:
-1. "capturePayment never calls settle" — billing/capture.js:1 — support: yes — state: observed
+1. "capturePayment never calls settle" - billing/capture.js:1 - support: yes - state: observed
 `;
     const result = await assessClaimFaithfulness(dir, md);
     assert.equal(result.ok, false);
@@ -180,7 +180,7 @@ test("assessClaimFaithfulness: explicit claim citing a missing file → problem"
 words
 
 CLAIMS:
-1. "capturePayment settle function" — billing/missing.js:1 — support: yes — state: observed
+1. "capturePayment settle function" - billing/missing.js:1 - support: yes - state: observed
 `;
     const result = await assessClaimFaithfulness(dir, md);
     assert.equal(result.ok, false);

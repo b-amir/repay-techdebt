@@ -53,7 +53,7 @@ export function rankCandidate(candidate, _context = {}) {
     });
   }
 
-  // Trust / Data signals — weaker than before; path tokens are heuristics only
+  // Trust / Data signals - weaker than before; path tokens are heuristics only
   if (candidate.focus && /auth|permission|session|security/i.test(candidate.focus)) {
     const trustBonus = candidate.relationCount >= 2 ? 12 : 6;
     score += trustBonus;

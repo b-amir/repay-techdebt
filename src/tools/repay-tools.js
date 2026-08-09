@@ -135,7 +135,7 @@ export function listRepayTools() {
     {
       name: "repay_save_evaluate",
       description:
-        "Run evaluateLessonForSave floors only — no durable write. Host/agent still owns craft + save.",
+        "Run evaluateLessonForSave floors only. This does not write. The host or agent still owns craft and save.",
       inputSchema: {
         type: "object",
         properties: {
@@ -335,7 +335,7 @@ export async function callRepayTool(name, args = {}) {
         pathComplete = check.pathComplete === true;
         missing = check.missing ?? [];
         reason = pathComplete
-          ? "Learning path complete — durable save allowed if lesson craft passes."
+          ? "Learning path complete. Durable save is allowed if lesson craft passes."
           : formatPathIncompleteReason(check);
       } catch {
         reason = "Trajectory gate file is unreadable or invalid.";
@@ -481,7 +481,7 @@ export async function callRepayTool(name, args = {}) {
       ok: result.ok,
       tool: name,
       wrote: false,
-      note: "Evaluate only — host must call save path separately after craft passes.",
+      note: "Evaluate only. The host must call the save path after craft passes.",
       trajectory: result.trajectory,
       quality: {
         ok: result.quality?.ok,

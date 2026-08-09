@@ -1,15 +1,15 @@
 # Capability Pack Contract
 
 Read this reference when adding ecosystem coverage or interpreting detected packs. Packs select
-investigations; they do not declare defects.
+investigations. They do not declare defects.
 
 ## Purpose
 
 A pack is declarative, portable agent guidance that connects repository signals to:
 
-- possible executable capabilities;
-- relevant analysis lenses;
-- ecosystem-specific investigations;
+- possible executable capabilities.
+- relevant analysis lenses.
+- ecosystem-specific investigations.
 - evidence needed before teaching a conclusion.
 
 The engine ships language packs in `packs/program-packs.json` and framework/capability packs in
@@ -24,13 +24,13 @@ It does not prove runtime usage, version behavior, architecture, or quality.
 
 Every activated pack must emit:
 
-- pack ID and kind;
-- confidence;
-- evidence IDs;
-- capabilities;
-- possible capabilities (language applicability only; never promote these to detected roles without
-  structural, dependency, configuration, or runtime evidence);
-- analysis lenses;
+- pack ID and kind.
+- confidence.
+- evidence IDs.
+- capabilities.
+- possible capabilities (language applicability only. Never promote these to detected roles without
+  structural, dependency, configuration, or runtime evidence).
+- analysis lenses.
 - investigations.
 
 Unknown ecosystems remain valid targets. Report “no pack matched,” preserve the generic model, and
@@ -73,11 +73,11 @@ high-yield questions over a catalog of linter rules.
 
 For each new pack, add fixture tests covering:
 
-1. positive detection;
-2. nearby ecosystem non-detection;
-3. evidence provenance;
-4. selected lenses and investigations;
-5. unsupported or malformed manifest behavior;
+1. positive detection.
+2. nearby ecosystem non-detection.
+3. evidence provenance.
+4. selected lenses and investigations.
+5. unsupported or malformed manifest behavior.
 6. no target writes.
 
 Version-specific claims belong in current official documentation obtained during the analysis, not

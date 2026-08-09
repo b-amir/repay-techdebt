@@ -27,7 +27,7 @@ export async function verifyLessonCitations(targetRoot, markdownOrCitations) {
   if (!Array.isArray(markdownOrCitations)) {
     for (const shorthand of extractAmbiguousCitationShorthand(markdownOrCitations)) {
       problems.push(
-        `${shorthand} is ambiguous source shorthand; repeat the project-relative path, for example path/to/file.ts:${shorthand.replace(/[–—]/g, "-")}`,
+        `${shorthand} is ambiguous source shorthand. Repeat the project-relative path, for example path/to/file.ts:${shorthand.replace(/[–\u2014]/g, "-")}`,
       );
     }
   }

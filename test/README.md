@@ -2,7 +2,7 @@
 
 Category → folder index. Every `*.test.js` carries a `// @category CX` first-line tag.
 
-Production code: `src/<category>/`. CLI entrypoints: `scripts/` (flat — agents reference paths literally in `SKILL.md`).
+Production code: `src/<category>/`. CLI entrypoints: `scripts/` (flat - agents reference paths literally in `SKILL.md`).
 
 ## How to run
 
@@ -47,7 +47,8 @@ Run `pnpm test:hygiene` after any file move.
 | `cli-load.test.js`             | scripts that fail `node --check`                                |
 | `public-api.test.js`           | barrel export drift                                             |
 | `orphan-files.test.js`         | dead modules nothing imports                                    |
-| `architecture-hygiene.test.js` | layer violations (`src/` → CLI); claim-faithfulness export lock |
+| `architecture-hygiene.test.js` | layer violations (`src/` → CLI). Claim-faithfulness export lock |
+| `writing-style.test.js`        | em dashes, prose semicolons, and canned writing                 |
 
 ## Integration (`test/integration/`)
 
@@ -70,7 +71,7 @@ Exit-code contract: consent=2, quality/secret-fail=2, usage/target=1, success=0.
 
 ## Scripts folder
 
-`scripts/` stays **flat** on purpose — `SKILL.md`, agents, and CI invoke `node scripts/<name>.js` by fixed path. Do not nest without updating every reference.
+`scripts/` stays **flat** on purpose - `SKILL.md`, agents, and CI invoke `node scripts/<name>.js` by fixed path. Do not nest without updating every reference.
 
 Groups (by prefix, not folder):
 
@@ -86,7 +87,7 @@ Groups (by prefix, not folder):
 
 ## Adding a test
 
-1. Pick one category; place under the matching `test/unit/cX/` or `test/integration/`.
+1. Pick one category. Place under the matching `test/unit/cX/` or `test/integration/`.
 2. First line: `// @category CX`.
 3. Import paths: `../../../src/...` from `test/unit/cX/`, `../../src/...` from `test/integration/`.
 4. Fixture paths: `../../fixtures/evaluation/...` from unit, `../fixtures/...` from integration.

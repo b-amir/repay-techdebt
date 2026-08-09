@@ -11,16 +11,16 @@ credentials, use networks, mutate databases, publish messages, or contact produc
 
 Before execution:
 
-1. inspect the exact resolved command, configuration, fixtures, and environment contract;
+1. inspect the exact resolved command, configuration, fixtures, and environment contract.
 2. identify filesystem writes, services, databases, queues, network, credentials, and external
-   side effects;
-3. state which uncertainty the operation will reduce;
-4. prefer a disposable/local target and the narrowest representative scenario;
-5. ask the user unless the exact operation is already authorized;
+   side effects.
+3. state which uncertainty the operation will reduce.
+4. prefer a disposable/local target and the narrowest representative scenario.
+5. ask the user unless the exact operation is already authorized.
 6. record the command, outcome, evidence, and limitation in maintainer notes only (never first-run chat).
 
 The collector starts commands with a minimal environment. If a workload genuinely needs an
-environment variable, authorize its **name** explicitly with `--allow-env <NAME>`; never put its
+environment variable, authorize its **name** explicitly with `--allow-env <NAME>`. Never put its
 value on the command line or in lesson output. Captured output is credential-redacted before use.
 
 ## Data Sources

@@ -1,4 +1,4 @@
-/* repay-techdebt lesson viewer — Read mode. Themes: white · paper · dark */
+/* repay-techdebt lesson viewer - Read mode. Themes: white · paper · dark */
 :root,
 html[data-theme="paper"] {
   color-scheme: light;
@@ -589,7 +589,7 @@ html[data-sidebar="collapsed"] .ds-sidebar-toggle-float {
     color var(--dur) var(--ease);
 }
 
-/* Author display:grid beats UA [hidden] — force hide when filtered. */
+/* Author display:grid beats UA [hidden] - force hide when filtered. */
 .ds-nav[hidden],
 .ds-nav-planned[hidden],
 .ds-chapter[hidden] {
@@ -1108,7 +1108,7 @@ html[data-theme="dark"] .ds-settings-panel {
   justify-content: center;
 }
 
-/* Always center the reading column — open sidebar, collapsed, TOC, zen, planned. */
+/* Always center the reading column - open sidebar, collapsed, TOC, zen, planned. */
 .ds-main-inner {
   width: min(100%, var(--measure));
   max-width: var(--measure);
@@ -1406,7 +1406,7 @@ html[data-theme="dark"] .ds-settings-panel {
   color: var(--text-secondary);
 }
 
-/* ---- Right TOC rail (width only — no chrome) ---- */
+/* ---- Right TOC rail (width only - no chrome) ---- */
 .ds-rail-toc {
   background: transparent;
   border: 0;
@@ -1885,7 +1885,7 @@ html[data-theme="dark"] .ds-settings-panel {
   border-radius: calc(var(--radius) + 4px);
   background: var(--surface);
   color: var(--text);
-  /* Large centered panel — not edge-to-edge, not shrink-wrapped to tiny SVG. */
+  /* Large centered panel - not edge-to-edge, not shrink-wrapped to tiny SVG. */
   width: min(92vw, 1080px);
   max-width: min(92vw, 1080px);
   max-height: 88vh;
@@ -3252,7 +3252,7 @@ html[data-theme="dark"] .ds-settings-panel {
 }
 
 @media (min-width: 901px) {
-  /* Collapsed sidebar: still the same centered measure — no left bias. */
+  /* Collapsed sidebar: still the same centered measure - no left bias. */
   html[data-sidebar="collapsed"] .ds-main-inner:has(.ds-plaque) {
     width: min(100%, var(--lesson-measure));
     max-width: var(--lesson-measure);
@@ -3620,7 +3620,7 @@ html[data-theme="dark"] .ds-settings-panel {
 }
 
 /* ---- Focus / zen mode ---- */
-/* Drop rails from layout entirely — opacity:0 still leaves grid tracks/rows. */
+/* Drop rails from layout entirely - opacity:0 still leaves grid tracks/rows. */
 html[data-focus="on"] .ds-rail,
 html[data-focus="on"] .ds-rail-toc {
   display: none;

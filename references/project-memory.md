@@ -39,7 +39,7 @@ target root keeps projects separate. `REPAY_TECHDEBT_STATE_DIR` and
 
 The other modes are:
 
-- `session-only`: create no durable memory; use only agent/OS temporary storage.
+- `session-only`: create no durable memory. Use only agent/OS temporary storage.
 - `project-local`: create `<target-root>/.repay-techdebt/` and add it to `.gitignore` and
   `.graphifyignore` after explicit consent.
 - `team`: create `<target-root>/.repay-techdebt/` for version control after explicit consent.
@@ -51,7 +51,7 @@ Git worktree, the sister folder is placed next to the Git root, not next to the 
 
 Legacy schema-v1/v2 target-local memory remains readable. `--sharing local|team` remains a
 compatibility alias for `--storage project-local|team`. Never create a second memory location when
-both private and target-local stores exist; ask which is authoritative.
+both private and target-local stores exist. Ask which is authoritative.
 
 Do not store raw tool dumps, source indexes, embeddings, transcripts, credentials, hidden agent
 state, or customer data in durable memory.
@@ -74,10 +74,10 @@ When it returns `first-run`, follow `templates/introduction-wizard.md` and
 
 Recommended Fast defaults:
 
-- storage: `private`;
-- lesson output: `sister`, after previewing `suggestedOutputRoot`;
-- default mode: `workbook` (or `pr` / `ask` if the user already stated intent);
-- depth: `balanced`;
+- storage: `private`.
+- lesson output: `sister`, after previewing `suggestedOutputRoot`.
+- default mode: `workbook` (or `pr` / `ask` if the user already stated intent).
+- depth: `balanced`.
 - save policy: **`automatic`** (no per-lesson save prompts).
 
 Private initialization must report `targetWrites: []`. It must not create `.repay-techdebt`, edit
@@ -91,7 +91,7 @@ node <skill-root>/scripts/project-memory.js init <target-root> \
 ```
 
 Use `--storage project-local` or `--storage team` only when explicitly selected. `session-only`
-requires no initializer. Humans may use `--interactive`; agents ask in conversation and pass exact
+requires no initializer. Humans may use `--interactive`. Agents ask in conversation and pass exact
 flags.
 
 ## Configuration
@@ -142,7 +142,7 @@ New schema-v2 configurations include:
 ```
 
 Configuration cannot authorize silent fallback, target mutation, global/user tool installation, or
-network access. Preview migration without `--yes`; migrate only after approval.
+network access. Preview migration without `--yes`. Migrate only after approval.
 
 Existing private lesson stores are not moved silently. Preview a discoverable export, then approve
 it explicitly:
@@ -181,11 +181,11 @@ node <skill-root>/scripts/project-memory.js save-artifact <target-root> \
   --type snapshot --title "Verified model" --input <json-file> --verified --yes
 ```
 
-Lesson paths are relative to `outputRoot`; artifact paths are relative to `memoryRoot`. Curriculum
+Lesson paths are relative to `outputRoot`. Artifact paths are relative to `memoryRoot`. Curriculum
 JSON is canonical private state, while `INDEX.md` is its readable rendering. Saving a lesson marks
 its topic written and links it from the index. **Always a workbook:** durable saves require a
 curriculum with topics (full workbook or mini-curriculum under **Recent teaching**). Saving
-without `--topic-id` when topics exist throws; saving with no curriculum emits
+without `--topic-id` when topics exist throws. Saving with no curriculum emits
 `workbook-linkage-required` (exit 2) after quality checks. A successful save emits `lesson-saved`
 with `viewer: { script, deepLinkRel }` for the local browser viewer.
 
@@ -207,13 +207,13 @@ node <skill-root>/scripts/project-memory.js open-viewer <target-root>
 ```
 
 Maintenance deletes only repay-techdebt memory, sister workbook output, disposable cache, and
-optional target `.repay-techdebt/` markers — never application source.
+optional target `.repay-techdebt/` markers - never application source.
 
 ## Privacy and analysis boundaries
 
 - Never print or store secrets, credentials, environment values, personal data, or customer data.
 - Exclude legacy/opt-in target-local `.repay-techdebt/` from every source analyzer.
-- Keep tool binaries user-isolated or skill-local; never modify the target's package manifests or
+- Keep tool binaries user-isolated or skill-local. Never modify the target's package manifests or
   lockfiles to install analysis tooling.
 - Keep disposable graphs, indexes, and packs in private cache or temporary storage.
 - If status reports only `incomplete-lesson-index`, silently rebuild the derived index, rerun status

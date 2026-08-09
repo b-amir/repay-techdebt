@@ -120,7 +120,7 @@ y
 See billing/capture.js:1
 
 CLAIMS:
-1. "The payment gateway queues Kafka events asynchronously" — billing/capture.js:1 — support: yes — state: observed
+1. "The payment gateway queues Kafka events asynchronously" - billing/capture.js:1 - support: yes - state: observed
 `;
     const padded = `${content}\n\n${"The capture path matters because funds move only after settle. ".repeat(30)}`;
     const result = await evaluateLessonForSave(directory, padded, {

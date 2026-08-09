@@ -277,7 +277,7 @@ try {
           const narrowed = await runGraphify(
             [
               "query",
-              `${options.question} — exact symbols and project-relative paths directly relevant to this question only`,
+              `${options.question}. Return only exact symbols and project-relative paths directly relevant to this question`,
               "--budget",
               String(narrowBudget),
               "--graph",

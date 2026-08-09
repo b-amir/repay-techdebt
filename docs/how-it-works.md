@@ -1,7 +1,7 @@
 # How repay-techdebt works
 
 End-to-end control flow for the skill: who decides, which scripts run, and every meaningful
-condition branch. Agent policy lives in markdown (`SKILL.md` + references); only predicates in
+condition branch. Agent policy lives in markdown (`SKILL.md` + references). Only predicates in
 `scripts/**` and `src/**` are mechanically enforced (import-graph + `node --check`).
 
 ## High-level path
@@ -10,15 +10,15 @@ condition branch. Agent policy lives in markdown (`SKILL.md` + references); only
    excluded from every scan.
 2. **Load preferences safely.** First-run wizard can create private memory, project-local memory,
    team memory, or nothing.
-3. **Take turns.** Bundled scripts inventory, gate, and propose (`nextAsks`); the agent confirms
+3. **Take turns.** Bundled scripts inventory, gate, and propose (`nextAsks`). The agent confirms
    purpose, retrieves with Graphify/Serena when available, verifies live source, and teaches.
 4. **Rank the investigation.** Questions are prioritized by request, focus, program type, graph
-   evidence, and impact—not a universal checklist. Script plans are proposals, not finished truth.
-5. **Approve the book index.** Whole-app runs propose a broad subject inventory; the agent
+   evidence, and impact, not a universal checklist. Script plans are proposals, not finished truth.
+5. **Approve the book index.** Whole-app runs propose a broad subject inventory. The agent
    shortlists before save, then writes 1–3 lessons per run.
-6. **Use stronger tools when they matter.** Prefer available optional tools silently; on miss use
+6. **Use stronger tools when they matter.** Prefer available optional tools silently. On miss use
    the named bundled fallback with the same UX. Ask only for install/config. See [tools.md](tools.md).
-7. **Qualify and teach.** Mechanical lesson QA plus one agent semantic pass; cite paths and lines;
+7. **Qualify and teach.** Mechanical lesson QA plus one agent semantic pass. Cite paths and lines.
    end with honest gaps. Tool outcomes stay in maintainer notes, not learner chat.
 
 Maintenance flags, viewer, and CLI: [manual.md](manual.md). Evidence model and modes:
@@ -103,8 +103,8 @@ flowchart TD
 
 | Partner     | Owns                                                                                                               | Must not own                                                                       |
 | ----------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
-| **Scripts** | Consent/runtime/capability gates; inventories; wrappers; coverage math; proposal JSON; mechanical QA; atomic saves | Final “what to teach”; unverified absence claims; lesson taste                     |
-| **Agent**   | Purpose; retrieve questions; live-source verify; shortlist; draft; semantic qualify; maintainer tool notes         | Skipping consent/secrets/capability prompts; dressing model prior as observed fact |
+| **Scripts** | Consent/runtime/capability gates. Inventories. Wrappers. Coverage math. Proposal JSON. Mechanical QA. Atomic saves | Final “what to teach”. Unverified absence claims. Lesson taste                     |
+| **Agent**   | Purpose. Retrieve questions. Live-source verify. Shortlist. Draft. Semantic qualify. Maintainer tool notes         | Skipping consent/secrets/capability prompts. Dressing model prior as observed fact |
 
 Every major script return is a **proposal**, not finished truth:
 
@@ -113,11 +113,11 @@ Every major script return is a **proposal**, not finished truth:
 | `role`           | `gate` \| `inventory` \| `retrieve` \| `propose` \| `check`   |
 | `blindSpots[]`   | Known unknowns                                                |
 | `mustNotClaim[]` | Forbidden claims given current coverage                       |
-| `nextAsks[]`     | `{ who, do, why?, when?, question? }` — agent must TAKE these |
+| `nextAsks[]`     | `{ who, do, why?, when?, question? }` - agent must TAKE these |
 
 **Turn shape:** `ASK → RUN → RETURN → TAKE`
 
-**Caps (agent policy):** ≤1 extra investigate turn per phase; ≤1 lesson rewrite; then ship with gaps or ask the user.
+**Caps (agent policy):** ≤1 extra investigate turn per phase. ≤1 lesson rewrite. Then ship with gaps or ask the user.
 
 **Skip rules:** inventory / propose / retrieve may skip only with a ledger reason when stronger evidence already exists. Never skip consent, secrets, or capability-failure prompts.
 
@@ -146,10 +146,10 @@ Preserve-project invariants (always on):
 
 - Analysis-only unless user separately requests implementation.
 - Default **zero writes** into the application repo.
-- Memory/config/tool artifacts → private user storage; workbook → sister directory `repay-<project>-techdebt` by default.
+- Memory/config/tool artifacts → private user storage. Workbook → sister directory `repay-<project>-techdebt` by default.
 - `.repay-techdebt/` inside target only after explicit project-local/team choice.
 - Never install analyzers into the target dependency environment.
-- Never expose secrets; never create image files / HTML `<img>` (Markdown / Mermaid / tables only).
+- Never expose secrets. Never create image files / HTML `<img>` (Markdown / Mermaid / tables only).
 
 ---
 
@@ -188,7 +188,7 @@ First-run paths (see `templates/introduction-wizard.md`):
 | Path        | User reply         | Init defaults                                                                                   |
 | ----------- | ------------------ | ----------------------------------------------------------------------------------------------- |
 | **Fast**    | `fast` (`express`) | private memory, sister workbook, `--mode workbook`, depth `balanced`, `--save-policy automatic` |
-| **Control** | `control`          | Full option tables; defaults often mode `ask`, save-policy `ask` unless chosen                  |
+| **Control** | `control`          | Full option tables. Defaults often mode `ask`, save-policy `ask` unless chosen                  |
 
 | Condition                                        | Branch                              |
 | ------------------------------------------------ | ----------------------------------- |
@@ -209,7 +209,7 @@ node <skill-root>/scripts/check-runtime.js --format json
 
 | Condition             | Branch                                       |
 | --------------------- | -------------------------------------------- |
-| Node / deps not ready | **exit 2** — fix environment before analysis |
+| Node / deps not ready | **exit 2** - fix environment before analysis |
 | Ready                 | Continue                                     |
 
 ### 2.4 Inventory → B0 / B1
@@ -218,14 +218,14 @@ node <skill-root>/scripts/check-runtime.js --format json
 node <skill-root>/scripts/profile-project.js <target-root> [--scope <path>] --format json
 ```
 
-**Agent B0 — Purpose**
+**Agent B0 - Purpose**
 
 | Reply                               | Effect                                                                              |
 | ----------------------------------- | ----------------------------------------------------------------------------------- |
 | `ACCEPT purpose`                    | Purpose has a concrete anchor (README/docs/user). Later `purposeStatus: "accepted"` |
 | `UNRESOLVED purpose + ≤3 questions` | Do not invent users/SLOs/workflows. Later `purposeStatus: "unresolved"`             |
 
-**Agent B1 — Stack**
+**Agent B1 - Stack**
 
 Confirm or correct `primaryArchetype`, `languages[]`, `frameworks[]`. Flag pack mismatches. Ledger records corrections.
 
@@ -238,8 +238,8 @@ node <skill-root>/scripts/plan-analysis.js <target-root> \
 ```
 
 Agent turns use this script + `summary-json` (or full `json`). Do not use human CLI `repay plan`
-for machine parsing — TTY pretty table drops `nextAsks` / `toolChain`. Piped `repay plan` falls
-back to `summary-json`; script path remains the contract.
+for machine parsing - TTY pretty table drops `nextAsks` / `toolChain`. Piped `repay plan` falls
+back to `summary-json`. Script path remains the contract.
 
 | Condition                             | Branch                                                                                                                    |
 | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
@@ -251,7 +251,7 @@ back to `summary-json`; script path remains the contract.
 | Mode workbook                         | nextAsk `approve-curriculum-shortlist` (later)                                                                            |
 | Mode focused \| pr                    | nextAsk `pick-retrieve-questions`                                                                                         |
 
-**Agent B2:** emit ≤5 specific retrieve questions; mark each `toolChain` step `needed` \| `not-needed`.
+**Agent B2:** emit ≤5 specific retrieve questions. Mark each `toolChain` step `needed` \| `not-needed`.
 
 ### 2.6 Capabilities gate
 
@@ -262,9 +262,9 @@ node <skill-root>/scripts/check-capabilities.js <target-root> --format json
 | Condition                            | Branch                                                                                    |
 | ------------------------------------ | ----------------------------------------------------------------------------------------- |
 | Tool `ready`                         | May attempt functionally                                                                  |
-| `missing` / `needs-setup` / `broken` | Do **not** claim it ran; use named bundled fallback silently; ask only for install/config |
+| `missing` / `needs-setup` / `broken` | Do **not** claim it ran. Use named bundled fallback silently. Ask only for install/config |
 | Checker itself throws                | **exit 1**                                                                                |
-| Missing tools alone                  | Does **not** exit 2 — report only                                                         |
+| Missing tools alone                  | Does **not** exit 2 - report only                                                         |
 
 Bundled profiler success ≠ Graphify / Serena / Semgrep / Context7 success. See [tools.md](tools.md).
 
@@ -295,7 +295,7 @@ flowchart TD
 
 1. Agent phrases the question.
 2. Prefer Graphify / Serena when available (ask only before install/extract).
-3. On miss: silent bundled fallback — `query-program-model.js` / scoped scans.
+3. On miss: silent bundled fallback - `query-program-model.js` / scoped scans.
 4. Verify 2–3 anchors in live source (B5).
 5. Optional gap-fill:
    - `find-patterns.js --scope <path>` OK
@@ -315,12 +315,12 @@ flowchart TD
 4. `plan-analysis.js --mode pr`.
 5. Pick **1–3** teaching points (not every hunk).
 6. Skip full `plan-curriculum.js` unless the user asks for a whole-app workbook from the PR.
-7. Before durable save: mini-curriculum (`buildTeachingCurriculum` → `save-curriculum`) so every lesson links from `INDEX.md` — same workbook shape as whole-app mode.
+7. Before durable save: mini-curriculum (`buildTeachingCurriculum` → `save-curriculum`) so every lesson links from `INDEX.md` - same workbook shape as whole-app mode.
 8. Teach handshake.
 
 ### 3.3 Whole-app workbook
 
-See §4. Then loop 1–3 lessons per run; resume from `INDEX.md`.
+See §4. Then loop 1–3 lessons per run. Resume from `INDEX.md`.
 
 ---
 
@@ -363,7 +363,7 @@ If any topic matches omnibus regex → nextAsk `split-or-demote-omnibus-topics`.
 
 Batch-only proposals keep exactly N `topics`, diversify them by mechanism/domain family, and expose
 up to nine ranked `proposal.alternates`. Alternates are decision support, not saved curriculum.
-`summary-json` omits raw parser diagnostics; full JSON/catalog output is an explicit diagnostics path.
+`summary-json` omits raw parser diagnostics. Full JSON/catalog output is an explicit diagnostics path.
 
 Omnibus regex (title/focus/learnerOutcome): phrases like “whole app”, “entire codebase”, “complete overview”, “everything about”, etc. (`src/curriculum/curriculum-policy.js`).
 
@@ -389,13 +389,13 @@ Omnibus regex (title/focus/learnerOutcome): phrases like “whole app”, “ent
 
 ### 4.3 Approval predicates (`validateAgentApproval`)
 
-Checked in order; first failure wins:
+Checked in order. First failure wins:
 
 1. `agentApproval` object present.
 2. `approvedAt` non-empty string.
 3. `purposeStatus ∈ {accepted, unresolved}`.
 4. If coverage is partial (`truncated === true` OR `status ∈ {partial, scoped-analysis}`) → require `acceptedPartialScope`.
-5. Decision IDs/actions/targets are valid; demotions/folds carry reasons; fold evidence joins the kept target.
+5. Decision IDs/actions/targets are valid. Demotions/folds carry reasons. Fold evidence joins the kept target.
 6. After decisions and legacy `demotedTopicIds`: no omnibus topics.
 7. Every remaining `naming-heuristic` topic (default if `signalClass` missing) must be in `corroboratedTopicIds` **or** `topic.corroborated === true`.
 
@@ -413,7 +413,7 @@ Checked in order; first failure wins:
 | &gt;40 topics, &gt;80% keep/collapse, or narrow chapters | Save with warnings |
 | Unchanged planner title/outcome without reason           | Save with warnings |
 
-Raw candidates are inventory, not a curriculum-size requirement. The agent owns the shortlist;
+Raw candidates are inventory, not a curriculum-size requirement. The agent owns the shortlist.
 scripts require deliberate decision records and surface extreme compression/retention for review.
 
 Partial coverage after save: forbids whole-app **absence** claims unless `acceptedPartialScope` was set.
@@ -422,7 +422,7 @@ Partial coverage after save: forbids whole-app **absence** claims unless `accept
 
 ## 5. Coverage and dialogue envelope branches
 
-Program model (`program-intelligence.js` facade; coverage in `program-coverage.js`, discovery in
+Program model (`program-intelligence.js` facade. Coverage in `program-coverage.js`, discovery in
 `program-scan.js`):
 
 | Condition                               | `coverage.status` / flags |
@@ -464,16 +464,16 @@ flowchart TD
 
 Analyzer outcome vocabulary: `successful` \| `failed` \| `unavailable` \| `unconfigured` \| `partial` \| `stale` \| `refused`.
 
-| Phase             | Prefer             | Bundled fallback (silent; ask only install/config)       | Hard fail without fallback                                  |
+| Phase             | Prefer             | Bundled fallback (silent. Ask only install/config)       | Hard fail without fallback                                  |
 | ----------------- | ------------------ | -------------------------------------------------------- | ----------------------------------------------------------- |
-| Architecture      | Graphify           | `query-program-model.js` / scoped `scan-architecture.js` | Graphify extract/query fail → exit 2; extract needs `--yes` |
-| Symbols           | Serena             | Bundled AST + source verify                              | —                                                           |
+| Architecture      | Graphify           | `query-program-model.js` / scoped `scan-architecture.js` | Graphify extract/query fail → exit 2. Extract needs `--yes` |
+| Symbols           | Serena             | Bundled AST + source verify                              | -                                                           |
 | Security          | Semgrep            | Secretlint + manual                                      | Semgrep fail without `--fallback secretlint` → exit 2       |
 | Architecture scan | dependency-cruiser | `--fallback tree`                                        | Without fallback → exit 2                                   |
-| PR/CI             | GitHub MCP         | `get-pr-changes.js`                                      | —                                                           |
-| Docs              | Context7           | Official primary docs                                    | —                                                           |
-| Large/remote      | Repomix stdout     | Scoped outline                                           | —                                                           |
-| Patterns          | —                  | `find-patterns --scope` or `--all`                       | Leads only (`notExhaustive: true`); not workbook driver     |
+| PR/CI             | GitHub MCP         | `get-pr-changes.js`                                      | -                                                           |
+| Docs              | Context7           | Official primary docs                                    | -                                                           |
+| Large/remote      | Repomix stdout     | Scoped outline                                           | -                                                           |
+| Patterns          | -                  | `find-patterns --scope` or `--all`                       | Leads only (`notExhaustive: true`). Not workbook driver     |
 
 Runtime evidence collection is permission-gated: without `--consent` → `refused` (CLI typically exit 1). After consent, command failure → exit 2.
 
@@ -510,7 +510,7 @@ Errors (any → `ok: false` → check CLI **exit 2**):
 
 | Predicate                                                                                        | Fail                                             |
 | ------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
-| Word count outside depth band                                                                    | concise 250–650; balanced 450–950; deep 700–1300 |
+| Word count outside depth band                                                                    | concise 250–650. Balanced 450–950. Deep 700–1300 |
 | `##` section count ∉ 3–8                                                                         | Fail                                             |
 | Empty/generic headings (Predict/Run/Investigate/Modify/Make/Overview/…)                          | Fail                                             |
 | &lt; 2 distinct cited source paths                                                               | Fail                                             |
@@ -529,17 +529,17 @@ source code excerpts over 40 lines, repeated lesson announcements, missing “yo
 causal or verification language, or a horizontal (`LR`/`RL`) flowchart that should use a compact
 portrait layout. See for yourself walkthroughs also warn when they omit ordered DevTools steps, a
 safe execution context and Change one thing variation, the observable signal to Look for, or an
-explicit Reset. Instructions to expose secrets, mutate production, or bypass a protection fail;
+explicit Reset. Instructions to expose secrets, mutate production, or bypass a protection fail.
 lessons with more than three interactive moments are prompted to keep only the useful pauses.
 The planner separately records Quick check, Think first, and See for yourself as recommended,
 candidate, or omitted opportunities. Draft inspection warns when a strong misconception or safe
-browser-observation opportunity is silently skipped; curriculum save requires a specific include or
+browser-observation opportunity is silently skipped. Curriculum save requires a specific include or
 omit decision for all three and rejects plan-to-draft inconsistency.
 
 ### 7.2 Citation validity (`verifyLessonCitations`)
 
 One shared citation model feeds extraction, validity, faithfulness windows, search, viewer notes,
-and editor links. It accepts `path:line` and `path:start-end`; en/em dashes in ranges normalize to an
+and editor links. It accepts `path:line` and `path:start-end`. En/em dashes in ranges normalize to an
 ASCII hyphen. Every range must repeat its project-relative path.
 
 For each citation:
@@ -563,7 +563,7 @@ CLAIMS line format:
 
 ```text
 CLAIMS:
-1. "<claim>" — <path:line> — support: yes|no|gap — state: observed|derived|inferred|hypothesis
+1. "<claim>" - <path:line> - support: yes|no|gap - state: observed|derived|inferred|hypothesis
 ```
 
 ### 7.4 Secrets
@@ -591,9 +591,9 @@ proxies. **Exit 2 only if quality/citation floors fail.** Faithfulness/rubric ar
 | Secretlint fail                                 | `secret-risk`, exit 2                     |
 | Lock / write conflict                           | Conflict / busy handling, exit 1–2        |
 | No curriculum / no `--topic-id` after write     | `workbook-linkage-required`, exit 2       |
-| All OK                                          | Write lesson; update topic status + INDEX |
+| All OK                                          | Write lesson. Update topic status + INDEX |
 
-`savePolicy` (`ask` \| `automatic`) is **stored preference for the agent**. The script always requires `--yes`; the agent decides whether to ask the user before passing it.
+`savePolicy` (`ask` \| `automatic`) is **stored preference for the agent**. The script always requires `--yes`. The agent decides whether to ask the user before passing it.
 
 ---
 
@@ -614,7 +614,7 @@ flowchart LR
 | **B0** Purpose       | ACCEPT \| UNRESOLVED                        | `purposeStatus` on approval   | Concrete anchor or unresolved    |
 | **B1** Stack         | Confirm/correct languages/frameworks        | Packs ⊆ registry              | Corrections in ledger            |
 | **B2** Inventory     | ≤5 retrieve questions from blindSpots       | Envelope fields present       | Questions tool-ready             |
-| **B5** Relations     | Who calls / calls what / registered / fails | Anchors verified; gaps named  | ≤3 anchors verified or gap named |
+| **B5** Relations     | Who calls / calls what / registered / fails | Anchors verified. Gaps named  | ≤3 anchors verified or gap named |
 | **B3** Subjects      | SHORTLIST + corroborate heuristics          | `agentApproval` gate          | Shortlist ≠ scanner top-N        |
 | **B4a** Curriculum   | Order + split omnibus                       | Topic floors + omnibus reject | One outcome per topic            |
 | **B4b** Lesson craft | PRIMM without empty headings                | `check-lesson-quality`        | Semantic checklist               |
@@ -648,7 +648,7 @@ Conformance (`run-conformance.js`) also validates a workbook trajectory stub aft
 
 ## 10. Source reliability ranking
 
-When stating facts, prefer higher ranks; never dress a lower rank as a higher one:
+When stating facts, prefer higher ranks. Never dress a lower rank as a higher one:
 
 1. Current target source / config / lockfile / tests
 2. Successful enhanced tool ops after functional check
@@ -664,7 +664,7 @@ Evidence language: `references/evidence-contract.md`.
 
 ## 11. Script catalog by role
 
-Role sample only — not full inventory. Full list: `scripts/*.js`. Agent chains and failure UX:
+Role sample only - not full inventory. Full list: `scripts/*.js`. Agent chains and failure UX:
 [tools.md](tools.md), `references/tool-integrations.md`.
 
 | Role          | Scripts                                                                                                                                                                                     |
@@ -729,7 +729,7 @@ Also present (ops / deeper retrieve): `plan-runtime-evidence.js`, `collect-runti
 | ------------------------------------------ | --------------------------------- |
 | Read dialogue/checkpoints at activation    | Agent                             |
 | ≤1 investigate / ≤1 rewrite caps           | Agent                             |
-| Silent bundled fallback; ask only install  | Agent                             |
+| Silent bundled fallback. Ask only install  | Agent                             |
 | Honor `savePolicy=ask` before `--yes`      | Agent                             |
 | Mini-curriculum before PR/focused save     | Agent (script links via topic-id) |
 | Pick focused vs workbook from user intent  | Agent                             |
@@ -739,4 +739,4 @@ Also present (ops / deeper retrieve): `plan-runtime-evidence.js`, `collect-runti
 | Target≠skill                               | Script                            |
 | Consent `--yes` on mutations               | Script                            |
 
-If a branch matters for safety (consent, secrets, citations, approval), it is script-enforced. If it matters for teaching quality beyond floors, the agent owns the sense step—and may still ship with named gaps after the rewrite budget is spent.
+If a branch matters for safety (consent, secrets, citations, approval), it is script-enforced. The agent owns teaching quality beyond deterministic floors and may still ship with named gaps after the rewrite budget is spent.

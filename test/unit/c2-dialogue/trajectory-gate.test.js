@@ -151,7 +151,7 @@ test("validateTrajectoryGateShape rejects bad mode", () => {
 });
 
 test("gate module has no user-chat field-name dump helpers", () => {
-  // 0.1 keeps internals internal — plain-language refuse is 0.4.
+  // 0.1 keeps internals internal - plain-language refuse is 0.4.
   // Contract exports derive/build/validate only; no formatRefuse / toUserMessage.
   assert.equal(typeof derivePathComplete, "function");
   assert.equal(typeof buildTrajectoryGate, "function");

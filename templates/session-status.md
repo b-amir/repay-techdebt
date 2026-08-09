@@ -2,7 +2,7 @@
 
 Paste at the **top** of every user-visible turn (after any intro block on first-run Message 1).
 
-**Fraction lives in the header** — second column is `{current}/{total}` where **current is the 1-based
+**Fraction lives in the header**. The second column is `{current}/{total}` where **current is the 1-based
 index of the 🔵 step** (not the count of ✅). Start at **1/N**, never 0. **No empty header cells.**
 
 Always include the separator row. Leave **one blank line** before any table that follows.
@@ -19,7 +19,7 @@ Always include the separator row. Leave **one blank line** before any table that
 | ⬜   | {future step}      |
 ```
 
-- Header col 2 = `{current}/{total}` only — never a step name, never `—`.
+- Header col 2 = `{current}/{total}` only. Never use a step name or `-`.
 - **current** = position of the 🔵 row (1 = first step, N = last).
 - Data rows: emoji in col 1 · step in col 2. **Bold only the 🔵 row.**
 - Notes after em dash, ≤6 words. Exactly one 🔵. Before = ✅. After = ⬜.
@@ -45,7 +45,7 @@ from Fast mode, workbook defaults, or an existing curriculum.
 | Update one existing lesson          | Single update   | Always one                                            |
 | Delete one existing lesson          | Single delete   | Always one                                            |
 | Create a number or range of lessons | Lesson batch    | Explicit requested count                              |
-| Teach from a PR/change              | PR lesson       | Actual selected count; single unless stated otherwise |
+| Teach from a PR/change              | PR lesson       | Actual selected count. Single unless stated otherwise |
 | Open/show the workbook              | View only       | No lesson count                                       |
 
 If the lesson count is not known yet, use **Choosing lessons** / **Writing lessons**. Never display
@@ -178,4 +178,4 @@ For multiple PR lessons, use the explicit batch template with the actual count.
 Insert **Open workbook** immediately before **You're set** only when Control mode genuinely needs
 an open confirmation. Fast mode opens automatically without adding a separate step.
 
-Routine: progress + ≤25 useful words. Asks: `###` heading + why-line — see `agent-experience.md`.
+Routine: progress + ≤25 useful words. Asks: `###` heading + why-line. See `agent-experience.md`.

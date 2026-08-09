@@ -32,7 +32,7 @@ test("reverifyLessonClaims: faithful explicit claim passes", async () => {
     const md = `# T
 
 CLAIMS:
-1. "capturePayment settle function" — billing/capture.js:1 — support: yes — state: observed
+1. "capturePayment settle function" - billing/capture.js:1 - support: yes - state: observed
 `;
     const result = await reverifyLessonClaims(dir, md);
     assert.equal(result.ok, true, result.problems.join("; "));
@@ -48,7 +48,7 @@ test("reverifyLessonClaims: stale support:yes fails closed", async () => {
     const md = `# T
 
 CLAIMS:
-1. "kafka broker topics async" — billing/capture.js:1 — support: yes — state: observed
+1. "kafka broker topics async" - billing/capture.js:1 - support: yes - state: observed
 `;
     const result = await reverifyLessonClaims(dir, md);
     assert.equal(result.ok, false);
@@ -64,7 +64,7 @@ test("reverifyLessonClaims: missing file citation fails", async () => {
     const md = `# T
 
 CLAIMS:
-1. "capturePayment settle function" — billing/gone.js:1 — support: yes — state: observed
+1. "capturePayment settle function" - billing/gone.js:1 - support: yes - state: observed
 `;
     const result = await reverifyLessonClaims(dir, md);
     assert.equal(result.ok, false);
@@ -84,7 +84,7 @@ test("reverifyWorkbookClaims: one stale lesson fails batch", async () => {
       `# Good
 
 CLAIMS:
-1. "capturePayment settle function" — billing/capture.js:1 — support: yes — state: observed
+1. "capturePayment settle function" - billing/capture.js:1 - support: yes - state: observed
 `,
     );
     await writeFile(
@@ -92,7 +92,7 @@ CLAIMS:
       `# Stale
 
 CLAIMS:
-1. "kafka broker topics async" — billing/capture.js:1 — support: yes — state: observed
+1. "kafka broker topics async" - billing/capture.js:1 - support: yes - state: observed
 `,
     );
     const batch = await reverifyWorkbookClaims(dir, lessons);
@@ -113,7 +113,7 @@ test("recheck-claims CLI fails closed on unfaithful lesson", async () => {
       `# T
 
 CLAIMS:
-1. "kafka broker topics async" — billing/capture.js:1 — support: yes — state: observed
+1. "kafka broker topics async" - billing/capture.js:1 - support: yes - state: observed
 `,
     );
     await assert.rejects(
@@ -143,7 +143,7 @@ test("recheck-claims CLI passes faithful lesson", async () => {
       `# T
 
 CLAIMS:
-1. "capturePayment settle function" — billing/capture.js:1 — support: yes — state: observed
+1. "capturePayment settle function" - billing/capture.js:1 - support: yes - state: observed
 `,
     );
     const { stdout } = await execute(process.execPath, [script, dir, lesson, "--format", "json"], {

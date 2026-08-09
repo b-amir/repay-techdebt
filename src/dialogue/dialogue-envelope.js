@@ -7,7 +7,7 @@
 const ROLES = new Set(["gate", "inventory", "retrieve", "propose", "check"]);
 
 /**
- * Closed nextAsks[].do vocabulary. Agents map these only — no free invention.
+ * Closed nextAsks[].do vocabulary. Agents map these only - no free invention.
  * Keep in sync with references/agent-machine-contract.md.
  * `graphify-or-serena-retrieve` is emitted from plan-analysis-core toolChain.
  */
@@ -35,7 +35,7 @@ export function assertClosedNextAsks(nextAsks) {
   for (const item of nextAsks ?? []) {
     if (!item || !CLOSED_NEXT_ASK_DO_SET.has(item.do)) {
       throw new Error(
-        `nextAsks.do "${item?.do ?? "missing"}" not in CLOSED_NEXT_ASK_DOS — update contract + constant first`,
+        `nextAsks.do "${item?.do ?? "missing"}" not in CLOSED_NEXT_ASK_DOS. Update the contract and constant first`,
       );
     }
   }
@@ -133,7 +133,7 @@ export function buildDialogueEnvelope({
   // Deduplicate by who+do+why
   const dedupe = (items, keyFn) => [...new Map(items.map((item) => [keyFn(item), item])).values()];
 
-  // Hard overclaim rule: always on default path — no soft “continue weaker?”.
+  // Hard overclaim rule: always on default path - no soft “continue weaker?”.
   mustNotClaim.push("soft-escape-continue-weaker");
   nextAsks.push({
     who: "agent",

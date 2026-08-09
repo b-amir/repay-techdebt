@@ -1,4 +1,4 @@
-// Discoverable workbook README — how to open lessons without an AI agent.
+// Discoverable workbook README - how to open lessons without an AI agent.
 import { writeFile, readFile } from "node:fs/promises";
 import { basename, relative, resolve } from "node:path";
 import { pathExists } from "../foundations/private-storage.js";

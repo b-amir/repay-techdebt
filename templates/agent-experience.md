@@ -1,4 +1,4 @@
-# Agent experience — copy system
+# Agent experience: copy system
 
 Chat UX = **tables + light hierarchy**. Short, not cryptic. Address the reader as **you**. Never use
 checkpoint codes (B0–B6, SHORTLIST, RETRIEVEQs) in user-visible text. Never paste script JSON,
@@ -22,13 +22,13 @@ argv, or raw CLI dumps into chat.
 | Stack tables with no blank line     | **One blank line between every table**             |
 | Empty header cells                  | **Every header cell has a short label**            |
 | Important ask with only a tiny lead | **`###` heading** + one why-line                   |
-| Script JSON / `--open` argv in chat | Silent scripts; show human paths + URL only        |
+| Script JSON / `--open` argv in chat | Silent scripts. Show human paths + URL only        |
 | Ask save / open in **Fast** mode    | Auto-save + auto-open viewer                       |
-| “I’ll now…”, filler                 | Run work; show oriented tables                     |
+| “I’ll now…”, filler                 | Run work. Show oriented tables                     |
 | Bullets for progress                | Progress table from `session-status.md`            |
 | “Continue weaker?” / soft half-save | Unsupported → shrink scope or refuse               |
-| Tool jargon / ask-every-fallback    | Silent bundled fallback; ask only install          |
-| Pause for orphan/index repair       | Self-heal silently; keep the requested step active |
+| Tool jargon / ask-every-fallback    | Silent bundled fallback. Ask only install          |
+| Pause for orphan/index repair       | Self-heal silently. Keep the requested step active |
 
 Routine lesson creation, recreation, updates, deletion, and batches stay user-intent-first. Do not
 show `Paused`, index state, orphan terminology, repair commands, or maintenance progress for a
@@ -36,19 +36,19 @@ recoverable derived-index issue. Repair it, rerun the check once, and continue t
 
 ## Modes
 
-| Mode        | Reply     | Asks                                                     | Saves                          |
-| ----------- | --------- | -------------------------------------------------------- | ------------------------------ |
-| **Fast**    | `fast`    | Auto-purpose · inline review · auto-save · ask to refine | **Automatic** — no save yes/no |
-| **Control** | `control` | Full settings + save/open confirms when policy is `ask`  | As configured                  |
+| Mode        | Reply     | Asks                                                     | Saves                         |
+| ----------- | --------- | -------------------------------------------------------- | ----------------------------- |
+| **Fast**    | `fast`    | Auto-purpose · inline review · auto-save · ask to refine | **Automatic**. No save prompt |
+| **Control** | `control` | Full settings + save/open confirms when policy is `ask`  | As configured                 |
 
-Fast still teaches and shows progress — it just **doesn’t stop** for setup or save/open rituals.
+Fast teaches and shows progress without stopping for setup or save/open rituals.
 
 ## Typography hierarchy
 
 | Level         | Use                                               |
 | ------------- | ------------------------------------------------- |
 | `### Heading` | Every important question the user must understand |
-| One why-line  | Under the heading — plain English, ≤20 words      |
+| One why-line  | Under the heading in plain English, ≤20 words     |
 | Tables        | Facts, choices, paths                             |
 | `👉 Reply`    | Last line when they must answer                   |
 
@@ -88,13 +88,13 @@ Fast still teaches and shows progress — it just **doesn’t stop** for setup o
 
 ## Table design
 
-| Rule                      | Value                                                                         |
-| ------------------------- | ----------------------------------------------------------------------------- |
-| Blank line between tables | **Required**                                                                  |
-| Empty headers             | **Forbidden**                                                                 |
-| Progress header           | `Step` \| `{current}/{total}` (1-based index of 🔵 — never 0, never ✅-count) |
-| Progress col 1 data       | Emoji only                                                                    |
-| Bold                      | 🔵 row only                                                                   |
+| Rule                      | Value                                                                    |
+| ------------------------- | ------------------------------------------------------------------------ |
+| Blank line between tables | **Required**                                                             |
+| Empty headers             | **Forbidden**                                                            |
+| Progress header           | `Step` \| `{current}/{total}` (1-based index of 🔵, never 0 or ✅-count) |
+| Progress col 1 data       | Emoji only                                                               |
+| Bold                      | 🔵 row only                                                              |
 
 ### Progress (exact)
 
@@ -109,7 +109,7 @@ Fast still teaches and shows progress — it just **doesn’t stop** for setup o
 | ⬜   | You're set                       |
 ```
 
-In **Fast**, skip a separate **Open workbook** step — open the viewer when the first lesson is ready.
+In **Fast**, skip a separate **Open workbook** step. Open the viewer when the first lesson is ready.
 Use this workbook-batch shape only after `N` is known. Direct lesson actions use the matching
 scenario in `session-status.md` and omit selection entirely.
 
@@ -124,17 +124,17 @@ scenario in `session-status.md` and omit selection entirely.
 | 🔒         | Your app source is never modified                  |
 ```
 
-### Setup choice — Control (exact)
+### Setup choice: Control (exact)
 
 ```markdown
 ### How much setup do you want?
 
 **Fast** uses sensible defaults and auto-saves lessons. **Control** lets you pick every setting.
 
-| Mark | Mode                                        | Reply     |
-| ---- | ------------------------------------------- | --------- |
-| ⚡   | Fast — defaults + auto-save, fewer stops    | `fast`    |
-| 🎛️   | Control — pick notes, depth, saves yourself | `control` |
+| Mark | Mode                                       | Reply     |
+| ---- | ------------------------------------------ | --------- |
+| ⚡   | Fast: defaults + auto-save, fewer stops    | `fast`    |
+| 🎛️   | Control: pick notes, depth, saves yourself | `control` |
 
 👉 **Reply:** `fast` or `control`
 ```
@@ -149,7 +149,7 @@ In Fast mode, Turn 2 operates continuously without stopping:
 2. **Shortlist**: Select the most central `orient`-stage topic as lesson 1.
 3. **Draft & Mechanical**: Draft lesson 1 and run mechanical checks.
 4. **Inline Review**: Review semantic support inline. Record `self` provenance when the authoring
-   agent performs it; its score is advisory. If required fixes remain, revise once before save.
+   agent performs it. Its score is advisory. If required fixes remain, revise once before save.
 5. **Auto-save & Auto-open**: Save the lesson, then immediately open the viewer for the user.
 
 ### Refinement / Purpose Ask (Fast Turn 3 / Control Turn 2)
@@ -203,7 +203,7 @@ with zero pending topics.
 👉 **Reply:** `yes` · or edits
 ```
 
-### Save lesson — **Control only** (when save-policy is `ask`)
+### Save lesson: **Control only** (when save-policy is `ask`)
 
 ```markdown
 ### Save this lesson?
@@ -216,7 +216,7 @@ with zero pending topics.
 👉 **Reply:** `yes` · `no`
 ```
 
-### Open workbook — **Control only** when you need a confirm
+### Open workbook: **Control only** when you need a confirm
 
 ```markdown
 ### Open the workbook in your browser?
@@ -228,7 +228,7 @@ with zero pending topics.
 👉 **Reply:** `view`
 ```
 
-### Fast — after a lesson (no ask)
+### Fast after a lesson (no ask)
 
 ```markdown
 **Progress**
@@ -243,7 +243,7 @@ with zero pending topics.
 Saved `lessons/….md`. Next lesson next.
 ```
 
-### Fast — wrap up (auto-opened viewer)
+### Fast wrap up (auto-opened viewer)
 
 ```markdown
 **Progress**
@@ -257,7 +257,7 @@ Saved `lessons/….md`. Next lesson next.
 
 ### You’re set
 
-Lessons are in the sister workbook folder. The browser viewer is open — read there, not in chat.
+Lessons are in the sister workbook folder. The browser viewer is open. Read there, not in chat.
 {If pending topics exist: More topics stay planned; say `/repay-techdebt` to write the next batch.}
 {If batch-only: This workbook contains exactly the requested lesson batch.}
 
@@ -269,7 +269,7 @@ Lessons are in the sister workbook folder. The browser viewer is open — read t
 | 🔁 Later         | `/repay-techdebt --view` or `--create <id>` |
 ```
 
-First-run Message 1: `templates/introduction-wizard.md` — paste verbatim.
+First-run Message 1: paste `templates/introduction-wizard.md` verbatim.
 
 ## Agent checklist
 
@@ -278,7 +278,7 @@ First-run Message 1: `templates/introduction-wizard.md` — paste verbatim.
 - [ ] Progress scenario matches the current user request
 - [ ] Every displayed lesson count comes from the request or current batch
 - [ ] One why-line for first-timers (where / why this count / what next)
-- [ ] Fast: no save/open asks; auto-save + auto-open
+- [ ] Fast: no save/open asks. Auto-save + auto-open
 - [ ] No script JSON in chat
 - [ ] Study list chat table ≤5 topic rows
 - [ ] ≤25 / ≤60 words outside tables

@@ -1,7 +1,7 @@
 # Lesson Writing Standard
 
 Read this before drafting or reviewing any learner-facing lesson. The repository analysis may be
-complex; the prose must not be.
+complex. The prose must not be.
 
 ## The unit of teaching
 
@@ -21,7 +21,7 @@ Script titles are path placeholders. Agent owns final INDEX + lesson titles:
    substitute a new basename into an existing title's frame.
 4. Compare the candidate against the complete title set. Avoid repeated opening words, rhythms,
    framing devices, and near-synonym rewrites that would make the index feel stamped out.
-5. Treat script similarity diagnostics as neutral comparison evidence. The agent—not the script—
+5. Treat script similarity diagnostics as neutral comparison evidence. The agent, not the script,
    decides whether and how to rewrite.
 6. Lesson `title` frontmatter = `H1` = INDEX link text.
 
@@ -31,8 +31,8 @@ failure mode, blast radius, or trust decision. Scanner rows are candidate eviden
 
 Default size:
 
-- concise: 250–650 words;
-- balanced: 450–950 words;
+- concise: 250–650 words.
+- balanced: 450–950 words.
 - deep: 700–1,300 words.
 
 Depth adds evidence or examines a mechanism more closely. It does not add unrelated topics.
@@ -43,21 +43,21 @@ Every lesson must contain these five elements to ensure it teaches effectively r
 
 | Element                 | Description                                                                                  | Example                                                                                                                                              |
 | ----------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **BLUF**                | Bottom Line Up Front. The core mechanism and consequence in the opening paragraph.           | _When a request hits `/api/order`, the permission check runs **before** the price is computed — so a forbidden request never touches pricing state._ |
+| **BLUF**                | Bottom Line Up Front. The core mechanism and consequence in the opening paragraph.           | _When a request hits `/api/order`, the permission check runs **before** the price is computed - so a forbidden request never touches pricing state._ |
 | **Tricky-part heading** | A specific section heading calling out the non-obvious part of the mechanism.                | _## Why the cache is invalidated twice_                                                                                                              |
 | **Worked-trace**        | An ordered trace through the mechanism or flow.                                              | _1. `POST /order` → 2. `checkPermission` → 3. `computePrice` → 4. `invalidateCache`._                                                                |
 | **Contrast**            | A comparison showing what goes wrong if the mechanism is omitted or implemented incorrectly. | _`diff\n- old buggy code\n+ fixed code\n` or a "What goes wrong if you skip X" subsection._                                                          |
-| **Takeaway**            | A concluding sentence anchoring the most important insight.                                  | _**If you remember one thing:** the permission decision owns the request — never let pricing or caching run first._                                  |
+| **Takeaway**            | A concluding sentence anchoring the most important insight.                                  | _**If you remember one thing:** the permission decision owns the request - never let pricing or caching run first._                                  |
 
 ## Choose importance before novelty
 
 A teachable curiosity is not automatically worth a lesson. Rank the topic before drafting it.
 Prefer topics that explain:
 
-1. why the program exists and what a user is trying to accomplish;
-2. a critical user, business, security, data, or operational workflow;
-3. a highly connected module or contract that many changes depend on;
-4. an entrypoint, ownership boundary, state transition, failure path, or trust decision;
+1. why the program exists and what a user is trying to accomplish.
+2. a critical user, business, security, data, or operational workflow.
+3. a highly connected module or contract that many changes depend on.
+4. an entrypoint, ownership boundary, state transition, failure path, or trust decision.
 5. an exact mechanism that unlocks safe debugging or modification.
 
 Penalize generated code, barrels, formatting, build plumbing, test infrastructure, and analyzer
@@ -96,25 +96,25 @@ section on the consequence the reader should remember, not on a stray implementa
 
 Use two to four source files in a normal lesson. Cite each location in a self-contained backticked
 form: `` `path/to/file.ts:42` `` or `` `path/to/file.ts:42-47` ``. Repeat the path for every cited
-range; shorthand such as `` `42-47` `` is ambiguous and fails validation. Prefer the behavior,
+range. Shorthand such as `` `42-47` `` is ambiguous and fails validation. Prefer the behavior,
 function, or module name in the sentence and let the viewer move the full path into a quiet
 numbered source note. Do not make readers parse long file locations as part of the explanation.
 
-Show at least one small verified fenced snippet from the primary path—not Mermaid alone. After a snippet,
+Show at least one small verified fenced snippet from the primary path, not Mermaid alone. After a snippet,
 explain what the language/runtime does
 and why that behavior matters here. A filename, an analyzer score, or a generic framework rule is
 not proof. Before persistence, every citation must resolve to a current file and valid line in the
 explicit target, and at least one citation must match the curriculum topic's evidence anchors.
 
 Follow the lesson plan's `diagramIntent`. Use a verified diagram when it materially clarifies a
-sequence, state transition, ownership boundary, or multi-part relationship; reduce it to the
+sequence, state transition, ownership boundary, or multi-part relationship. Reduce it to the
 smallest useful subgraph. Prefer a compact portrait or near-square layout that remains legible at
-normal viewer width; default flowcharts to `TD`/`TB`, and avoid both wide layouts and long vertical
+normal viewer width. Default flowcharts to `TD`/`TB`, and avoid both wide layouts and long vertical
 chains. Use `LR`/`RL` only when horizontal order is essential, keep it narrow, and record that
 exception in the diagram intent. Split or reduce any graph that would run for multiple screens.
 Omit it only with a topic-specific reason. Every Mermaid block must parse successfully
 before save.
-Put tool attempts, failures, fallbacks, and limitations in the workbook-level Tool Use Ledger; do
+Put tool attempts, failures, fallbacks, and limitations in the workbook-level Tool Use Ledger. Do
 not repeat the ledger in every short lesson.
 
 ## A flexible visible shape
@@ -122,17 +122,17 @@ not repeat the ledger in every short lesson.
 Use three to eight specific level-two sections. Adapt them to the selected lesson shape, while
 covering these reader needs:
 
-- the outcome and project consequence;
-- the smallest useful path through the code;
-- the mechanism or invariant;
-- the safe change or verification boundary;
+- the outcome and project consequence.
+- the smallest useful path through the code.
+- the mechanism or invariant.
+- the safe change or verification boundary.
 - one answerable check, prediction, or small challenge.
 
 Build those needs around one verified causal thread: trigger, decision or transformation, effect,
 and feedback. Pair the normal mechanism with one supported failure, edge case, abuse case, or
 tempting wrong model from the same subject.
 
-Interactive learning is optional and evidence-driven; reviewing its opportunities is not optional.
+Interactive learning is optional and evidence-driven. Reviewing its opportunities is not optional.
 Use the plan's `learningMoments` entries to inspect three specific possibilities against live
 source: a consequential misconception for `Quick check`, a causal pause for `Think first`, and a
 safe browser-observable boundary for `See for yourself`. Include recommendations unless a concrete
@@ -151,11 +151,11 @@ learningMoments:
 Every entry starts with `included -` or `omitted -` and gives a topic-specific purpose or reason.
 Included entries require a matching block. Missing decisions, vague reasons, and plan-to-draft
 drift block durable save for curriculum lessons. `Prediction`/`Reveal` remains readable in older
-lessons but is treated as the same causal moment as `Think first`/`Answer`; prefer the latter in new
+lessons but is treated as the same causal moment as `Think first`/`Answer`. Prefer the latter in new
 lessons.
 
-Use `Quick check` with two to four plausible choices and one correct answer; use `Think first` for a
-collapsed causal answer; and use `See for yourself` for a safe DevTools walkthrough. A walkthrough
+Use `Quick check` with two to four plausible choices and one correct answer. Use `Think first` for a
+collapsed causal answer. Use `See for yourself` for a safe DevTools walkthrough. A walkthrough
 names the safe execution context, setup, action, observable signal, one controlled variation, and
 an explicit `Reset`. It must not expose secrets, alter production data, or ask the reader to defeat
 a live security boundary. Keep at most three useful interactive moments and remove any that merely
@@ -171,17 +171,17 @@ Before saving:
 1. Remove every sentence that does not serve the title's single topic.
 2. Split paragraphs that make two points.
 3. Replace passive constructions and abstract nouns with the actor and action.
-4. Remove repetition, throat-clearing, generic best practices, and AI-flavored filler such as
-   “delve,” “seamlessly,” or “game-changer.”
+4. Remove repetition, throat-clearing, generic best practices, promotional filler, and staged
+   contrasts that avoid stating the point directly.
 5. Check that the opening promises a concrete outcome and every section fulfills it.
 6. Check that the ending is a small modify, debug, run/predict, or named-test assertion job. Name the
    invariant to preserve, affected consumer or boundary, concrete verification, and observable
    regression signal. Recall alone does not demonstrate transfer. Provide private rubric or answer
    guidance.
 7. Ensure the lesson establishes clear motivation, teaches a causal mental model, anticipates at least one misconception, and manages cognitive load appropriately.
-8. Run `check-lesson-quality.js`; fix every error. Treat warnings as revision prompts, not noise.
-9. Record reviewer provenance. If the authoring agent also reviews, mark `self`; its score is
+8. Run `check-lesson-quality.js`. Fix every error. Treat warnings as revision prompts, not noise.
+9. Record reviewer provenance. If the authoring agent also reviews, mark `self`. Its score is
    advisory and every `mustFix` still blocks. See `references/lesson-reviewer.md`.
 
-The automated check is a floor, not proof of an excellent lesson. A passing lesson can still be
-unimportant, incorrect, or dull; source verification and editorial judgment remain required.
+The automated check is a minimum standard, not proof of an excellent lesson. A passing lesson can still be
+unimportant, incorrect, or dull. Source verification and editorial judgment remain required.

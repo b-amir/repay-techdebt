@@ -3,7 +3,7 @@
 Bundled model is always the baseline. Optional AI-native tools add fidelity when already
 available. Presence alone is never reported as success.
 
-| Capability                    | Prefer when available                | Bundled fallback (same UX; silent)             |
+| Capability                    | Prefer when available                | Bundled fallback (same UX. Silent)             |
 | ----------------------------- | ------------------------------------ | ---------------------------------------------- |
 | PR and CI context             | GitHub MCP read-only tools           | Local Git extractor (`get-pr-changes.js`)      |
 | Architecture and blast radius | Graphify MCP or target-pure Graphify | Program model query / scoped architecture scan |
@@ -27,7 +27,7 @@ inflation.
 
 Do **not** present setup / fallback / skip on every failure.
 
-Record attempts and downgrades in **maintainer notes only** — not first-run or learner chat.
+Record attempts and downgrades in **maintainer notes only**. Keep them out of first-run and learner chat.
 Never claim a tool ran because it exists. Bundled profiler success does not prove Graphify,
 Serena, Semgrep, or Context7 succeeded.
 

@@ -229,7 +229,7 @@ function enhanceDevtoolsLabs(html) {
 
 /**
  * Strip craft YAML + leading markdown H1 for reader display.
- * Frontmatter is agent/save metadata (id, shape, mapAnswers…) — not lesson prose.
+ * Frontmatter is agent/save metadata (id, shape, mapAnswers…) - not lesson prose.
  * @param {string} source
  * @returns {{ body: string, title: string | null }}
  */
@@ -241,7 +241,7 @@ export function prepareLessonMarkdown(source) {
       : null;
   const title = extractTitle(body) ?? fmTitle;
   // Drop leading ATX H1; shell paints the title once.
-  // Drop HTML comments + CLAIMS ledger — agent evidence, not learner prose.
+  // Drop HTML comments + CLAIMS ledger - agent evidence, not learner prose.
   const displayBody = stripAgentMetaMarkdown(body.replace(/^\s*#\s+.+\r?\n?/, ""));
   return { body: displayBody, title };
 }

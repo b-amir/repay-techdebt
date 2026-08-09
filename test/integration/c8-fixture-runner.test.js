@@ -2,7 +2,7 @@
 // Evaluation fixture must-find runner. Iterates every fixture under
 // test/fixtures/evaluation/*, validates its expectations, then executes the must-find /
 // forbidden checks via evaluateCurriculum against a stand-in curriculum built from the
-// expectations themselves. Proves the runner covers all fixtures; forward-safe — when a
+// expectations themselves. Proves the runner covers all fixtures; forward-safe - when a
 // fixture grows must-find topics, its regression is caught here.
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
@@ -70,7 +70,7 @@ test("evaluateCurriculum flags a missing must-find topic from a real fixture", a
       break;
     }
   }
-  if (!withMustFind) return; // no must-find fixture present — vacuous pass
+  if (!withMustFind) return; // no must-find fixture present - vacuous pass
   const expectations = JSON.parse(
     await readFile(resolve(fixturesDir, withMustFind, "expectations.json"), "utf8"),
   );

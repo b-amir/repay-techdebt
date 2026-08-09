@@ -1,6 +1,6 @@
 const CITATION_PATH_SOURCE = "[A-Za-z0-9_.@+-]+(?:\\/[A-Za-z0-9_.@+()\\[\\]-]+)+\\.[A-Za-z0-9]+";
 const CITATION_LINE_SOURCE = "[1-9]\\d*";
-const CITATION_RANGE_SEPARATOR_SOURCE = "[-–—]";
+const CITATION_RANGE_SEPARATOR_SOURCE = "[-–\\u2014]";
 
 /** Matches source citations embedded in prose. Capture 1 is the complete citation. */
 export const EVIDENCE_CITATION = new RegExp(
@@ -46,7 +46,7 @@ export function extractCitationReferences(markdown) {
 export function extractAmbiguousCitationShorthand(markdown) {
   const text = String(markdown ?? "");
   const shorthand = [];
-  for (const match of text.matchAll(/`([1-9]\d*[-–—][1-9]\d*)`/g)) {
+  for (const match of text.matchAll(/`([1-9]\d*[-–\u2014][1-9]\d*)`/g)) {
     const before = text.slice(Math.max(0, (match.index ?? 0) - 180), match.index);
     if (!extractCitationReferences(before).length) continue;
     if (!/(?:,|\band|\bthen)\s*$/i.test(before)) continue;

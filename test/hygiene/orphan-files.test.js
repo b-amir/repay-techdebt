@@ -1,6 +1,6 @@
 // @category C9
 // Orphaned-file detection. The import-graph test catches an import that points at a
-// MISSING file; this catches the opposite failure mode — a file that EXISTS but nothing
+// MISSING file; this catches the opposite failure mode - a file that EXISTS but nothing
 // imports (a stale copy left behind by a botched move, or a dead module). Together they
 // mean a restructure cannot silently drop or duplicate a module.
 //

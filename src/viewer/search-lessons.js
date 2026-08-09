@@ -113,7 +113,7 @@ export async function searchLessons(workbook, query, limit = 20) {
     const prepared = prepareLessonMarkdown(source);
     const title = prepared.title ?? file.name.replace(/\.md$/, "");
     const titleHit = title.toLowerCase().includes(q);
-    // Search reader body only — craft frontmatter (id/shape/mapAnswers) is not content.
+    // Search reader body only - craft frontmatter (id/shape/mapAnswers) is not content.
     const bodyMatch = titleHit ? null : bestLessonMatch(prepared.body, q);
     if (!titleHit && !bodyMatch) continue;
     results.push({

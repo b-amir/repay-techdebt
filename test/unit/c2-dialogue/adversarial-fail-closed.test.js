@@ -1,5 +1,5 @@
 // @category C2
-// 0.5: adversarial fixtures fail closed — wrong citation, secret-like, absence/heuristic.
+// 0.5: adversarial fixtures fail closed - wrong citation, secret-like, absence/heuristic.
 import assert from "node:assert/strict";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";

@@ -80,7 +80,7 @@ export function displayName(path) {
   const withLayout = meaningfulSegments(path, { keepStructural: true });
 
   if (/^index$/i.test(raw)) {
-    // Drop the trailing "Index" segment — title the barrel by its folder.
+    // Drop the trailing "Index" segment - title the barrel by its folder.
     const productParents = product.filter((seg) => !/^index$/i.test(seg));
     const layoutParents = withLayout.filter((seg) => !/^index$/i.test(seg));
     const base = productParents.length > 0 ? productParents : layoutParents;
@@ -94,7 +94,7 @@ export function displayName(path) {
       const head = product.slice(-2).join(" ");
       return head.toLowerCase().endsWith(role.toLowerCase()) ? head : `${head} ${role}`.trim();
     }
-    // Bare structural path (app/core/api, app/ui) — keep noise-ish parents that
+    // Bare structural path (app/core/api, app/ui) - keep noise-ish parents that
     // withLayout dropped via PATH_NOISE so we never ship a one-word "Api".
     const full = String(path === "." ? "application" : path)
       .replace(/\.[^./]+$/, "")
@@ -104,7 +104,7 @@ export function displayName(path) {
     return full.slice(-3).join(" ") || words(raw);
   }
 
-  // Distinctive multi-word basename (Permission Guard, Chat Api Hooks) — keep as-is
+  // Distinctive multi-word basename (Permission Guard, Chat Api Hooks) - keep as-is
   // but pair with one product parent when available for disambiguation.
   const baseLabel = words(raw);
   // product includes the basename as last segment; parent is the segment before it.
@@ -927,7 +927,7 @@ export function renderCurriculumMarkdown(curriculum) {
         status = " *(Planned)*";
       }
 
-      lines.push(`${checkbox}**${topicLink}**${status} — ${topic.learnerOutcome}`);
+      lines.push(`${checkbox}**${topicLink}**${status}: ${topic.learnerOutcome}`);
     }
     lines.push("");
   }
@@ -954,7 +954,7 @@ export function renderCurriculumMarkdown(curriculum) {
           `- [${String(entry.title || `Earlier lesson ${index + 1}`)
             .replaceAll("\\", "\\\\")
             .replaceAll("[", "\\[")
-            .replaceAll("]", "\\]")} — earlier version](${entry.path})`,
+            .replaceAll("]", "\\]")}: earlier version](${entry.path})`,
       ),
       "",
     );

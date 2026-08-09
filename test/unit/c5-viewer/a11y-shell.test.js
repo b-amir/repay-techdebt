@@ -58,7 +58,7 @@ test("home render keeps skip link with compact home", () => {
   assert.match(html, /ds-lesson-card/);
   assert.match(html, /data-focus="off"/);
   assert.doesNotMatch(html, /fonts\.googleapis\.com/);
-  // mermaid only lazy-loads when diagrams exist — no blocking <script src=...>
+  // mermaid only lazy-loads when diagrams exist - no blocking <script src=...>
   assert.doesNotMatch(html, /<script[^>]+src=["']https:\/\/cdn\.jsdelivr\.net\/npm\/mermaid/);
   assert.match(html, /Searching…/);
   assert.match(html, /Search unavailable/);

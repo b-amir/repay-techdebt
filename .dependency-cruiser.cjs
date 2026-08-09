@@ -2,7 +2,7 @@
  *
  *  Run with: pnpm lint:orphans  (or `npx depcruise src scripts test`)
  *
- *  Currently scopes to orphan/deadwood detection — flags any library module nothing
+ *  Currently scopes to orphan/deadwood detection. It flags any library module nothing
  *  depends on. Complements test/hygiene/orphan-files.test.js (which enforces the same
  *  invariant in CI); depcruise is the on-demand investigator that also walks the full
  *  import graph (circular deps, reachability) when needed.

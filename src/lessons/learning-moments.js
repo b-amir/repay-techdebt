@@ -175,7 +175,7 @@ function sectionBody(markdown, heading) {
 
 function parseDecision(raw) {
   if (typeof raw !== "string" || !raw.trim()) return null;
-  const match = raw.trim().match(/^(include(?:d)?|omit(?:ted)?)\b\s*(?:[-—:]\s*)?(.*)$/i);
+  const match = raw.trim().match(/^(include(?:d)?|omit(?:ted)?)\b\s*(?:[-\u2014:]\s*)?(.*)$/i);
   if (!match) return { decision: "invalid", reason: "", raw: raw.trim() };
   return {
     decision: match[1].toLowerCase().startsWith("include") ? "include" : "omit",

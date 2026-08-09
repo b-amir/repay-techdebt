@@ -105,7 +105,7 @@ test("unconventional-layout fixture plans billing subjects and dialogue envelope
   );
   assert.ok(expectations.ok, JSON.stringify(expectations.errors));
 
-  // Copy outside the skill tree — resolveTargetRoot refuses analyzing the skill itself.
+  // Copy outside the skill tree - resolveTargetRoot refuses analyzing the skill itself.
   const directory = await mkdtemp(resolve(tmpdir(), "repay-unconventional-"));
   try {
     const billing = resolve(directory, "bounded-contexts/billing-core");

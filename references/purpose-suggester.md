@@ -19,7 +19,7 @@ Read the provided project profile and suggest three concise purposes. A purpose 
 
 - "Trace the external API integration boundaries."
 - "Understand the caching strategy and state invalidation."
-- "Navigate the core domain models and their relations."
+- "Map the core domain models and their relations."
 
 ### Bad Purposes
 
@@ -42,10 +42,10 @@ Emit a JSON object with the following structure:
     },
     {
       "sentence": "Understand the caching strategy and state invalidation.",
-      "hint": "Crucial for debugging stale data issues."
+      "hint": "Useful when debugging stale data."
     },
     {
-      "sentence": "Navigate the core domain models and their relations.",
+      "sentence": "Map the core domain models and their relations.",
       "hint": "The best place to start if you are new to the codebase."
     }
   ]

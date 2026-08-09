@@ -48,6 +48,6 @@ pnpm dlx skills add . --skill repay-techdebt
 ```
 
 Bundled scripts require Node.js 22 or newer. Missing `node_modules` after skill sync: CLIs call
-`ensure-runtime` and install **into `<skill-root>` only** (`--ignore-scripts`; `--frozen-lockfile`
+`ensure-runtime` and install **into `<skill-root>` only** (`--ignore-scripts`. `--frozen-lockfile`
 when lockfile present). Never installs into the target app. Manual: `node scripts/ensure-runtime.js`.
 Trust model: [security.md](security.md).

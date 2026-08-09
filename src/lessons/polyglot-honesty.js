@@ -42,7 +42,9 @@ export function checkPolyglotHonesty(markdown, opts = {}) {
       `Deep call/import claims need language-aware evidence; unsupported for: ${unsupported.join(", ")}. Mark surface-only/unsupported or drop the claim.`,
     );
   } else if (makesDeepClaim && marksUnsupported) {
-    warnings.push("Deep claim marked unsupported/surface-only — OK for honesty.");
+    warnings.push(
+      "Deep claim marked unsupported or surface-only. This preserves evidence honesty.",
+    );
   }
 
   return {

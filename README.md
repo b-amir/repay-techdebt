@@ -19,7 +19,7 @@
 npx skills add b-amir/repay-techdebt
 ```
 
-Open Agent Skill for code you ship but don’t fully own in your head—AI-generated apps, inherited
+Open Agent Skill for code you ship but don’t fully own in your head, including AI-generated apps and inherited
 systems, dense PRs. Builds an evidence-qualified model of _this_ project and teaches from verified
 examples. Analysis-only by default: no silent refactors, no target pollution, no fake confidence.
 
@@ -35,7 +35,7 @@ The browser viewer turns the project model into a focused reading workspace.
 <p align="center">
   <img src="https://raw.githubusercontent.com/b-amir/repay-techdebt/main/assets/readme/viewer-lesson.png" width="100%" alt="Beacon sample architecture lesson with a lesson rail, table of contents, source-note numbers, callout, and highlighted code">
 </p>
-<p align="center"><sub><strong>Evidence without clutter.</strong> Read the mechanism first; quiet source-note numbers preserve traceability without filling the prose with paths.</sub></p>
+<p align="center"><sub><strong>Evidence without clutter.</strong> Read the mechanism first. Quiet source-note numbers preserve traceability without filling the prose with paths.</sub></p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/b-amir/repay-techdebt/main/assets/readme/viewer-interactive.png" width="100%" alt="Beacon sample reliability lesson with a completed quick check and a collapsed Think first prompt">
@@ -66,7 +66,7 @@ repay status   # workbook + config + curriculum summary
 `init` / `plan` / `view` / `status` run **local** skill scripts (no remote skills CLI).
 
 First run: Fast (recommended defaults) or Control (step through choices). Workbook opens in a
-script-owned browser viewer—agents never hand-build HTML.
+script-owned browser viewer. Agents never hand-build HTML.
 
 The local viewer is a complete reading workspace: resume at the last lesson section, use the table
 of contents as progress, filter the lesson rail, search lessons with typed match context, fold long
@@ -109,5 +109,5 @@ Step-by-step control flow: **[docs/how-it-works.md](docs/how-it-works.md)**.
 ## Agent notes
 
 Works with Codex, Claude Code, Cursor, OpenCode, Antigravity, and other agents that load
-`SKILL.md`. Optional MCP tools are used only when already available; setup always asks first.
+`SKILL.md`. Optional MCP tools are used only when already available. Setup always asks first.
 Node.js 22+.

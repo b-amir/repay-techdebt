@@ -3,7 +3,7 @@
  * Agents (or stubs) record replies; conformance checks the required order.
  *
  * TrajectoryGate: shared contract for check + save path completeness.
- * Field names are internal — never paste into user chat.
+ * Field names are internal - never paste into user chat.
  */
 
 export const WORKBOOK_TRAJECTORY = ["B0", "B1", "B2", "B5", "B3", "B4a", "B4b", "B6"];
@@ -14,7 +14,7 @@ export const PR_TRAJECTORY = ["B0", "B1", "B2", "B5", "B4b", "B6"];
 
 /**
  * Shared gate shape for check-trajectory + fail-closed save.
- * `pathComplete` is derived — do not trust agent-supplied hope alone.
+ * `pathComplete` is derived - do not trust agent-supplied hope alone.
  *
  * @typedef {object} TrajectoryGate
  * @property {TrajectoryGateMode} mode
@@ -125,7 +125,7 @@ export function validateTrajectoryGateShape(value) {
 const MAP_REQUIRED_SUBJECTS = new Set(["architecture", "flow", "structure", "dependency"]);
 
 /**
- * Machine-readable missing pieces for refuse / status (codes only — phrase in formatPathIncompleteReason).
+ * Machine-readable missing pieces for refuse / status (codes only - phrase in formatPathIncompleteReason).
  * @param {TrajectoryGate | null | undefined} gate
  * @param {{ subject?: string, hasMapAnswers?: boolean }} [opts]
  * @returns {string[]}
@@ -172,7 +172,7 @@ export function listPathMissing(gate, opts = {}) {
  * }}
  */
 export function checkTrajectoryGate(input, opts = {}) {
-  // Legacy: bare flow-state array / steps-only — not a gate.
+  // Legacy: bare flow-state array / steps-only - not a gate.
   if (Array.isArray(input)) {
     return {
       ok: false,
@@ -343,7 +343,7 @@ export function shouldReaskSessionSetup(gateInput, opts = {}) {
     reaskStudyList: !studyListSettled,
     reason: purposeSettled
       ? studyListSettled
-        ? "Purpose and study list already on ledger — continue without re-setup."
+        ? "Purpose and study list already on the ledger. Continue without setup."
         : null
       : "Purpose not settled yet.",
   };
@@ -453,7 +453,7 @@ export function stubWorkbookTrajectory(overrides = {}) {
       {
         id: "B6",
         status: "done",
-        reply: 'CLAIMS: 1. "settle is called from capture" — capture.js:4 — support: yes',
+        reply: 'CLAIMS: 1. "settle is called from capture" - capture.js:4 - support: yes',
       },
     ],
   };

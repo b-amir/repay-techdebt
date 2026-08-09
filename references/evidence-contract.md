@@ -11,7 +11,7 @@ into a lesson claim.
 | `derived`      | Deterministically computed from observed facts, such as counts or containment                    |
 | `inferred`     | Best explanation supported by indirect evidence but still requiring verification                 |
 | `hypothesis`   | A useful question or prediction with insufficient supporting evidence                            |
-| `contradicted` | Credible sources disagree; preserve both and investigate                                         |
+| `contradicted` | Credible sources disagree. Preserve both and investigate                                         |
 | `stale`        | Previously credible evidence is older than a relevant code/config/runtime change                 |
 
 Never use confidence to relabel an inference as observation. A 99% inference remains inferred.
@@ -20,12 +20,12 @@ Never use confidence to relabel an inference as observation. A 99% inference rem
 
 Each material claim needs:
 
-- a stable evidence ID;
-- one state;
-- confidence from 0 to 1;
-- a concise claim;
-- source paths, analyzer names, operations, and line ranges when available;
-- observation time;
+- a stable evidence ID.
+- one state.
+- confidence from 0 to 1.
+- a concise claim.
+- source paths, analyzer names, operations, and line ranges when available.
+- observation time.
 - limitations that affect interpretation.
 
 Secrets, credentials, environment values, private customer data, and unnecessary business literals
@@ -35,10 +35,10 @@ must not appear in evidence. Cite a sanitized path and behavioral fact instead.
 
 Use confidence to express evidence strength within a state:
 
-- `0.95–1.0`: direct, unambiguous, reproducible current evidence;
-- `0.75–0.94`: strong evidence with a known limitation;
-- `0.5–0.74`: plausible but meaningfully ambiguous;
-- `0.25–0.49`: weak signal useful mainly to select the next check;
+- `0.95–1.0`: direct, unambiguous, reproducible current evidence.
+- `0.75–0.94`: strong evidence with a known limitation.
+- `0.5–0.74`: plausible but meaningfully ambiguous.
+- `0.25–0.49`: weak signal useful mainly to select the next check.
 - below `0.25`: do not teach as a conclusion.
 
 Multiple correlated tools are not automatically independent corroboration. An index and a static

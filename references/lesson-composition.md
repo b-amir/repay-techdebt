@@ -1,7 +1,7 @@
 # Lesson Composition System
 
 Use this reference after `plan-lesson.js` selects a lesson shape. It is the complete composition
-catalog; `templates/lesson-format.md` contains the short execution contract.
+catalog. `templates/lesson-format.md` contains the short execution contract.
 
 ## Design rule
 
@@ -13,24 +13,24 @@ The planner's result is advisory. Verify source and successful tool evidence bef
 module. A required module is required for the chosen lesson shape, but its exact heading and format
 remain flexible. An optional module disappears unless it passes the activation gate. The planner
 also emits three explicit `learningMoments` opportunity decisions. Recommendations should survive
-unless source review records a concrete reason to omit them; candidates require an explicit choice.
+unless source review records a concrete reason to omit them. Candidates require an explicit choice.
 
 ## Primary shape recipes
 
 | Shape                     | Use when                                                      | Required learning modules                                                        |
 | ------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Architecture orientation  | The learner needs ownership and system placement              | why; map; responsibilities; relationships; change safely                         |
-| End-to-end flow           | Inputs can be traced to an outcome                            | why; entry to effect; mechanism; failure path; change safely                     |
-| Code mechanics            | Exact syntax, function, algorithm, or lifecycle is central    | why; verified snippet; mechanism; project consequence; try it                    |
-| Change impact             | A PR, refactor, migration, or upgrade is the subject          | intent; before/after; blast radius; risk; verification                           |
-| Debugging and failure     | A symptom or incident drives the lesson                       | symptom; execution path; failure path; diagnostic evidence; recovery             |
-| Security boundary         | Assets, actors, trust, and controls are central               | asset/actor; trust boundary; control flow; failure/abuse cases; verification     |
-| Performance and scale     | Work growth or runtime cost is central                        | workload; candidate hot path; cost model; measurement; safe optimization         |
-| Data and state            | Ownership, lifecycle, invariants, or transactions are central | ownership; state lifecycle; invariants; failure path; verification               |
-| Dependency and ecosystem  | A library, framework, runtime, or version is central          | role; observed usage; version/contract; failure impact; change safely            |
-| Operations and deployment | Startup, configuration, release, or recovery is central       | runtime shape; configuration; startup to service; failure/recovery; verification |
-| Testing and verification  | Confidence and behavior proof are central                     | behavior contract; test map; test mechanics; gaps; next test                     |
-| UI and interaction        | A user's interaction and represented states are central       | user goal; interaction flow; state ownership; edge states; verification          |
+| Architecture orientation  | The learner needs ownership and system placement              | why. Map. Responsibilities. Relationships. Change safely                         |
+| End-to-end flow           | Inputs can be traced to an outcome                            | why. Entry to effect. Mechanism. Failure path. Change safely                     |
+| Code mechanics            | Exact syntax, function, algorithm, or lifecycle is central    | why. Verified snippet. Mechanism. Project consequence. Try it                    |
+| Change impact             | A PR, refactor, migration, or upgrade is the subject          | intent. Before/after. Blast radius. Risk. Verification                           |
+| Debugging and failure     | A symptom or incident drives the lesson                       | symptom. Execution path. Failure path. Diagnostic evidence. Recovery             |
+| Security boundary         | Assets, actors, trust, and controls are central               | asset/actor. Trust boundary. Control flow. Failure/abuse cases. Verification     |
+| Performance and scale     | Work growth or runtime cost is central                        | workload. Candidate hot path. Cost model. Measurement. Safe optimization         |
+| Data and state            | Ownership, lifecycle, invariants, or transactions are central | ownership. State lifecycle. Invariants. Failure path. Verification               |
+| Dependency and ecosystem  | A library, framework, runtime, or version is central          | role. Observed usage. Version/contract. Failure impact. Change safely            |
+| Operations and deployment | Startup, configuration, release, or recovery is central       | runtime shape. Configuration. Startup to service. Failure/recovery. Verification |
+| Testing and verification  | Confidence and behavior proof are central                     | behavior contract. Test map. Test mechanics. Gaps. Next test                     |
+| UI and interaction        | A user's interaction and represented states are central       | user goal. Interaction flow. State ownership. Edge states. Verification          |
 
 ### Anatomy Mapping
 
@@ -58,12 +58,12 @@ Do not write boring, generic lessons. Avoid these patterns:
 - Generic openings ("In this lesson, we will explore…").
 - Sectionless walls of code.
 - Abstract best-practice paragraphs without project specifics.
-- Using AI filler adjectives like "robust", "scalable", or "seamless".
+- Using promotional adjectives when a concrete behavior or constraint would be clearer.
 - Restating the title as the BLUF.
 
 ## Required core module inventory
 
-These modules are selected by the shape; they are not all required in every lesson.
+These modules are selected by the shape. They are not all required in every lesson.
 
 ### Orientation and purpose
 
@@ -105,7 +105,7 @@ the reader sees a simple lesson rather than a checklist.
 - Domain vocabulary and business invariant.
 - Workflow priority and consequence of failure.
 - Historical decision, rejected alternative, and current trade-off. Requires confirmed memory,
-  authoritative documentation, or user confirmation; age-label historical evidence.
+  authoritative documentation, or user confirmation. Age-label historical evidence.
 
 ### Architecture and relationships
 
@@ -141,7 +141,7 @@ the reader sees a simple lesson rather than a checklist.
 - Abuse case and control ordering.
 - Privacy purpose, collection, retention, and access.
 
-Security relevance activates investigation; a vulnerability claim additionally requires verified
+Security relevance activates investigation. A vulnerability claim additionally requires verified
 control/data flow and plausible impact.
 
 ### Performance, scale, and cost
@@ -207,16 +207,16 @@ frequency, latency, utilization, and production impact.
 
 | Candidate module        | Strong convergence examples                                                                          | Signals that are insufficient alone                                   |
 | ----------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| Consumer impact         | incoming relation + caller source; route registration + handler; event producer + consumer           | similar filenames; directory proximity                                |
-| Security/privacy        | entry boundary + control source; auth helper + protected consumer; data sink + validated path        | `auth` directory; framework security reputation; generic scanner lead |
-| Performance/cost        | work-path structure + scale input + runtime measurement; query loop + executed query evidence        | loop presence; database package; “hot” filename                       |
-| Data integrity          | schema/constraint + write path; transaction + failure path; cache owner + invalidation consumer      | ORM dependency; model filename                                        |
-| Reliability/concurrency | producer + consumer + retry/order implementation; timeout + recovery test; runtime incident evidence | queue package; async keyword; worker directory                        |
-| Dependency/version      | manifest + lock + observed import; adapter + consumer + official compatible version                  | declaration only; latest-version search result                        |
-| Tests                   | verified test import + behavior assertion; route + integration test + expected outcome               | test filename; test framework dependency                              |
-| Deployment/operations   | deployment asset + startup path + config branch; health check + runtime topology                     | Dockerfile alone; CI filename                                         |
-| UI/accessibility        | interactive source + state branch + browser/semantic evidence                                        | React/Vue package; component filename                                 |
-| Historical trade-off    | confirmed decision + current relevant source; dated ADR + implementation evidence                    | stale memory; comment without code support                            |
+| Consumer impact         | incoming relation + caller source. Route registration + handler. Event producer + consumer           | similar filenames. Directory proximity                                |
+| Security/privacy        | entry boundary + control source. Auth helper + protected consumer. Data sink + validated path        | `auth` directory. Framework security reputation. Generic scanner lead |
+| Performance/cost        | work-path structure + scale input + runtime measurement. Query loop + executed query evidence        | loop presence. Database package. “hot” filename                       |
+| Data integrity          | schema/constraint + write path. Transaction + failure path. Cache owner + invalidation consumer      | ORM dependency. Model filename                                        |
+| Reliability/concurrency | producer + consumer + retry/order implementation. Timeout + recovery test. Runtime incident evidence | queue package. Async keyword. Worker directory                        |
+| Dependency/version      | manifest + lock + observed import. Adapter + consumer + official compatible version                  | declaration only. Latest-version search result                        |
+| Tests                   | verified test import + behavior assertion. Route + integration test + expected outcome               | test filename. Test framework dependency                              |
+| Deployment/operations   | deployment asset + startup path + config branch. Health check + runtime topology                     | Dockerfile alone. CI filename                                         |
+| UI/accessibility        | interactive source + state branch + browser/semantic evidence                                        | React/Vue package. Component filename                                 |
+| Historical trade-off    | confirmed decision + current relevant source. Dated ADR + implementation evidence                    | stale memory. Comment without code support                            |
 
 ## Presentation constraints
 

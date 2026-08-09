@@ -14,7 +14,7 @@ Use this reference when an enhanced analysis phase begins or a tool fails.
 
 `<skill-root>` is the installation directory containing this reference. `<target-root>` is the
 canonical root of the user's application repository. All evidence tools must read or index
-`<target-root>`; they must never use `<skill-root>` as their target.
+`<target-root>`. They must never use `<skill-root>` as their target.
 
 Pass `<target-root>` explicitly even when a tool has a current-directory default. If the roots are
 equal or the requested target is inside `<skill-root>`, stop and request the actual repository. If
@@ -27,8 +27,8 @@ The default mutation contract is:
 | Side effect                                                                      | Default                                               |
 | -------------------------------------------------------------------------------- | ----------------------------------------------------- |
 | Target dependencies, manifests, lockfiles, hooks, instructions, and ignore files | denied                                                |
-| Tool executables                                                                 | user-isolated or skill-local; ask before installation |
-| Durable lessons/configuration                                                    | external private state; ask before creation           |
+| Tool executables                                                                 | user-isolated or skill-local. Ask before installation |
+| Durable lessons/configuration                                                    | external private state. Ask before creation           |
 | Graphs, indexes, packs, and analyzer caches                                      | external private cache or temporary storage           |
 | Agent/MCP user configuration                                                     | ask before modification                               |
 
@@ -40,7 +40,7 @@ target-pure fallback.
 
 Enhanced-tool wrappers should return a standard `AnalyzerResult` via
 `createAnalyzerResult` in `src/tools/analyzer-result.js` (re-exported from
-`analyzer-adapter.js` for compatibility). There is no required base class — prefer the shared
+`analyzer-adapter.js` for compatibility). There is no required base class - prefer the shared
 factory and status vocabulary. No wrapper may silently install into or write inside the target
 repository (`assertSafeAnalyzerOutputDirectory`).
 
@@ -60,12 +60,12 @@ Use these exact meanings inside `AnalyzerResult.status`:
 
 A version command can establish installation, not functional success.
 `check-capabilities.js` therefore separates its detailed preflight status from `runtimeOutcome`.
-Ready tools remain `not-attempted` until a phase-specific operation succeeds; missing/setup tools map
+Ready tools remain `not-attempted` until a phase-specific operation succeeds. Missing/setup tools map
 to `unavailable`, and broken probes map to `failed`.
 
 ## Failure policy (silent bundled fallback)
 
-**Default path:** if the preferred tool is missing, unconfigured, or fails — use the named bundled
+**Default path:** if the preferred tool is missing, unconfigured, or fails - use the named bundled
 fallback immediately. Same user-facing UX. No tool jargon in chat. No confidence inflation. Record
 the outcome in the maintainer tool ledger only.
 
@@ -106,8 +106,8 @@ heuristic when a compiler, LSP, or AST adapter can retain more semantics.
 | Phase                | Preferred                  | CLI alternative            | Explicit fallback                                     |
 | -------------------- | -------------------------- | -------------------------- | ----------------------------------------------------- |
 | PR and CI            | GitHub MCP read-only tools | none                       | bundled local Git extractor                           |
-| Architecture         | Graphify MCP               | Graphify CLI; compiler/LSP | bundled AST relation query; scoped tree/search last   |
-| Symbols              | Serena MCP                 | compiler/LSP               | bundled ts-morph/ast-grep; direct source verification |
+| Architecture         | Graphify MCP               | Graphify CLI. Compiler/LSP | bundled AST relation query. Scoped tree/search last   |
+| Symbols              | Serena MCP                 | compiler/LSP               | bundled ts-morph/ast-grep. Direct source verification |
 | Security             | Semgrep MCP                | Semgrep CLI wrapper        | Secretlint + manual verification                      |
 | Documentation        | Context7 MCP               | `ctx7` CLI                 | browse official primary docs                          |
 | Large/remote context | Repomix MCP                | Repomix CLI                | scoped discovery and module outline                   |
@@ -170,7 +170,7 @@ uv tool install semgrep
 ```
 
 Prefer a focused MCP scan. For CLI use, run the bundled wrapper, which masks output and emits a
-structured failure gate. `--config auto` may require network access; treat registry/network failure
+structured failure gate. `--config auto` may require network access. Treat registry/network failure
 as a real failure and ask before fallback. The wrapper must receive `<target-root>` explicitly and
 excludes an in-repository skill installation.
 
@@ -199,7 +199,7 @@ ctx7 library <name> <query>
 ctx7 docs <resolved-library-id> <query>
 ```
 
-Resolve the package name and installed version from `<target-root>` manifests, lockfiles, or imports;
+Resolve the package name and installed version from `<target-root>` manifests, lockfiles, or imports.
 do not use `<skill-root>/package.json`. Do not call `ctx7 docs` with an unresolved name.
 Authentication is optional for many documentation queries but increases limits.
 
@@ -225,7 +225,7 @@ successful scoped pack of target application paths is the functional check.
 
 ### Bundled runtime
 
-Install dependencies only inside the skill root. Node 22 or newer is accepted; the runtime
+Install dependencies only inside the skill root. Node 22 or newer is accepted. The runtime
 preflight verifies that the pinned packages are actually present instead of rejecting odd-numbered
 Node releases preemptively.
 If a package import, native module, or worker fails, offer dependency installation/repair and retry

@@ -71,7 +71,7 @@ try {
     process.exit(0);
   }
   if (stubWorkbook) {
-    // Legacy flow list for transition demos — not a complete gate.
+    // Legacy flow list for transition demos - not a complete gate.
     process.stdout.write(`${JSON.stringify(stubWorkbookFlow(), null, 2)}\n`);
     process.exit(0);
   }

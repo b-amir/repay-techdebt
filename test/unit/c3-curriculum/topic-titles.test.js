@@ -20,7 +20,7 @@ test("displayName disambiguates generic basenames with path context", () => {
   assert.equal(displayName("app/features/chat/sidebar.tsx"), "Chat Sidebar");
 });
 
-test("titleFor is path label — unique, no chapter stamp openers", () => {
+test("titleFor is path label - unique, no chapter stamp openers", () => {
   /** @type {Array<[string, string]>} */
   const cases = [
     ["module", "app/domains/auth/permissions.ts"],

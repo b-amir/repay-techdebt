@@ -1,6 +1,6 @@
 # Analysis Execution Protocol
 
-Read with `script-agent-dialogue.md`. Scripts and the agent alternate; script JSON is a proposal.
+Read with `script-agent-dialogue.md`. Scripts and the agent alternate. Script JSON is a proposal.
 
 ## Phase 1: establish scope (gate → agent)
 
@@ -19,11 +19,11 @@ These are read-only baseline inventory/propose turns, not fallbacks for a failed
 Inspect `role`, `coverage` / `coverageStatus`, `blindSpots`, `mustNotClaim`, `nextAsks`, packs,
 entry points, lenses, and uncertainties. **Agent turn:** follow `nextAsks` (purpose, retrieve
 questions, need/skip tools). Agent turns: always explicit `--format` per
-`agent-machine-contract.md` (`summary-json` for plan-analysis; `json` for gates/inventory). Full JSON when provenance is
+`agent-machine-contract.md` (`summary-json` for plan-analysis. `json` for gates/inventory). Full JSON when provenance is
 required.
 
 Apply `--scope` before raising budgets when the component is known. Partial/scoped models remain
-partial relative to the whole target — honor `mustNotClaim`.
+partial relative to the whole target - honor `mustNotClaim`.
 
 ## Phase 3: capabilities (gate → agent/user)
 
@@ -37,7 +37,7 @@ Bundled relationship query (after approval when Graphify/Serena fail):
 node <skill-root>/scripts/query-program-model.js <target-root> <path-or-name> --depth 1 --format json
 ```
 
-Conservative and incomplete for dynamic behavior — state that limitation in the ledger.
+Conservative and incomplete for dynamic behavior - state that limitation in the ledger.
 
 ## Phase 4: retrieve + verify (agent ask → tool/script → agent)
 
@@ -52,10 +52,10 @@ For each selected concern:
 
 Search hits and graph edges are leads until verified. Record unsupported relation classes.
 
-## Phase 5: lenses (agent; script proposals optional)
+## Phase 5: lenses (agent. Script proposals optional)
 
 Apply the highest-ranked relevant lens to the critical flow first. Stop when further evidence would
-not change the mental model or next safe action. Workbooks choose representative flows — not every
+not change the mental model or next safe action. Workbooks choose representative flows - not every
 directory.
 
 ## Phase 6: runtime evidence (permission-gated)
@@ -71,8 +71,8 @@ node <skill-root>/scripts/plan-curriculum.js <target-root> --format summary-json
 ```
 
 **Agent turn:** compare the exact batch with bounded `proposal.alternates`, then SHORTLIST
-approve/replace/demote/fold/add; rewrite kept titles/outcomes; record reasoned
-`agentApproval.topicDecisions`; set `purposeStatus` to `accepted` or `unresolved`;
+approve/replace/demote/fold/add. Rewrite kept titles/outcomes. Record reasoned
+`agentApproval.topicDecisions`. Set `purposeStatus` to `accepted` or `unresolved`.
 corroborate `naming-heuristic` topics into `agentApproval.corroboratedTopicIds`. Read every existing
 title, invent each final title without a prescribed formula, and record
 `agentApproval.titleReview` for the complete curriculum. Set
@@ -86,8 +86,8 @@ Focused/PR modes skip this phase unless the user asks for a workbook.
 
 ## Phase 8: teach handshake (propose → draft → check → semantic → save)
 
-1. `plan-lesson.js` — advisory composition; complete B5 verify after retrieve.
+1. `plan-lesson.js` - advisory composition. Complete B5 verify after retrieve.
 2. Agent drafts from verified anchors (B4b).
-3. `check-lesson-quality.js` + `check-lesson-evidence.js` (+ secrets as needed); take warnings.
-4. Agent B4b/B6 sense (source fence + change/debug ending + claim decomposition); ≤1 rewrite.
-5. Save per memory policy; end with maintainer-only notes (gaps, skips, next concepts) — never a first-run tool ledger dump.
+3. `check-lesson-quality.js` + `check-lesson-evidence.js` (+ secrets as needed). Take warnings.
+4. Agent B4b/B6 sense (source fence + change/debug ending + claim decomposition). ≤1 rewrite.
+5. Save per memory policy. End with maintainer-only notes (gaps, skips, next concepts) - never a first-run tool ledger dump.

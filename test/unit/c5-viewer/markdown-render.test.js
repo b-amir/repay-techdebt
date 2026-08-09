@@ -274,8 +274,8 @@ Remember the hop.
 <!-- note: agent only -->
 
 <!-- CLAIMS:
-1. "Browser enters via /bff/*" — app/routes.ts:8 — support: yes — state: observed
-2. "Origin fail-closed" — app/core/api/bff-proxy/origin.server.ts:7 — support: yes — state: observed
+1. "Browser enters via /bff/*" - app/routes.ts:8 - support: yes - state: observed
+2. "Origin fail-closed" - app/core/api/bff-proxy/origin.server.ts:7 - support: yes - state: observed
 -->
 
 \`\`\`html
@@ -284,7 +284,7 @@ Remember the hop.
 
 CLAIMS:
 
-1. "Bare claim stays agent-only" — billing/capture.js:6 — support: yes — state: observed
+1. "Bare claim stays agent-only" - billing/capture.js:6 - support: yes - state: observed
 `;
   const prepared = prepareLessonMarkdown(source);
   assert.match(prepared.body, /Remember the hop/);

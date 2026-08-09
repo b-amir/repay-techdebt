@@ -244,7 +244,7 @@ ${viewSettingsPanel()}
 }
 
 /**
- * Thin covered-map chips for home: done / next why / evidence — not an LMS.
+ * Thin covered-map chips for home: done / next why / evidence - not an LMS.
  * @param {object} sidebar
  * @param {object | null} progress
  * @param {{ written: any[], planned: any[] }} items
@@ -440,7 +440,7 @@ function findContinueLesson(sidebar, progress) {
 /**
  * Defense-in-depth: strip any CLAIMS residue that still made it into HTML
  * (bare list, wrapped details, or html:false-escaped comment form).
- * Prefer stripAgentMetaMarkdown in prepareLessonMarkdown — that is the main path.
+ * Prefer stripAgentMetaMarkdown in prepareLessonMarkdown - that is the main path.
  */
 export function stripClaimsHtml(html) {
   return String(html ?? "")

@@ -32,27 +32,27 @@ I turn your repo into **short lessons** you read in a **browser workbook**. Your
 
 **Fast** uses sensible defaults and auto-saves lessons. **Control** lets you pick every setting.
 
-| Mark | Mode                                        | Reply     |
-| ---- | ------------------------------------------- | --------- |
-| ⚡   | Fast — defaults + auto-save, fewer stops    | `fast`    |
-| 🎛️   | Control — pick notes, depth, saves yourself | `control` |
+| Mark | Mode                                       | Reply     |
+| ---- | ------------------------------------------ | --------- |
+| ⚡   | Fast: defaults + auto-save, fewer stops    | `fast`    |
+| 🎛️   | Control: pick notes, depth, saves yourself | `control` |
 
 👉 **Reply:** `fast` or `control`
 ```
 
 Do **not** paste Control settings tables unless they reply `control`. If they reply `fast` (alias
-`express`; bare `yes` only when clearly choosing Fast), go to Fast flow.
+`express`. Bare `yes` only when clearly choosing Fast), go to Fast flow.
 
 ---
 
-## Message 2a — Fast (internal transition)
+## Message 2a: Fast (internal transition)
 
 After `fast` → `init` with flags in Agent notes → mark **Get ready** ✅.
 Do not ask for more setup confirmations. Proceed directly to the purpose / study list steps.
 
 ---
 
-## Message 2b — Control
+## Message 2b: Control
 
 ```markdown
 **Progress**
@@ -91,7 +91,7 @@ Or reply `yes` to use the Default column as-is.
 ```markdown
 ### Skill packages missing
 
-Install **only inside the skill folder** — not into your app.
+Install **only inside the skill folder**, never into your app.
 
 | Mark              | Detail                       |
 | ----------------- | ---------------------------- |
@@ -105,7 +105,7 @@ Install **only inside the skill folder** — not into your app.
 
 ## Agent notes
 
-Fast `init` after user `fast` — note **`--save-policy automatic`** and **`--mode workbook`**:
+Fast `init` after user `fast`. Note **`--save-policy automatic`** and **`--mode workbook`**:
 
 ```text
 node <skill-root>/scripts/project-memory.js init <target-root> \
@@ -113,9 +113,9 @@ node <skill-root>/scripts/project-memory.js init <target-root> \
   --mode workbook --depth balanced --save-policy automatic --yes
 ```
 
-Control uses mapped flags; default save-policy `ask` unless they chose automatic.
+Control uses mapped flags. Default save-policy `ask` unless they chose automatic.
 
-Aliases: `express` → `fast`. Prefer teaching `fast` / `control` on Message 1; accept bare `yes` only
+Aliases: `express` → `fast`. Prefer teaching `fast` / `control` on Message 1. Accept bare `yes` only
 when it clearly means Fast.
 
 No skill symlink paths unless asked.

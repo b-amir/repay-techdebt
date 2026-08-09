@@ -6,8 +6,8 @@
   lesson Markdown. The agent never generates viewer HTML.
 - Lesson Markdown is the only agent-produced viewer input and passes through markdown-it with
   `html: false`. The server remains loopback-only and source/progress paths stay sandboxed.
-- Viewer behavior—home, resume, navigation, search, Copy, completion, diagrams, and live
-  updates—belongs in `src/viewer/`, never in improvised lesson markup.
+- Viewer behavior, including home, resume, navigation, search, Copy, completion, diagrams, and live
+  updates, belongs in `src/viewer/`, never in improvised lesson markup.
 
 ## Responsive and accessible interaction
 
@@ -17,11 +17,11 @@
   open.
 - Search, settings, shortcuts, and Mermaid expansion provide appropriate dialog/popover semantics,
   contained focus, Escape behavior, and focus restoration. Icon-only controls require accessible
-  names; meaningful dynamic feedback uses status regions.
+  names. Meaningful dynamic feedback uses status regions.
 - Search distinguishes idle suggestions, loading, no matches, and recoverable failure. Completion
   distinguishes pending, success, and recoverable failure while preserving the previous state.
   Slow search responses cannot replace a newer query. Results distinguish titles, sections,
-  explanations, symbols, diagrams, claims, and sources; they include compact match context and
+  explanations, symbols, diagrams, claims, and sources. They include compact match context and
   section anchors when available.
 - The first lesson section is current at page top. The active TOC state is exposed through
   `aria-current`, has a non-color indicator, and stays visible in long rails. The TOC is the only
@@ -43,7 +43,7 @@
 - Prediction and Think first answers use native `details` interactions generated from documented
   Markdown. They remain understandable without client JavaScript and print exposes the answers.
 - Quick checks support two to four radio choices with exactly one predefined answer. The action is
-  disabled until a choice is made; feedback names correctness and explains the mechanism through a
+  disabled until a choice is made. Feedback names correctness and explains the mechanism through a
   polite live region. Selection, correct, and incorrect states never rely on color alone. Answers
   are local to the page and are neither scored nor persisted. Without JavaScript, a native Show
   answer disclosure preserves access to the correct choice and explanation.
@@ -62,15 +62,15 @@
 ## Citations and diagrams
 
 - The shared citation grammar is `path:line` or `path:start-end`. Typographic dashes normalize to
-  ASCII; pathless ranges fail validation. Valid body citations render as muted numbered references
+  ASCII. Pathless ranges fail validation. Valid body citations render as muted numbered references
   and full locations appear only in Sources with editor and backlink behavior. Hover or keyboard
   focus may show a short basename-and-range preview, but touch never depends on hover. Adjacent
   ranges for one file may share a note.
 - Mermaid must include `accTitle` and `accDescr`. Flowcharts prefer compact portrait `TD`/`TB`
-  layouts; horizontally essential exceptions stay narrow, and long vertical chains are reduced or
+  layouts. Horizontally essential exceptions stay narrow, and long vertical chains are reduced or
   split. Inline rendering must be readable before expansion.
 - The visible diagram action opens the existing SVG without rerendering it. Fit width, Fit height,
-  and 100% modes preserve aspect ratio. A render failure provides Retry and an opt-in source view;
+  and 100% modes preserve aspect ratio. A render failure provides Retry and an optional source view.
   it never exposes stack traces or filesystem details.
 
 ## Continuity and completion
@@ -79,7 +79,7 @@
   matching heading id in another lesson cannot trigger a false resume. A restored heading may show
   a brief, non-layout-shifting Resume here marker that disappears after reading continues.
 - An incomplete lesson with a next lesson uses one primary Mark done and continue action. Navigation
-  occurs only after completion persists; failure keeps the current page and announces recovery.
+  occurs only after completion persists. Failure keeps the current page and announces recovery.
 - Keyboard shortcuts supplement visible controls: lesson navigation, section navigation, Sources,
   completion, search, focus, and the sidebar all retain an ordinary pointer/touch path.
 

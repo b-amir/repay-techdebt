@@ -13,7 +13,7 @@ The skill never upgrades an inference into a fact merely because the confidence 
 | `derived`      | Deterministically computed from observed facts, such as containment or counts                    |
 | `inferred`     | A supported explanation that still requires verification                                         |
 | `hypothesis`   | A useful question or prediction without enough evidence yet                                      |
-| `contradicted` | Credible sources disagree; both are preserved for investigation                                  |
+| `contradicted` | Credible sources disagree. Both are preserved for investigation                                  |
 | `stale`        | Previously credible evidence predates a relevant change                                          |
 
 ## It moves continuously from system purpose to exact syntax
@@ -36,7 +36,7 @@ testing, and UI interaction.
 
 Optional sections appear only when they are relevant to the focus and supported by either two
 independent target signals or one authoritative source. A framework package, suggestive filename,
-or generic “best practice” is not enough. The internal plan can be complex; the lesson stays clear,
+or generic “best practice” is not enough. The internal plan can be complex. The lesson stays clear,
 usually one focused subject in three to eight sections with no empty template headings.
 
 ## The target application stays clean
@@ -66,7 +66,7 @@ Session-only operation creates no durable memory.
 
 **Stored preference vs runtime mode:** `config.choices.mode` is `ask` \| `pr` \| `workbook` only
 (`ask` = pick each session). Runtime `plan-analysis` / teach path also accepts `focused` for a
-scoped deep dive — Focused is not a durable config enum; pass `--mode focused` (or agent intent)
+scoped deep dive. Focused is not a durable config enum. Pass `--mode focused` (or agent intent)
 per run.
 
 If PR context is requested without a ref, the local Git extractor intentionally compares
@@ -77,14 +77,14 @@ exposes it and the repository identity is confirmed.
 
 - Polyglot repository and monorepo profiling with explicit coverage budgets.
 - Structured manifest and lockfile intelligence across common ecosystems.
-- Relationship extractors for registered languages (deepest for JavaScript/TypeScript/Python;
-  import/alias graphs for Gleam and Elixir; other ecosystems report unsupported rather than guess).
+- Relationship extractors for registered languages (deepest for JavaScript/TypeScript/Python.
+  import/alias graphs for Gleam and Elixir. Other ecosystems report unsupported rather than guess).
 - Components, conventional and learned boundaries, entry points, test relations, dependency use,
   critical-workflow hints, and ranked analysis lenses.
 - Pattern discovery, architecture scans, dependency intelligence, duplication, secret scanning,
   PR diffs, system atlases, and permission-gated runtime-evidence plans.
 - A ranked, resumable Markdown book index with 12–150 evidence-backed subjects based on repository
-  scale; completed lessons become links without regenerating the plan.
+  scale. Completed lessons become links without regenerating the plan.
 - Dynamic single-subject lessons with evidence-qualified modules, explicit omission reasons, and a
   writing-quality gate for length, headings, citations, paragraph focus, and generic filler.
 - Private curriculum state, confirmed decisions, verified snapshots, atlases, and sanitized
@@ -112,7 +112,7 @@ privacy, accessibility, cost, reproducibility, memory safety, offline behavior, 
 2. **Relationships before isolated snippets.** A function matters because something calls it and
    something changes afterward.
 3. **Complex analysis, simple lessons.** Internal rigor should reduce reader effort.
-4. **No silent confidence inflation.** Prefer available tools quietly; on miss, use the named
+4. **No silent confidence inflation.** Prefer available tools quietly. On miss, use the named
    bundled fallback with the same UX. Never claim a tool ran because it exists. Ask only before
    install/config or unauthorized writes.
 5. **Private and target-pure by default.** Learning the system should not modify the system.

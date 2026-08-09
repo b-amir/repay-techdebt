@@ -8,7 +8,7 @@ primaryPaths:
   - billing/settlement.js
 skipReasons:
   map: >-
-    Single helper and return object; no multi-module structure question that a
+    Single helper and return object. No multi-module structure question that a
     diagram would answer better than the snippet.
 sectionRoles:
   workedPath: Read the whole mechanism
@@ -24,7 +24,7 @@ sectionRoles:
 
 Capture already proved an order id exists. Settlement only needs identifiers and amount so it can stamp a status. Keeping that stamp in one function means every path that needs a settled result goes through the same object shape.
 
-You do not need a system map here: there is one function and one return. The map skip is intentional — the teaching target is the object, not module topology.
+You do not need a system map here: there is one function and one return. The map skip is intentional - the teaching target is the object, not module topology.
 
 ## Read the whole mechanism
 
@@ -39,9 +39,9 @@ export function settle(orderId, amount) {
 
 Three facts matter:
 
-1. **Inputs are scalars**, not the full order object — so settle cannot re-run capture’s `order?.id` check even if it wanted to.
+1. **Inputs are scalars**, not the full order object - so settle cannot re-run capture’s `order?.id` check even if it wanted to.
 2. **Status is a string literal** `"settled"` at `billing/settlement.js:3`, not a computed enum from elsewhere in this fixture.
-3. **No async, no side effects** in this file — the “settlement” is the returned object. Callers that expect a write to a ledger will not find it here.
+3. **No async, no side effects** in this file - the “settlement” is the returned object. Callers that expect a write to a ledger will not find it here.
 
 Because capture does `return settle(...)` in `billing/capture.js:6`, whatever shape you invent in settle becomes capture’s public result for this path.
 
@@ -61,7 +61,7 @@ Capture still returns successfully, but anything that reads `.status` or `.order
 + return { orderId, amount, status: amount > 0 ? "settled" : "pending" };
 ```
 
-That change invents a second status without updating callers or tests. The lesson is not “never evolve status” — it is “the return object _is_ the contract,” so edit it as a contract.
+That change invents a second status without updating callers or tests. The lesson is not “never evolve status” - it is “the return object _is_ the contract,” so edit it as a contract.
 
 ## Safely evolve the return contract
 
@@ -73,4 +73,4 @@ Private answer: first assert that capture’s result currently has `.status === 
 migration, return both `status: "settled"` and `state: "settled"`, update callers, then remove the old
 field in a separate verified change. The helper still does not validate or persist.
 
-**If you remember one thing:** settle’s return object is the settlement — change those fields and you change capture’s result.
+**If you remember one thing:** settle’s return object is the settlement - change those fields and you change capture’s result.

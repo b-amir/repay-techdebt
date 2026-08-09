@@ -1,6 +1,6 @@
 /**
  * Shared analyzer result shape for enhanced-tool wrappers.
- * Prefer this plain factory over a base class — wrappers stay free to call CLIs directly
+ * Prefer this plain factory over a base class - wrappers stay free to call CLIs directly
  * while still returning a uniform status vocabulary.
  */
 

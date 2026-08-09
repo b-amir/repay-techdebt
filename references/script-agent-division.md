@@ -1,17 +1,17 @@
 # Script-Agent Division of Labor
 
-The skill enforces a clean contract: **scripts own what is verifiable and predictable; the agent owns what is judgment and taste.**
+The skill enforces a clean contract: **scripts own what is verifiable and predictable. The agent owns what is judgment and taste.**
 
 ## Ownership Domains
 
 | Domain                                                                                      | Owner   | Why                                                        |
 | ------------------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------- |
 | **Inventory** (files, calls, manifest versions, graph)                                      | Scripts | Verifiable, cacheable, deterministic                       |
-| **Mechanical QA** (citation format, `path:line` resolves, structure, visible soft warnings) | Scripts | Verifiable proxies; cheap and observable                   |
+| **Mechanical QA** (citation format, `path:line` resolves, structure, visible soft warnings) | Scripts | Verifiable proxies. Cheap and observable                   |
 | **Selection** (what to teach, what's important, what's the BLUF)                            | Agent   | Judgment, context-dependent, resists encoding              |
-| **Lesson quality** (is this insightful, accurate, well-paced)                               | Agent   | Semantic; the very thing regex fails at                    |
+| **Lesson quality** (is this insightful, accurate, well-paced)                               | Agent   | Semantic. The very thing regex fails at                    |
 | **Chat flow** (turn order, what's asked when, when to stop)                                 | Scripts | Predictability for the user is the product                 |
-| **Viewer rendering** (HTML/CSS, themes, navigation, TOC, search)                            | Scripts | Same UX every time; never delegated to agent improvisation |
+| **Viewer rendering** (HTML/CSS, themes, navigation, TOC, search)                            | Scripts | Same UX every time. Never delegated to agent improvisation |
 | **Save / persist** (atomic write, schema, progress, draft cleanup)                          | Scripts | Atomicity and correctness                                  |
 
 ## The Data Contract
@@ -25,8 +25,8 @@ Every handoff between scripts and the agent is structured JSON with a defined sc
 
 ### 1. Curriculum proposal → Agent shortlist
 
-- **Script (proposes):** Scans the project and emits a JSON list of topics (`proposals`), identifying relationships (`evidence`), and suggesting what to cover (`nextAsks`). Titles/outcomes are path-unique placeholders — not finished INDEX copy.
-- **Agent (judges):** Evaluates the proposal against the learner's purpose. Rewrites kept titles/outcomes and records reasoned demote/fold decisions. The script validates and applies the declared decisions; it does not choose them.
+- **Script (proposes):** Scans the project and emits a JSON list of topics (`proposals`), identifying relationships (`evidence`), and suggesting what to cover (`nextAsks`). Titles/outcomes are path-unique placeholders - not finished INDEX copy.
+- **Agent (judges):** Evaluates the proposal against the learner's purpose. Rewrites kept titles/outcomes and records reasoned demote/fold decisions. The script validates and applies the declared decisions. It does not choose them.
 
 ### 2. Evidence packet → Agent draft
 

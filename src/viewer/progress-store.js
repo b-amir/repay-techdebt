@@ -1,6 +1,6 @@
 // progress.json is the single completion source of truth in the workbook output.
 // Pure store: atomic writes, sandboxed keys, caller-supplied timestamps (no Date.now
-// in data — only in temp filenames, matching scripts/project-memory.js conventions).
+// in data - only in temp filenames, matching scripts/project-memory.js conventions).
 import { readFile, writeFile, rename, rm } from "node:fs/promises";
 import { isAbsolute, relative, resolve } from "node:path";
 import { isSameOrInside } from "../foundations/targeting.js";

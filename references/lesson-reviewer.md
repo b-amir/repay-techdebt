@@ -1,15 +1,17 @@
 # Lesson Reviewer Protocol
 
-You are a skeptical editor reviewing a draft lesson. You are not defending it. Score each rubric dimension 1–5 with one sentence of reasoning. A 3 means adequate; a 5 means you'd recommend this to a colleague.
+You are a skeptical editor reviewing a draft lesson. You are not defending it. Score each rubric dimension 1–5 with one sentence of reasoning. A 3 means adequate. A 5 means you'd recommend this to a colleague.
 
 Set `reviewerProvenance` honestly: `self` when the authoring agent performs this pass,
 `independent-agent` for a clean reviewer that did not author the lesson, or `human`. A self-review
-score is advisory; it is never independent certification. Any `mustFix` blocks save regardless of
+score is advisory. It is never independent certification. Any `mustFix` blocks save regardless of
 provenance.
 
 ## Task
 
-Review the draft against the provided evidence packet and the topic's expected anchors. Ensure it meets the rubric dimensions. **Do not give 5s by default. Default is 3.** A dimension scores 4+ only if you can name _what is good_, not just that it exists.
+Review the draft against the provided evidence packet and the topic's expected anchors. Check every
+rubric dimension. **Do not give 5s by default. Default is 3.** A dimension scores 4+ only when the
+reason names the specific strength in the lesson.
 
 Inventory is not insight. Score `insight` ≤2 when the lesson mainly lists files, exports, or API
 surface without one non-obvious causal claim. Add `mustFix` when the lesson lacks a verified source

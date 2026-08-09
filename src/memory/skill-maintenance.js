@@ -1,5 +1,5 @@
 // Plan and execute deletion of repay-techdebt artifacts for a target. Never touches
-// application source, package manifests, or lockfiles — only skill memory, workbook
+// application source, package manifests, or lockfiles - only skill memory, workbook
 // output, disposable caches, and optional target ignore markers.
 import { execFile } from "node:child_process";
 import { lstat, readFile, realpath, rm, writeFile } from "node:fs/promises";

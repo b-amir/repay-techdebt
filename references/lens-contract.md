@@ -8,14 +8,14 @@ program.
 
 ## Built-in lens families
 
-- behavioral: correctness, reliability, data integrity, offline behavior;
-- risk: security, privacy, memory safety, portability;
-- resource: performance, cost, operability;
-- human: accessibility, user experience;
+- behavioral: correctness, reliability, data integrity, offline behavior.
+- risk: security, privacy, memory safety, portability.
+- resource: performance, cost, operability.
+- human: accessibility, user experience.
 - change: maintainability, testability, reproducibility, quality.
 
 `packs/lenses.json` provides canonical questions and expected evidence classes. A language or
-framework pack raises a lens's relevance; purpose, critical workflows, and observed architecture
+framework pack raises a lens's relevance. Purpose, critical workflows, and observed architecture
 must still determine actual priority.
 
 ## Applying a lens
@@ -36,10 +36,10 @@ impact. Do not say “inaccessible” without evaluating the relevant interactio
 
 A new lens needs:
 
-- a stable lowercase ID;
-- two or more questions that change investigation behavior;
-- evidence classes that could answer those questions;
-- at least two distinct program archetypes where the lens adds value;
+- a stable lowercase ID.
+- two or more questions that change investigation behavior.
+- evidence classes that could answer those questions.
+- at least two distinct program archetypes where the lens adds value.
 - tests showing it can be ranked and composed.
 
 Avoid synonyms for existing lenses. Add specialized packs or investigations when the concern is an

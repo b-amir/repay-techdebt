@@ -1,30 +1,39 @@
 ---
 name: repay-techdebt
 description: >-
-  Learn this codebase from its live files — evidence-qualified lessons and a
+  Learn this codebase from its live files through evidence-qualified lessons and a
   browser workbook for unfamiliar or agent-authored code. Prefer optional tools
-  silently when already available; otherwise use bundled scripts with the same
+  silently when already available. Otherwise use bundled scripts with the same
   UX (no tool jargon in user chat, no confidence inflation). Ask only before
   install/config changes. Hard overclaim rule: unsupported → shrink scope or
-  refuse — never "continue weaker?". Scripts and the agent take turns; follow
+  refuse. Never offer "continue weaker?". Scripts and the agent take turns. Follow
   nextAsks on script output.
 ---
 
 # Repay Tech Debt
 
 Act as a senior engineering mentor. Teach from verified project evidence. Do not turn the response
-into a generic review or programming course. **In chat:** tables + emojis — ≤10 words outside tables on
+into a generic review or programming course. **In chat:** use tables and emojis. Keep routine prose
+to ≤10 words outside tables
 routine turns (`templates/agent-experience.md`).
+
+## Writing style
+
+- Write short, direct sentences with concrete actors and actions.
+- Do not use em dashes or semicolons in prose.
+- Remove canned openings, promotional adjectives, filler, and staged rhetorical contrasts.
+- Keep paths in citations and source lists unless a location is necessary to explain the mechanism.
+- Describe the user-facing result. Keep internal repair, indexing, and tool details out of routine chat.
 
 Scripts and the agent take turns from 0→100. At activation read, in order:
 
-1. `<skill-root>/references/agent-machine-contract.md` — **exact invokes, formats, exit→action,
+1. `<skill-root>/references/agent-machine-contract.md`: **exact invokes, formats, exit→action,
    install outcomes, closed nextAsks, anti-improvise** (machine predictability)
-2. `<skill-root>/references/script-agent-dialogue.md` — turn map, mode paths, caps
-3. `<skill-root>/references/bottleneck-checkpoints.md` — B0–B6
+2. `<skill-root>/references/script-agent-dialogue.md`: turn map, mode paths, caps
+3. `<skill-root>/references/bottleneck-checkpoints.md`: B0–B6
 
 Follow those. Scripts return proposals with `role`, `blindSpots`, `mustNotClaim`, and
-`nextAsks` — never treat them as finished truth. Prefer the machine contract over chat habit
+`nextAsks`. Never treat them as finished truth. Prefer the machine contract over chat habit
 when they conflict.
 
 ## Preserve the project
@@ -32,10 +41,10 @@ when they conflict.
 - Analysis-only unless the user separately requests implementation.
 - Default zero target writes: no analysis deps, lockfiles, caches, indexes, memory, ignore rules,
   hooks, or agent instructions in the application repo.
-- Private user storage for config/decisions/tool artifacts; sister workbook
+- Private user storage for config/decisions/tool artifacts. Sister workbook
   `repay-<project>-techdebt` next to the Git root by default. `.repay-techdebt/` inside the target
   only after explicit project-local/team memory choice.
-- **Preserve the project:** Never delete or rewrite source code outside `.repay-techdebt/` or `.graphify/`. Do not pollute the repository root. Never generate viewer HTML; the script owns the workbook UX. Lesson Markdown is the only agent-produced viewer input.
+- **Preserve the project:** Never delete or rewrite source code outside `.repay-techdebt/` or `.graphify/`. Do not pollute the repository root. Never generate viewer HTML. The script owns the workbook UX. Lesson Markdown is the only agent-produced viewer input.
 - Ask before installing user-scoped tools or editing agent/MCP config. Never install analyzers into
   the target dependency environment.
 - Never expose secrets, credentials, env values, or customer data.
@@ -51,15 +60,15 @@ Full model: `<skill-root>/docs/security.md`.
 
 | Surface                  | What runs                    | Gate                                                                  |
 | ------------------------ | ---------------------------- | --------------------------------------------------------------------- |
-| Skill deps               | private linked runtime       | `--ignore-scripts`; frozen lockfile; exact versions; never target app |
+| Skill deps               | private linked runtime       | `--ignore-scripts`. Frozen lockfile. Exact versions. Never target app |
 | PATH shim                | `~/.local/bin/repay`         | **Off** unless `REPAY_LINK_CLI=1` / `--link-cli`                      |
-| Runtime evidence         | optional shell capture       | mandatory `--consent`; refuse without it                              |
-| Optional tools           | graphifyy / serena / semgrep | suggest install only; never silent target install                     |
-| Viewer                   | loopback HTTP                | `127.0.0.1` only; path sandbox; Markdown `html:false`                 |
-| CLI `init`/`plan`/`view` | local scripts only           | flag allowlist; `shell:false`; no remote `skills` invoke              |
+| Runtime evidence         | optional shell capture       | mandatory `--consent`. Refuse without it                              |
+| Optional tools           | graphifyy / serena / semgrep | suggest install only. Never silent target install                     |
+| Viewer                   | loopback HTTP                | `127.0.0.1` only. Path sandbox. Markdown `html:false`                 |
+| CLI `init`/`plan`/`view` | local scripts only           | flag allowlist. `shell:false`. No remote `skills` invoke              |
 
 No telemetry. No outbound upload of target source. Hosted documentation tools receive generic
-library/version questions only—never source, prompts copied from the target, or private identifiers.
+library/version questions only. Never send source, prompts copied from the target, or private identifiers.
 
 ## Resolve skill and target
 
@@ -80,7 +89,7 @@ on `<target-root>` first. Full manual: `<skill-root>/docs/manual.md`.
 | `--clear-cache`  | `clear-cache`  | Analyzer cache only.                                                              |
 | `--reset`        | `reset`        | Output + cache.                                                                   |
 | `--reconfig`     | `reconfig`     | Update mode/depth/save-policy in existing config.                                 |
-| `--view`         | `open-viewer`  | Script-owned browser UI only — never hand-build viewer HTML.                      |
+| `--view`         | `open-viewer`  | Script-owned browser UI only. Never hand-build viewer HTML.                       |
 | `--create <id>`  | `teach-topic`  | Teach one planned topic (`teach-topic.js` with topic id/slug/focus).              |
 
 Modifiers: `--keep-lessons`, `--keep-config`, `--revert-target-markers`, `--dry-run` (preview).
@@ -98,7 +107,7 @@ header `| Step | {current}/{total} |` where **current is the 1-based index of th
 
 Choose the progress scenario from the user's current intent **before** drawing the table. Direct
 create/recreate/update/delete requests never use the workbook-shortlist template. Explicit batches
-and ranges use the requested count; workbook batches use `delivery.sessionBatch.length`. Until a
+and ranges use the requested count. Workbook batches use `delivery.sessionBatch.length`. Until a
 count is known, say **Choosing lessons** / **Writing lessons** without a number. A count of three is
 not a UI default.
 
@@ -116,7 +125,7 @@ not a UI default.
 Never expose B0–B6, RETRIEVEQs, SHORTLIST, or checkpoint codes in user chat.
 
 First-run: compose `templates/introduction-wizard.md` Message 1 with the already-selected progress
-scenario (what this is · progress · Fast vs Control). Prepend **Get ready**; do not replace a direct
+scenario (what this is · progress · Fast vs Control). Prepend **Get ready**. Do not replace a direct
 lesson action with workbook discovery. **Fast:** `fast` → `init` immediately with defaults (private +
 sister + workbook + balanced + automatic). **Control:** `control` → full settings. Mid-session:
 exact blocks in `agent-experience.md`. Alias: `express` → `fast`. No skill symlink paths unless asked.
@@ -127,7 +136,7 @@ exact blocks in `agent-experience.md`. Alias: `express` → `fast`. No skill sym
 | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | Gates, inventories, wrappers, coverage, proposals, mechanical QA, saves | Purpose, retrieve questions, verify source, shortlist, teach, semantic qualify, ledger |
 
-**Caps:** ≤1 extra investigate turn per phase; ≤1 lesson rewrite; then ship with gaps or ask.
+**Caps:** ≤1 extra investigate turn per phase. ≤1 lesson rewrite. Then ship with gaps or ask.
 **Skip:** inventory/propose/retrieve only with ledger reason. Never skip consent, secrets, or
 capability-failure prompts.
 
@@ -151,16 +160,16 @@ node <skill-root>/scripts/check-runtime.js --format json
 ```
 
 Bundled skill CLIs (`project-memory.js`, `view-lessons.js`, `teach-topic.js`) call
-`ensure-runtime` on start — they run `pnpm install` **inside `<skill-root>` only** when
+`ensure-runtime` on start. They run `pnpm install` **inside `<skill-root>` only** when
 `node_modules` is missing (e.g. after skills.sh sync): `--ignore-scripts`, and
 `--frozen-lockfile` when `pnpm-lock.yaml` is present. Bootstrap prefers the pnpm version pinned in
-the skill manifest through Corepack; it never retries an unlocked install. Never installs into the
+the skill manifest through Corepack. It never retries an unlocked install. Never installs into the
 target app.
 Consent is recorded in user state or `<skill-root>/.repay-skill-runtime/`. Manual repair:
 `node <skill-root>/scripts/ensure-runtime.js`. Optional PATH shim for `repay` is **off**
 unless `REPAY_LINK_CLI=1` or `--link-cli`. Full model: `<skill-root>/docs/security.md`.
 
-**Agent:** confirm roots; if `first-run`, run the wizard from
+**Agent:** confirm roots. If `first-run`, run the wizard from
 `templates/introduction-wizard.md`:
 
 1. **Message 1:** what this is + progress + **Fast vs Control**.
@@ -195,7 +204,7 @@ node <skill-root>/scripts/plan-analysis.js <target-root> --mode <pr|workbook|foc
 ```
 
 **Agent rule:** call `plan-analysis.js` with `--format summary-json` (or `json`). Do **not** use human
-CLI `repay plan` for machine turns — TTY pretty table drops fields agents must read
+CLI `repay plan` for machine turns. The TTY table drops fields agents must read
 (`nextAsks`, `toolChain`, `mustNotClaim`, `blindSpots`). Piped `repay plan` falls back to
 `summary-json`, but the script path above is the contract.
 
@@ -208,10 +217,10 @@ node <skill-root>/scripts/check-capabilities.js <target-root> --format json
 ```
 
 Read `references/tool-integrations.md` + `references/agent-machine-contract.md`. Prefer available
-tools silently; on failure use the named bundled fallback with the same user-facing UX — no tool
-menus, no ask-before-every-fallback in chat. Ask only for install/config consent. Never claim a
+tools silently. On failure use the named bundled fallback with the same user-facing UX. Do not show
+tool menus or ask before every fallback in chat. Ask only for install/config consent. Never claim a
 tool ran because it exists. Bundled profiler success does not prove Graphify, Serena, Semgrep, or
-Context7 succeeded. Handle every documented exit/type branch; do not invent alternate products.
+Context7 succeeded. Handle every documented exit/type branch. Do not invent alternate products.
 
 **Hard overclaim:** if evidence is missing, mark `unsupported`, shrink the claim/scope, or refuse
 the durable save. Never offer “continue weaker?” or soft-escape half-lessons.
@@ -238,9 +247,9 @@ node <skill-root>/scripts/run-graphify.js paths|extract|query <target-root> …
 ### PR Mentor
 
 Gather diff via GitHub MCP or `get-pr-changes.js` (exclude `.repay-techdebt/`). Re-rank around
-changed symbols; retrieve blast radius; teach 1–3 points. Before a durable save, create or append a
+changed symbols. Retrieve blast radius. Teach 1–3 points. Before a durable save, create or append a
 mini-curriculum (`buildTeachingCurriculum` → `save-curriculum`) so every lesson links from
-`INDEX.md` — same workbook shape as whole-app mode.
+`INDEX.md`, preserving the whole-app workbook shape.
 
 ### Whole-app workbook
 
@@ -253,18 +262,18 @@ node <skill-root>/scripts/plan-curriculum.js <target-root> --format summary-json
 The normal whole-app response plans the complete supported learning path first (up to 150 topics
 for a large repository) and separately names a 1–3 lesson writing batch. `--batch-size N` controls
 only that current writing batch. Use `--batch-only` only when the user explicitly says the entire
-curriculum should contain exactly N lessons; never infer it from “write N lessons.” In that explicit
+curriculum should contain exactly N lessons. Never infer it from “write N lessons.” In that explicit
 mode, `topics` contains exactly the requested count and `proposal.alternates` provides up to nine
 ranked replacements that are never persisted automatically. Use `--focus` to preserve an explicit
 user choice ahead of diversification. Full candidate diagnostics are opt-in with
 `--format json --include-catalog --output <outside-target-path>` and never belong in normal stdout.
 
-Approve/demote/fold/add topics (B3; corroborate `signalClass: naming-heuristic`). **Rewrite
-`title` + `learnerOutcome` from live source** — script labels are path-unique placeholders. Read
+Approve/demote/fold/add topics (B3. Corroborate `signalClass: naming-heuristic`). **Rewrite
+`title` + `learnerOutcome` from live source**. Script labels are path-unique placeholders. Read
 every existing title, then invent a truthful, catchy title suited to that topic. Do not follow a
-required prefix, formula, or programmed rotation; avoid reusing existing openings, rhythms, and
-frames. Similarity diagnostics are comparison evidence only—the agent owns every creative choice.
-Fold same-flow micro-units into one kept outcome; demotions/folds require reasons in
+required prefix, formula, or programmed rotation. Avoid reusing existing openings, rhythms, and
+frames. Similarity diagnostics are comparison evidence only. The agent owns every creative choice.
+Fold same-flow micro-units into one kept outcome. Demotions/folds require reasons in
 `agentApproval.topicDecisions`. Complete B4a order check. Persist only with `agentApproval` including
 `purposeStatus: accepted|unresolved`, `approvedAt`, `corroboratedTopicIds`, and
 `titleReview: { reviewedAt, scope: "complete-curriculum" }`, plus `acceptedPartialScope` when
@@ -275,9 +284,9 @@ topic IDs and a specific reason to `titleReview.retainedSimilarities`:
 node <skill-root>/scripts/project-memory.js save-curriculum <target-root> --input <approved.json> --yes
 ```
 
-Write 1–3 lessons per run from `delivery.sessionBatch`; resume from `INDEX.md`. In learning-path
+Write 1–3 lessons per run from `delivery.sessionBatch`. Resume from `INDEX.md`. In learning-path
 mode explain that the current batch keeps token use sane and name the actual pending count. In
-batch-only mode say the workbook contains exactly the requested batch; never claim that more topics
+batch-only mode say the workbook contains exactly the requested batch. Never claim that more topics
 remain planned.
 After the **third** saved lesson in a batch, or when the batch is complete with fewer than three
 topics, **must** open the viewer with
@@ -289,21 +298,21 @@ topics, **must** open the viewer with
 
 ## Teach handshake (compose → check → semantic → save)
 
-1. **Script propose:** `plan-lesson.js` (advisory shape; verify in live source). Review all three
+1. **Script propose:** `plan-lesson.js` (advisory shape. Verify in live source). Review all three
    `learningMoments` decisions: include recommended moments unless live source gives a concrete
-   evidence, safety, redundancy, or pacing reason to omit them; decide candidates explicitly.
+   evidence, safety, redundancy, or pacing reason to omit them. Decide candidates explicitly.
    After retrieve, complete B5 (verify ≤3 anchors).
 2. Read `templates/lesson-format.md`, `references/lesson-composition.md`,
    `references/lesson-writing.md`, and B4b/B6 in `references/bottleneck-checkpoints.md`.
 3. **Agent draft** one topic, 3–8 topic-specific sections declared through `sectionRoles`, at least
    one verified source fence, self-contained `` `path:line` `` or `` `path:start-end` `` citations,
-   honest evidence language, and a modify/debug/test job ending. Keep raw locations out of prose;
+   honest evidence language, and a modify/debug/test job ending. Keep raw locations out of prose.
    never use a pathless range. Follow the plan's `diagramIntent`: use verified nodes/edges, keep the
    subgraph small, prefer a compact portrait or near-square layout (`TD`/`TB` for flowcharts), avoid
    both wide graphs and long single-column chains, explain any horizontal exception, give omissions
    a topic-specific reason, and fix Mermaid syntax before save. Copy the reviewed learning-moment
    decisions into frontmatter as `learningMoments.quickCheck`, `thinkFirst`, and
-   `seeForYourself`; each value starts with `included -` or `omitted -` and gives a specific reason.
+   `seeForYourself`. Each value starts with `included -` or `omitted -` and gives a specific reason.
    An included decision must have the matching block in the draft.
 4. **Script check:**
 
@@ -321,17 +330,17 @@ node <skill-root>/scripts/recheck-claims.js <target-root> [<lesson.md>]
 node <skill-root>/scripts/project-memory.js recheck-claims <target-root> [<lesson.md>] --format json
 ```
 
-Optional report-only bundle (floors + observable teaching behaviors; not an independent judge or
+Optional report-only bundle (floors + observable teaching behaviors. Not an independent judge or
 save gate):
 
 ```text
 node <skill-root>/scripts/evaluate-lesson.js <target-root> <draft.md> --depth <concise|balanced|deep>
 ```
 
-5. **Agent B4b + B6 sense:** PRIMM moves without empty process headings; claim decomposition
-   (`CLAIMS:` with support yes|no|gap; multiple citations allowed). The deterministic checker
+5. **Agent B4b + B6 sense:** PRIMM moves without empty process headings. Claim decomposition
+   (`CLAIMS:` with support yes|no|gap. Multiple citations allowed). The deterministic checker
    verifies citation windows and identifier anchors, not meaning. The agent must review semantic
-   support in natural prose. Record reviewer provenance as `self`, `independent-agent`, or `human`;
+   support in natural prose. Record reviewer provenance as `self`, `independent-agent`, or `human`.
    a self-review score is advisory. Warnings are revise-or-explain prompts, never invisible noise.
    ≤1 rewrite if quality, evidence, faithfulness, or sense failed.
 6. **Script save** via `project-memory.js save-lesson` with `--topic-id` when curriculum topics
@@ -347,18 +356,18 @@ Otherwise offer the viewer link. The emit includes `viewer.command`, `viewer.hin
 `viewer.deepLinkRel`, and `viewer.openRecommended`. Always show Markdown paths too.
 
 7. **Maintainer notes (not user chat):** record tool outcomes, fallbacks, limitations, unresolved
-   gaps, next concepts, and checkpoint skips only in maintainer logs / private notes — never dump a
+   gaps, next concepts, and checkpoint skips only in maintainer logs or private notes. Never dump a
    tool ledger, capability menu, or install tour into first-run or learner chat.
 
 ## Enhanced tools (pointers only)
 
 Full chains, wrappers, and failure prompts: `references/tool-integrations.md`.
 
-| Phase        | Prefer         | Bundled fallback (silent; ask only install/config)       |
+| Phase        | Prefer         | Bundled fallback (silent. Ask only install/config)       |
 | ------------ | -------------- | -------------------------------------------------------- |
 | PR/CI        | GitHub MCP     | `get-pr-changes.js`                                      |
 | Architecture | Graphify       | `query-program-model.js` / scoped `scan-architecture.js` |
-| Symbols      | Serena         | bundled AST scanners; verify in source                   |
+| Symbols      | Serena         | bundled AST scanners. Verify in source                   |
 | Security     | Semgrep        | Secretlint + manual verify                               |
 | Docs         | Context7       | official primary docs                                    |
 | Large/remote | Repomix stdout | scoped outline                                           |
@@ -367,7 +376,9 @@ Always exclude nested skill paths and `.repay-techdebt/` from application eviden
 
 ### Maintainer: optional repay MCP
 
-Thin stdio server: `node scripts/repay-mcp.js`. Wraps existing modules/scripts only — **no silent durable write**. **Never** required for teach/save/resume. Register in agent MCP config only with user consent. Learner chat never mentions installing MCP.
+Thin stdio server: `node scripts/repay-mcp.js`. It wraps existing modules and scripts with **no
+silent durable write**. It is **never** required for teach, save, or resume. Register it in agent MCP
+config only with user consent. Learner chat never mentions installing MCP.
 
 | Tool                                                  | Purpose                                |
 | ----------------------------------------------------- | -------------------------------------- |

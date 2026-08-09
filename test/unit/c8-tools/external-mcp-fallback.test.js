@@ -1,7 +1,7 @@
 // @category C8
 /**
  * External MCP optional: when GitHub MCP unavailable, bundled get-pr-changes still works.
- * Silent fallback — no install tour required.
+ * Silent fallback - no install tour required.
  */
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";

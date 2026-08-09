@@ -9,7 +9,7 @@ Subjects below use the mini target under `target/billing/` so examples stay conc
 
 ## Curriculum grain and titles
 
-### Pair 0 — one outcome vs scanner rows
+### Pair 0 - one outcome vs scanner rows
 
 **Bad**
 
@@ -21,46 +21,46 @@ capture-to-settlement contract safely.
 
 **Good**
 
-> **How capture hands a validated order to settlement** — evidence:
+> **How capture hands a validated order to settlement** - evidence:
 > `billing/capture.js`, `billing/settlement.js`, and the billing entrypoint.
 
 **Why good:** One outcome owns all evidence needed for the change. Fold the re-export/index into the
 topic instead of teaching a twin lesson.
 
-### Pair 0b — thin file demotion vs a justified exception
+### Pair 0b - thin file demotion vs a justified exception
 
 **Bad keep**
 
-> **Understand the role of billing/index.js** — it exports `capturePayment`.
+> **Understand the role of billing/index.js** - it exports `capturePayment`.
 
 **Why bad:** Export existence is not a mental model or a distinct failure mode.
 
 **Good keep exception**
 
-> **Why the public billing entrypoint is the compatibility boundary** — changing this thin export
+> **Why the public billing entrypoint is the compatibility boundary** - changing this thin export
 > breaks every package consumer even though the file has three lines.
 
 **Why good:** Thinness is not the decision. A distinct blast radius and trust/compatibility boundary
 justify the topic.
 
-### Pair 0c — placeholder copy vs mechanism copy
+### Pair 0c - placeholder copy vs mechanism copy
 
 **Bad**
 
-> **Billing Capture** — Change Billing Capture safely: what it owns and what depends on it.
+> **Billing Capture** - Change Billing Capture safely: what it owns and what depends on it.
 
 **Good**
 
-> **Where capture rejects incomplete orders before settlement** — Debug whether a failed payment was
+> **Where capture rejects incomplete orders before settlement** - Debug whether a failed payment was
 > rejected at the input guard or returned without settlement status.
 
-**Why good:** The title names the decision; the outcome names a job.
+**Why good:** The title names the decision. The outcome names a job.
 
 ---
 
 ## Openers (hook / BLUF)
 
-### Pair 1 — concrete path vs vague overview
+### Pair 1 - concrete path vs vague overview
 
 **Bad**
 
@@ -74,7 +74,7 @@ justify the topic.
 
 **Why good:** Names the split, points at a real symbol, states the mistake the lesson prevents. Plain first line.
 
-### Pair 2 — curiosity about _their_ code vs textbook throat-clear
+### Pair 2 - curiosity about _their_ code vs textbook throat-clear
 
 **Bad**
 
@@ -86,9 +86,9 @@ justify the topic.
 
 > `settle` looks tiny, but **its return object is the contract capture relies on**. Change the fields without checking callers and capture still “succeeds” while `.status` disappears.
 
-**Why good:** Hook is a landmine in _this_ helper; consequence is concrete.
+**Why good:** Hook is a landmine in _this_ helper. Consequence is concrete.
 
-### Pair 3 — outcome first vs restating the title
+### Pair 3 - outcome first vs restating the title
 
 **Bad**
 
@@ -98,7 +98,7 @@ justify the topic.
 
 **Good**
 
-> After this lesson you can open `billing/settlement.js` and describe the three fields on the settled object from memory — and name one thing settle does _not_ do.
+> After this lesson you can open `billing/settlement.js` and describe the three fields on the settled object from memory - and name one thing settle does _not_ do.
 
 **Why good:** Finish line is a do-thing on a real file.
 
@@ -106,7 +106,7 @@ justify the topic.
 
 ## Closing job
 
-### Pair 4 — do-thing on real symbols vs trivia quiz
+### Pair 4 - do-thing on real symbols vs trivia quiz
 
 **Bad**
 
@@ -121,13 +121,13 @@ justify the topic.
 
 **Why good:** The learner uses the handoff model to debug a symptom and define proof before editing.
 
-### Pair 5 — winnable one-step check vs essay prompt
+### Pair 5 - winnable one-step check vs essay prompt
 
 **Bad**
 
 > Write a full redesign of the payment domain including ledgers, retries, and PCI scope. Discuss trade-offs at length.
 
-**Why bad:** Not finishable in one sitting; not tied to cited files; crushes the lesson’s single topic.
+**Why bad:** Not finishable in one sitting. Not tied to cited files. Crushes the lesson’s single topic.
 
 **Good**
 

@@ -25,7 +25,7 @@ modified or executed.
 | `component`                               | A workspace/manifest-owned program component with its own archetypes   |
 | `area`                                    | A layout-derived project region, not automatically a domain boundary   |
 | `file`                                    | A modeled file without a stronger structural role                      |
-| `entry-point`                             | A conventional startup/invocation filename; verify registration        |
+| `entry-point`                             | A conventional startup/invocation filename. Verify registration        |
 | `test`                                    | A test/spec path inferred from naming                                  |
 | `manifest`                                | Build, package, workspace, deployment, or ecosystem metadata           |
 | `technology`                              | A detected language/framework pack                                     |
@@ -47,16 +47,16 @@ language-server completeness.
 
 The profile contains both a compatibility-level repository archetype and a component portfolio.
 Prefer per-component archetypes in monorepos. Boundaries combine workspace roots, relationship
-hubs, conventional paths, and explicit user hints; inspect `boundaryEvidence` rather than treating
+hubs, conventional paths, and explicit user hints. Inspect `boundaryEvidence` rather than treating
 any directory name as proof.
 
 ## Edge types
 
 | Type                                           | Meaning and limitation                                                             |
 | ---------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `contains`                                     | Layout membership; it does not prove architectural ownership                       |
-| `imports`                                      | A statically resolved local source dependency; it does not prove runtime execution |
-| `tests`                                        | Direct test imports are observed; naming-only relations remain weak `inferred`     |
+| `contains`                                     | Layout membership. It does not prove architectural ownership                       |
+| `imports`                                      | A statically resolved local source dependency. It does not prove runtime execution |
+| `tests`                                        | Direct test imports are observed. Naming-only relations remain weak `inferred`     |
 | `declares`                                     | The system declares a technology pack                                              |
 | `implements`                                   | Detected evidence suggests the system has a capability                             |
 | `configures`                                   | Reserved for explicit configuration ownership evidence                             |
@@ -72,18 +72,18 @@ from richer tools merely because a bundled edge already exists. Record source an
 
 Coverage is part of the result, not a log line. Inspect:
 
-- total discovered and modeled files;
-- static-relation files and bytes read;
-- languages with and without bundled local relation resolution;
-- status (`complete`, `partial`, `unsupported`, or `failed`) and reason codes;
-- file, relation, and byte budgets;
-- truncation;
+- total discovered and modeled files.
+- static-relation files and bytes read.
+- languages with and without bundled local relation resolution.
+- status (`complete`, `partial`, `unsupported`, or `failed`) and reason codes.
+- file, relation, and byte budgets.
+- truncation.
 - skipped large and unreadable files.
 - manifest and relationship parser diagnostics.
 
 When status is `partial`, absence of a node or edge is not evidence of absence. Budgets may come
 from schema-v2 project configuration or CLI overrides. Increase them only when the extra evidence
-is relevant and affordable; otherwise shard by component or use Graphify, Serena, a language
+is relevant and affordable. Otherwise shard by component or use Graphify, Serena, a language
 server, build metadata, or focused direct inspection.
 
 The model, profile, plan, atlas, dependency report, and graph-query CLIs accept `--scope`. The
@@ -91,7 +91,7 @@ selected target-relative path is filtered before budgets are applied, so a small
 late-sorting component instead of starving it behind unrelated files. `scan-architecture.js` also
 supports resumable structural pages with `--scope`, `--max-files`, and
 `--resume-after`. The cursor is a target-relative filename from the sorted scoped inventory. Keep
-page coverage and reason codes when merging summaries; a scoped or resumed page is intentionally
+page coverage and reason codes when merging summaries. A scoped or resumed page is intentionally
 reported as partial relative to the whole target.
 
 ## Dependency intelligence
@@ -121,6 +121,6 @@ The absence of one segment is an evidence gap to resolve, not permission to inve
 
 Graphify, Serena, compilers, language servers, tests, traces, profilers, database schemas, API
 specifications, and deployment metadata may add nodes or contradict bundled edges. Keep each claim's
-provenance. Prefer direct runtime or authoritative compiler/framework evidence for dynamic behavior;
+provenance. Prefer direct runtime or authoritative compiler/framework evidence for dynamic behavior.
 prefer live source for what the current checkout declares. Mark contradictions instead of silently
 choosing the convenient result.

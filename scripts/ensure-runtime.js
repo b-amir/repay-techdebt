@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Install bundled skill dependencies when check-runtime reports missing packages.
-// Scoped to <skill-root> only — never touches the target application repo.
+// Scoped to <skill-root> only - never touches the target application repo.
 //
 //   node scripts/ensure-runtime.js [--dry-run] [--format json]
 import { parseArgs } from "node:util";

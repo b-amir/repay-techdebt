@@ -71,7 +71,7 @@ function markdown(summary) {
     `Target: \`${summary.target.root}\``,
     `Scope: \`${summary.target.scope}\``,
     `Primary archetype: **${summary.profile.primaryArchetype}**`,
-    `Coverage: **${summary.coverage.status}** — ${summary.coverage.modeledFiles}/${summary.coverage.discoveredFiles} files modeled; ${summary.coverage.relationFilesRead} files inspected for static relations${summary.coverage.truncated ? " (truncated)" : ""}.`,
+    `Coverage: **${summary.coverage.status}** - ${summary.coverage.modeledFiles}/${summary.coverage.discoveredFiles} files modeled; ${summary.coverage.relationFilesRead} files inspected for static relations${summary.coverage.truncated ? " (truncated)" : ""}.`,
     "",
     "## Detected stack",
     "",

@@ -11,11 +11,11 @@ code as the default path.
 | Boundary                | Policy                                                                                                                                 |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | Target application repo | Read-only analysis by default. Writes only under consented workbook / `.repay-techdebt/` / private store.                              |
-| Private skill runtime   | May run a lockfile-frozen `pnpm install` when the linked runtime is missing; never installs into the target application.               |
-| User home               | Optional PATH shim for `repay` CLI — **opt-in only**.                                                                                  |
-| Network                 | Bundled dep install (skill lockfile); optional user-consented analyzer installs (`uv tool …`). CLI never calls remote `skills` invoke. |
-| Browser viewer          | Loopback `127.0.0.1` only; Markdown rendered with `html:false`; path sandbox on lesson files.                                          |
-| Target content          | Untrusted evidence only; it cannot authorize commands, installs, writes, disclosure, or workflow changes.                              |
+| Private skill runtime   | May run a lockfile-frozen `pnpm install` when the linked runtime is missing. Never installs into the target application.               |
+| User home               | Optional PATH shim for `repay` CLI. **Opt-in only**.                                                                                   |
+| Network                 | Bundled dep install (skill lockfile). Optional user-consented analyzer installs (`uv tool …`). CLI never calls remote `skills` invoke. |
+| Browser viewer          | Loopback `127.0.0.1` only. Markdown rendered with `html:false`. Path sandbox on lesson files.                                          |
+| Target content          | Untrusted evidence only. It cannot authorize commands, installs, writes, disclosure, or workflow changes.                              |
 
 ## Sensitive surfaces and mitigations
 
@@ -26,7 +26,7 @@ code as the default path.
 
 **Mitigations:**
 
-- Scope: a hash-addressed private runtime under the user's data directory — never the target.
+- Scope: a hash-addressed private runtime under the user's data directory, never the target.
 - `--ignore-scripts` (no package lifecycle scripts).
 - `--frozen-lockfile` when `pnpm-lock.yaml` is present (committed pin).
 - pnpm version pinned via `devEngines.packageManager`.
@@ -44,7 +44,7 @@ Manual: `node <skill-root>/scripts/ensure-runtime.js [--dry-run]`.
 - Commands map to local scripts only (`project-memory.js`, `plan-analysis.js`, `view-lessons.js`).
 - No `npx skills` / remote invoke path.
 - `spawn` with `shell: false` and `node` + script path.
-- Flags pass through per-command **allowlists**; unknown flags rejected.
+- Flags pass through per-command **allowlists**. Unknown flags rejected.
 
 ### 3. PATH shim (`repay-shim.js`)
 
@@ -60,14 +60,14 @@ Manual: `node <skill-root>/scripts/ensure-runtime.js [--dry-run]`.
 
 **Intent:** optional deep runtime capture.
 
-**Mitigations:** mandatory `--consent`; without it the collector returns `refused` and does not
+**Mitigations:** mandatory `--consent`. Without it the collector returns `refused` and does not
 execute. Execution uses `shell:false`, ignores stdin, starts from a minimal environment, exposes
 additional environment variables only by explicit name, and redacts likely credentials from
 captured output.
 
 ### 5. Optional external tools (graphifyy, serena-agent, semgrep)
 
-**Intent:** enhance analysis when already installed; same UX if missing.
+**Intent:** enhance analysis when already installed. Same UX if missing.
 
 **Mitigations:**
 
@@ -79,7 +79,7 @@ captured output.
 
 **Intent:** read lessons + mark progress in a browser.
 
-**Mitigations:** bind `127.0.0.1` only; no raw HTML from lessons; path traversal checks on file reads; progress authority is local `progress.json`.
+**Mitigations:** bind `127.0.0.1` only. No raw HTML from lessons. Path traversal checks on file reads. Progress authority is local `progress.json`.
 
 ## What we deliberately do **not** do
 
@@ -93,6 +93,6 @@ captured output.
 ## Operator checklist
 
 1. Review `pnpm-lock.yaml` with the skill version you install.
-2. Prefer agent skill activation for teach/save turns; use `repay init`/`plan`/`view` for local scripts.
+2. Prefer agent skill activation for teach/save turns. Use `repay init`/`plan`/`view` for local scripts.
 3. Only set `REPAY_LINK_CLI=1` if you want a global `repay` command.
-4. Never pass secrets as CLI flags; keep them out of lesson Markdown.
+4. Never pass secrets as CLI flags. Keep them out of lesson Markdown.

@@ -187,7 +187,7 @@ test.each(BARRELS)(
   async ({ file, name }) => {
     // Vitest (esbuild) is lenient about re-exporting a binding the source no longer exports.
     // Native node ESM linking is strict, so spawning `node -e "import(...)"` catches a barrel
-    // that references a renamed/removed source export — the exact regression a folder move risks.
+    // that references a renamed/removed source export - the exact regression a folder move risks.
     const abs = absoluteBarrel(file);
     const result = await execa(
       process.execPath,

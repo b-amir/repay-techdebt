@@ -1,5 +1,5 @@
 // @category C9
-// H3 — CLI entrypoint load. `node --check` parses every script without executing it.
+// H3 - CLI entrypoint load. `node --check` parses every script without executing it.
 // Fails when a move or edit leaves a CLI (or lib) syntactically broken, before any
 // behavior test runs.
 import assert from "node:assert/strict";
@@ -37,7 +37,7 @@ test(
   { timeout: 30_000 },
   async () => {
     const files = await listAllJs();
-    assert.ok(files.length > 0, "no scripts found — directory moved?");
+    assert.ok(files.length > 0, "no scripts found - directory moved?");
 
     // Bounded concurrency: under the full suite, other files also spawn node, so a plain
     // sequential loop can blow past the default 5s test timeout on a loaded machine.
@@ -68,7 +68,7 @@ test(
       broken.length === 0
         ? ""
         : `${broken.length} script(s) failed \`node --check\`:\n` +
-            broken.map((b) => `  ${b.file} — ${b.stderr}`).join("\n"),
+            broken.map((b) => `  ${b.file} - ${b.stderr}`).join("\n"),
     );
   },
 );

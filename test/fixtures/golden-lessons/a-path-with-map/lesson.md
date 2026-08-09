@@ -9,7 +9,7 @@ primaryPaths:
   - billing/capture.js
   - billing/settlement.js
 mapAnswers: >-
-  capturePayment is the only entry; it validates the order then calls settle.
+  capturePayment is the only entry. It validates the order then calls settle.
   settle owns the settled status object. The map answers: who validates vs who
   records settlement?
 sectionRoles:
@@ -26,7 +26,7 @@ When money moves in this billing slice, **one function validates the order and a
 
 Capture is the public entry for an order that already has an id and amount. Settlement is the helper that turns those values into a settled result. The split means you can change settlement policy without rewriting every caller that still needs the same order check.
 
-That boundary is the whole lesson. You are not learning a full payments platform — only this path through _these_ files. When a bug report says “capture returned settled but the id was wrong,” you already know which file validated the order and which file stamped status — so you open the right one first.
+That boundary is the whole lesson. You are not learning a full payments platform - only this path through _these_ files. When a bug report says “capture returned settled but the id was wrong,” you already know which file validated the order and which file stamped status - so you open the right one first.
 
 ## Map the two roles
 
@@ -39,7 +39,7 @@ flowchart LR
   settle --> result["status settled object"]
 ```
 
-**What this shows:** validation lives only in capture; settlement status is produced only in settle. Follow the arrow when you debug a missing `"settled"` field.
+**What this shows:** validation lives only in capture. Settlement status is produced only in settle. Follow the arrow when you debug a missing `"settled"` field.
 
 ## Walk the path in code
 
@@ -65,7 +65,7 @@ So the ordered path is: **order in → id required → settle(orderId, amount) �
 
 A common wrong mental model: “capture owns the whole payment, including status.” That reading fails as soon as you ask where `"settled"` is assigned. It is only in settle. Another trap: treating settle as optional decoration. Capture’s return value _is_ settle’s return value, so a change to settle’s shape changes every capture caller.
 
-What goes wrong if you skip the id guard and call settle with garbage? Settle still returns a settled-shaped object with whatever id you passed — so capture’s guard is the only gate that keeps incomplete orders out of settlement.
+What goes wrong if you skip the id guard and call settle with garbage? Settle still returns a settled-shaped object with whatever id you passed - so capture’s guard is the only gate that keeps incomplete orders out of settlement.
 
 ## Debug the handoff
 
@@ -76,8 +76,8 @@ Imagine a caller reports a successful capture whose result has no `status`. Open
 2. Change the return object on paper so `status` is restored without moving validation.
 3. Name the assertion you would add for `capturePayment` before making that edit.
 
-Private answer: (1) no—the field originates at `billing/settlement.js:3`; (2) restore
-`status: "settled"` in settle’s returned object; (3) assert that a valid capture result contains
+Private answer: (1) no. The field originates at `billing/settlement.js:3`. (2) restore
+`status: "settled"` in settle’s returned object. (3) assert that a valid capture result contains
 `status === "settled"` while a missing id still throws at `billing/capture.js:5`.
 
-**If you remember one thing:** money status is not set in capture — capture only validates, then hands off to settle.
+**If you remember one thing:** money status is not set in capture - capture only validates, then hands off to settle.

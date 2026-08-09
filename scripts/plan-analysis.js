@@ -86,7 +86,7 @@ function markdown(plan) {
     `Scope: \`${plan.target.scope}\``,
     `Mode: **${plan.request.mode}**; depth: **${plan.request.depth}**${plan.request.focus ? `; focus: **${plan.request.focus}**` : ""}`,
     `Profile: ${plan.profileSummary.primaryArchetype}; ${plan.profileSummary.languages.join(", ") || "language unresolved"}.`,
-    `Coverage: **${plan.coverage.status}**${plan.coverage.reasonCodes.length > 0 ? ` — ${plan.coverage.reasonCodes.join(", ")}` : ""}.`,
+    `Coverage: **${plan.coverage.status}**${plan.coverage.reasonCodes.length > 0 ? ` - ${plan.coverage.reasonCodes.join(", ")}` : ""}.`,
     "",
     "| Priority | Zoom | Investigation | Preferred evidence tool | Failure gate |",
     "| ---: | --- | --- | --- | --- |",

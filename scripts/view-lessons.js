@@ -82,7 +82,7 @@ async function main() {
         "workbook",
         workbook.ready
           ? green(String(workbook.location ?? "ready"))
-          : yellow("missing — init target first"),
+          : yellow("missing. Initialize the target first"),
       ],
       ["bind", "127.0.0.1"],
       ["stop", "Ctrl-C"],

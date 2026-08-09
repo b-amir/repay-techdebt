@@ -101,9 +101,9 @@ Thin resume helpers:
   recheck-claims      re-verify saved lesson CLAIMS/citations against live sources
   search-claims       find saved lessons by claim text, citation, or primary path
   open-workbook       alias for open-viewer
-  clear-skill-memory  alias for reset (skill memory only — never app source)
+  clear-skill-memory  alias for reset (skill memory only, never app source)
 
-Maintenance removes only repay-techdebt memory, workbook output, and analyzer cache — never application source.
+Maintenance removes only repay-techdebt memory, workbook output, and analyzer cache. It never removes application source.
 Private-external machine memory plus a discoverable sister workbook is the default and leaves the
 target unchanged. --sharing team|local is a legacy alias for --storage team|project-local. Status is read-only. User-authored mutations require consent; derived lesson-index recovery may run silently during routine lesson work.
 Agents should ask in conversation and pass --yes; --interactive is for human terminal use.
@@ -784,7 +784,7 @@ async function doctor(targetRoot, options) {
     process.stdout.write(`Saved lessons: ${lessonCount}\n`);
     if (pathComplete) {
       process.stdout.write(
-        "Learning path: complete — durable save allowed if lesson craft passes.\n",
+        "Learning path: complete. Durable save is allowed if lesson craft passes.\n",
       );
     } else {
       process.stdout.write("Learning path: blocked\n");
@@ -831,7 +831,7 @@ async function searchClaimsAction(targetRoot, options) {
         `Claim search: ${result.hitCount} hit(s) for "${result.query}" (${result.lessonCount ?? 0} lessons)\n`,
       );
       for (const hit of result.hits) {
-        process.stdout.write(`- [${hit.match}] ${hit.title} — ${hit.snippet}\n`);
+        process.stdout.write(`- [${hit.match}] ${hit.title}: ${hit.snippet}\n`);
       }
     }
   }
@@ -900,7 +900,7 @@ async function recheckClaims(targetRoot, options) {
   if (format === "json") emit(payload, "json");
   else {
     process.stdout.write(
-      `Claim recheck: ${batch.empty ? "empty" : batch.ok ? "ok" : "failed"} — ${batch.lessonCount} lessons, ${batch.failedCount} failed\n`,
+      `Claim recheck: ${batch.empty ? "empty" : batch.ok ? "ok" : "failed"}. ${batch.lessonCount} lessons, ${batch.failedCount} failed\n`,
     );
     for (const lesson of batch.lessons) {
       if (lesson.ok) continue;
@@ -1164,7 +1164,8 @@ async function init(targetRoot, initialOptions) {
         status: "not-created",
         targetRoot,
         memoryRoot: paths.root,
-        requiredAction: "Memory already present. Use `repay status` or reconfig — not re-init.",
+        requiredAction:
+          "Memory already present. Use `repay status` or reconfig. Do not initialize again.",
       },
       format,
     );
@@ -2378,7 +2379,7 @@ async function resolveMaintenanceContext(targetRoot, options) {
       workbookRoot = workbookPaths(paths, config).root;
     }
   } catch {
-    // first-run or broken memory — still plan filesystem paths
+    // first-run or broken memory - still plan filesystem paths
   }
   return { config, workbookRoot };
 }

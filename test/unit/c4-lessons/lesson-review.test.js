@@ -49,7 +49,7 @@ test("lesson quality warns on empty-form craft proxies", () => {
   const claims = Array.from(
     { length: 6 },
     (_, index) =>
-      `${index + 1}. "export function helper${index} exists" — src/helper${index}.ts:1 — support: yes`,
+      `${index + 1}. "export function helper${index} exists" - src/helper${index}.ts:1 - support: yes`,
   ).join("\n");
   const markdown = `# Helpers
 
@@ -89,7 +89,7 @@ Malformed syntax hides declared support.
 Change src/a.ts and run its test.
 
 CLAIMS:
-1. "a exists" - src/a.ts:1 - support: yes
+1. "a exists" | src/a.ts:1 | support: yes
 ${"Supporting prose explains the consequence because explicit claims are part of the durable evidence contract. ".repeat(30)}`;
   const result = inspectLesson(markdown, { depth: "concise" });
   assert.ok(result.errors.some((error) => /malformed CLAIMS/i.test(error)));

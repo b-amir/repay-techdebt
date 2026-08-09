@@ -1,5 +1,5 @@
 /**
- * Curriculum design policy (B4a) — kept out of lesson faithfulness.
+ * Curriculum design policy (B4a) - kept out of lesson faithfulness.
  */
 
 const OMNIBUS =

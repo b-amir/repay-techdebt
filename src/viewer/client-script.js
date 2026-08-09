@@ -235,12 +235,12 @@ export const CLIENT_SCRIPT = `
     dialog.querySelector(".ds-mermaid-dialog-title").textContent = diagramTitle;
 
     var body = dialog.querySelector(".ds-mermaid-dialog-body");
-    // Diagram lives under .mermaid — never wrap.querySelector("svg") (expand icon is first SVG).
+    // Diagram lives under .mermaid - never wrap.querySelector("svg") (expand icon is first SVG).
     var diagram = wrap.querySelector(".mermaid");
     var svg = diagram && diagram.querySelector("svg");
     if (svg) {
       var clone = svg.cloneNode(true);
-      // Inline mermaid bakes plaque-sized width/height — drop so CSS can scale large.
+      // Inline mermaid bakes plaque-sized width/height - drop so CSS can scale large.
       clone.removeAttribute("width");
       clone.removeAttribute("height");
       if (!clone.getAttribute("viewBox")) {
@@ -299,7 +299,7 @@ export const CLIENT_SCRIPT = `
     if (typeof dialog.showModal === "function") dialog.showModal();
     else dialog.setAttribute("open", "");
 
-    // No inline SVG yet (still rendering) — paint source in dialog.
+    // No inline SVG yet (still rendering) - paint source in dialog.
     if (!svg) {
       var pending = body.querySelector(".mermaid");
       if (pending) {
@@ -927,7 +927,7 @@ export const CLIENT_SCRIPT = `
     t.id = "ds-reload-toast";
     t.className = "ds-reload-toast";
     t.setAttribute("role", "status");
-    t.innerHTML = 'Lesson updated — <button type="button" class="ds-btn-reload">Refresh</button>';
+    t.innerHTML = 'Lesson updated. <button type="button" class="ds-btn-reload">Refresh</button>';
     document.body.appendChild(t);
     t.querySelector(".ds-btn-reload").addEventListener("click", function() {
       window.location.reload();

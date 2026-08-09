@@ -5,7 +5,7 @@ import { parseCitation } from "./citation-model.js";
 
 const CLAIMS_HEADER = /(?:^|\n)CLAIMS:\s*(?:\n|$)/i;
 const CLAIM_LINE =
-  /^\s*\d+\.\s*"([^"]+)"\s*—\s*(.+?)\s*—\s*support:\s*(yes|no|gap)\s*(?:—\s*state:\s*(\w+))?/im;
+  /^\s*\d+\.\s*"([^"]+)"\s*(?:-|\u2014)\s*(.+?)\s*(?:-|\u2014)\s*support:\s*(yes|no|gap)\s*(?:(?:-|\u2014)\s*state:\s*(\w+))?/im;
 
 /** @typedef {{ claim: string, citation: string, citations: string[], support: string, state: string | null }} ClaimEntry */
 /** @typedef {{ present: boolean, claims: ClaimEntry[], malformedLines: string[] }} ClaimBlockDetails */

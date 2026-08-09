@@ -43,7 +43,7 @@ export function capturePayment() {
 }
 ```
 
-Then open `billing/settlement.js:1` for the status stamp only — not alien ledgers.
+Then open `billing/settlement.js:1` for the status stamp only - not alien ledgers.
 
 ## The pitfall people miss
 

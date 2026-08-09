@@ -64,7 +64,7 @@ test("doctor and recheck-trajectory plain-language refuse when no gate", async (
 });
 
 test("recheck-trajectory complete when gate file complete", async () => {
-  // Use a real initialized memory if init is heavy — write minimal gate under private paths is hard.
+  // Use a real initialized memory if init is heavy - write minimal gate under private paths is hard.
   // Assert complete gate JSON shape via check-trajectory script instead + help surface.
   const directory = await mkdtemp(resolve(tmpdir(), "repay-recheck-gate-"));
   try {

@@ -1,5 +1,5 @@
 // @category C9
-// H1 — Static import graph. Fails when a relative import points at a missing file.
+// H1 - Static import graph. Fails when a relative import points at a missing file.
 // This is the primary "folder move broke something" net.
 //
 // Scope: every `scripts/**/*.js` and `src/**/*.js`. Bare packages and `node:` builtins are
@@ -88,7 +88,7 @@ function resolveExisting(importer, spec) {
 
 test("every relative import in scripts/ and src/ resolves to an existing file", async () => {
   const files = await listAllJs();
-  assert.ok(files.length > 0, "no scripts found — directory moved?");
+  assert.ok(files.length > 0, "no scripts found - directory moved?");
 
   const broken = [];
   for (const file of files) {
@@ -110,7 +110,7 @@ test("every relative import in scripts/ and src/ resolves to an existing file", 
       continue;
     }
     for (const spec of specifiersOf(ast)) {
-      if (!isRelative(spec)) continue; // bare package or node: builtin — skip
+      if (!isRelative(spec)) continue; // bare package or node: builtin - skip
       if (resolveExisting(file, spec) === null) {
         broken.push({
           importer: relative(root, file),
@@ -131,7 +131,7 @@ test("every relative import in scripts/ and src/ resolves to an existing file", 
   );
 });
 
-test("src/ has no import cycles (soft — logged, not fatal)", async () => {
+test("src/ has no import cycles (soft - logged, not fatal)", async () => {
   // Detecting cycles keeps the dependency data visible in CI output without flipping the
   // suite red. Promote to an assertion only after intentionally tightening layer rules.
   if (!existsSync(srcDir)) return; // nothing to scan

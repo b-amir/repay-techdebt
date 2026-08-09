@@ -13,7 +13,7 @@ import { validateMermaidSyntax } from "./mermaid-validation.js";
 
 /**
  * Mechanical floors for saving a lesson (trajectory + craft + quality + citations + faithfulness).
- * Does not write files or run Secretlint — callers own persistence and secrets.
+ * Does not write files or run Secretlint - callers own persistence and secrets.
  * Incomplete path → refuse (ok false); no soft "continue weaker?" escape.
  *
  * @returns {Promise<{ ok: boolean, quality: object, faithfulness: object, trajectory?: object, craft?: object }>}

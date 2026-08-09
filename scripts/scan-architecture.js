@@ -280,7 +280,7 @@ function renderMarkdown(result) {
     "",
     "## Tool Status",
     "",
-    `- dependency-cruiser: **${result.backend.status}**${result.backend.reason ? ` — ${result.backend.reason}` : ""}`,
+    `- dependency-cruiser: **${result.backend.status}**${result.backend.reason ? ` - ${result.backend.reason}` : ""}`,
     `- fallback: **${result.backend.fallbackUsed ? "tree accepted" : "not used"}**`,
     "",
     "## Module Summary",

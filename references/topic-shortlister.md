@@ -4,7 +4,9 @@ You are an expert curriculum designer. You have been given a broad list of propo
 
 ## Task
 
-Review the proposed topics and select up to 3 topics that provide the highest leverage for a new developer. Ignore mechanical or trivial refactoring tasks; focus on architecture boundaries, state management, and critical flows.
+Review the proposed topics and select up to 3 topics that will help a new developer make safe changes
+soonest. Ignore mechanical or trivial refactoring tasks. Focus on architecture boundaries, state
+management, and critical flows.
 
 ## Context
 
@@ -42,6 +44,6 @@ Emit a JSON object with the following structure:
 ```json
 {
   "acceptedIds": ["topic-id-1", "topic-id-2"],
-  "reasoning": "Explanation of why these specific topics provide the most leverage."
+  "reasoning": "Explain why these topics are the most useful starting points."
 }
 ```

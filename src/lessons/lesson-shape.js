@@ -78,7 +78,7 @@ export const MAP_SUBJECTS = Object.freeze([
   "dependency-ecosystem",
 ]);
 
-/** Paths relative to skill root — teach handshake must load these before draft. */
+/** Paths relative to skill root - teach handshake must load these before draft. */
 export const GOLDEN_LESSON_PATHS = Object.freeze({
   pathWithMap: "test/fixtures/golden-lessons/a-path-with-map/lesson.md",
   deepDive: "test/fixtures/golden-lessons/b-deep-dive/lesson.md",

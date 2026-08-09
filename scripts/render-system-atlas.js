@@ -158,7 +158,7 @@ function render(model, focus) {
           ({ node, consumers }) =>
             `| \`${cell(node.path)}\` | ${consumers} | ${consumers > 0 ? "Review blast radius and ownership" : "No modeled static consumer; dynamic use remains possible"} |`,
         )
-      : ["| — | 0 | No focus match or modeled file |"]),
+      : ["| - | 0 | No focus match or modeled file |"]),
     "",
     "## Criticality lenses",
     "",
@@ -173,7 +173,7 @@ function render(model, focus) {
     "",
     "## Coverage and blind spots",
     "",
-    `- Coverage status: **${model.coverage.status}**${model.coverage.reasonCodes.length > 0 ? ` — ${model.coverage.reasonCodes.join(", ")}` : ""}.`,
+    `- Coverage status: **${model.coverage.status}**${model.coverage.reasonCodes.length > 0 ? ` - ${model.coverage.reasonCodes.join(", ")}` : ""}.`,
     `- Modeled ${model.coverage.modeledFiles} of ${model.coverage.discoveredFiles} discovered files.`,
     `- Read ${model.coverage.relationFilesRead} files (${model.coverage.relationBytesRead} bytes) for conservative static relations.`,
     `- Coverage truncated: **${model.coverage.truncated ? "yes" : "no"}**; skipped large files: ${model.coverage.skippedLargeFiles}; unreadable files: ${model.coverage.unreadableFiles}.`,
