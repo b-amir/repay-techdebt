@@ -1,4 +1,5 @@
 import { extractLessonCitations } from "./lesson-citation-check.js";
+import { parseCitation } from "./citation-model.js";
 import { parseClaimsBlock } from "./claim-faithfulness.js";
 import { inspectLessonShape } from "./lesson-shape.js";
 
@@ -60,9 +61,11 @@ export function inspectLesson(
   const generic = headings.filter((heading) => EMPTY_HEADING.test(heading));
   if (generic.length > 0)
     errors.push(`Replace process labels with subject headings: ${generic.join(", ")}.`);
-  if (new Set(evidence.map((item) => item.replace(/:\d+$/, ""))).size < 2)
+  const citedPaths = [
+    ...new Set(evidence.map((item) => parseCitation(item)?.path).filter(Boolean)),
+  ];
+  if (citedPaths.length < 2)
     errors.push("Cite at least two verified project-relative source paths with line numbers.");
-  const citedPaths = [...new Set(evidence.map((item) => item.replace(/:\d+$/, "")))];
   if (
     expectedEvidencePaths.length > 0 &&
     !citedPaths.some((cited) =>
@@ -168,6 +171,13 @@ export function inspectLesson(
   if (longParagraphs.length > 0)
     warnings.push(
       `${longParagraphs.length} paragraph(s) exceed 140 words; give each paragraph one job.`,
+    );
+  const pathHeavyParagraphs = paragraphs.filter(
+    (paragraph) => extractLessonCitations(paragraph.text).length >= 3,
+  );
+  if (pathHeavyParagraphs.length > 0)
+    warnings.push(
+      `${pathHeavyParagraphs.length} paragraph(s) contain three or more source paths; keep the explanation readable and move supporting locations to compact citations.`,
     );
   if (!/\b(?:you|your)\b/i.test(markdown))
     warnings.push(

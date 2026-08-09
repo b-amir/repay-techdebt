@@ -17,6 +17,7 @@ Every lesson diagram must adhere to these rules before it is persisted in the re
 8. **Compact Portrait Layout**: Prefer a portrait or near-square diagram that reads at the viewer's
    normal width without zooming. Flowcharts default to top-to-bottom (`TD` or `TB`); use `LR` or
    `RL` only when horizontal order is essential and the rendered result still fits comfortably.
+   Record why that exception improves the teaching question in the diagram intent.
    Do not trade a wide graph for one long vertical chain: prune secondary nodes, group related
    steps, shorten labels, or move detail into prose. Keep sequence diagrams to few participants.
 9. **Parse Before Save**: Validate every Mermaid block with the pinned local parser. Fix syntax

@@ -274,11 +274,12 @@ topics, **must** open the viewer with
 2. Read `templates/lesson-format.md`, `references/lesson-composition.md`,
    `references/lesson-writing.md`, and B4b/B6 in `references/bottleneck-checkpoints.md`.
 3. **Agent draft** one topic, 3–8 topic-specific sections declared through `sectionRoles`, at least
-   one verified source fence, path:line citations, honest evidence language, and a modify/debug/test
-   job ending. Follow the plan's `diagramIntent`: use verified nodes/edges, keep the subgraph small,
-   prefer a compact portrait or near-square layout (`TD`/`TB` for flowcharts), avoid both wide
-   graphs and long single-column chains, give omissions a topic-specific reason, and fix Mermaid
-   syntax before save.
+   one verified source fence, self-contained `` `path:line` `` or `` `path:start-end` `` citations,
+   honest evidence language, and a modify/debug/test job ending. Keep raw locations out of prose;
+   never use a pathless range. Follow the plan's `diagramIntent`: use verified nodes/edges, keep the
+   subgraph small, prefer a compact portrait or near-square layout (`TD`/`TB` for flowcharts), avoid
+   both wide graphs and long single-column chains, explain any horizontal exception, give omissions
+   a topic-specific reason, and fix Mermaid syntax before save.
 4. **Script check:**
 
 ```text

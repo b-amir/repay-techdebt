@@ -63,8 +63,11 @@ the complete required/optional section catalog. Do not force every lesson throug
   internal confidence machinery.
 - Put the learner's goal and the most useful mental model first. Move evidence next to the claim it
   supports rather than adding a giant evidence dump.
-- Cite exact project-relative paths and line numbers. Include only small, verified, redacted code
-  excerpts, including at least one fenced source snippet from the primary path.
+- Cite exact project-relative locations only as self-contained `` `path:line` `` or
+  `` `path:start-end` `` references. Never use a pathless range. Name the behavior or symbol in
+  prose and let the viewer move raw locations into numbered Sources notes. Include only small,
+  verified, redacted code excerpts, including at least one fenced source snippet from the primary
+  path.
 - Follow the plan's `diagramIntent`. A `required` visual must be included; a `recommended` visual
   may be omitted only with a topic-specific `diagramReason`; `omit` must not include Mermaid.
   Diagrams use only verified nodes and edges, stay small, and must parse before save. Prefer a

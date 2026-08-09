@@ -1,17 +1,18 @@
 import { lstat, readFile, realpath } from "node:fs/promises";
 import { resolve } from "node:path";
 import { isSameOrInside } from "../foundations/targeting.js";
+import {
+  EVIDENCE_CITATION,
+  extractAmbiguousCitationShorthand,
+  extractCitationReferences,
+  parseCitation,
+} from "./citation-model.js";
 
-export const EVIDENCE_CITATION =
-  /(?:^|[\s`(])([A-Za-z0-9_.@+-]+(?:\/[A-Za-z0-9_.@+()[\]-]+)+\.[A-Za-z0-9]+):([1-9]\d*)(?:-[1-9]\d*)?(?=$|[\s`),.;])/gm;
+export { EVIDENCE_CITATION };
 
-/** Extract unique path:line citations from lesson markdown. */
+/** Extract unique path:line or path:start-end citations from lesson markdown. */
 export function extractLessonCitations(markdown) {
-  return [
-    ...new Set(
-      [...String(markdown).matchAll(EVIDENCE_CITATION)].map((match) => `${match[1]}:${match[2]}`),
-    ),
-  ];
+  return extractCitationReferences(markdown).map((citation) => citation.label);
 }
 
 /**
@@ -23,14 +24,21 @@ export async function verifyLessonCitations(targetRoot, markdownOrCitations) {
     ? markdownOrCitations
     : extractLessonCitations(markdownOrCitations);
   const problems = [];
+  if (!Array.isArray(markdownOrCitations)) {
+    for (const shorthand of extractAmbiguousCitationShorthand(markdownOrCitations)) {
+      problems.push(
+        `${shorthand} is ambiguous source shorthand; repeat the project-relative path, for example path/to/file.ts:${shorthand.replace(/[–—]/g, "-")}`,
+      );
+    }
+  }
   const canonicalRoot = await realpath(targetRoot);
   for (const citation of citations) {
-    const match = citation.match(/^(.*):([1-9]\d*)$/);
-    if (!match) {
-      problems.push(`${citation} is not a path:line citation`);
+    const parsed = parseCitation(citation);
+    if (!parsed) {
+      problems.push(`${citation} is not a path:line or path:start-end citation`);
       continue;
     }
-    const requested = resolve(canonicalRoot, match[1]);
+    const requested = resolve(canonicalRoot, parsed.path);
     try {
       const canonical = await realpath(requested);
       if (!isSameOrInside(canonical, canonicalRoot)) {
@@ -43,7 +51,7 @@ export async function verifyLessonCitations(targetRoot, markdownOrCitations) {
         continue;
       }
       const lineCount = (await readFile(canonical, "utf8")).split(/\r?\n/).length;
-      if (Number(match[2]) > lineCount)
+      if (parsed.endLine > lineCount)
         problems.push(`${citation} exceeds the file's ${lineCount} lines`);
     } catch {
       problems.push(`${citation} does not resolve to a current target file`);

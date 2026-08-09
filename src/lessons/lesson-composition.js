@@ -88,6 +88,7 @@ export const lessonPlanSchema = z.object({
   diagramIntent: z
     .object({
       type: z.enum(["none", "flowchart", "sequence", "state", "er", "class"]),
+      orientation: z.enum(["portrait", "intrinsic"]).optional(),
       decision: z.enum(["required", "recommended", "omit"]),
       teachingQuestion: z.string().optional(),
       reason: z.string().optional(),
@@ -1060,6 +1061,7 @@ export function planLesson(model, options = {}) {
       "Verify every claim in live source and cite exact project-relative lines before teaching it.",
       "Treat optional sections as invitations to investigate, not proof of a defect or runtime behavior.",
       "Prefer clues that converge across files, relations, manifests, tests, configuration, tools, or confirmed memory.",
+      "Prefer compact portrait Mermaid flowcharts (TD/TB) that read at the article width. Use LR/RL only when horizontal order is essential, keep the result narrow, and state the exception in the lesson plan.",
       diagramIntent.decision === "required"
         ? "Include the planned evidence-backed diagram and validate its Mermaid syntax before save."
         : diagramIntent.decision === "recommended"

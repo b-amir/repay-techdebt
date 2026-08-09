@@ -30,6 +30,7 @@ Content 4
 
   assert.match(html, /<aside class="ds-rail ds-rail-toc"/);
   assert.match(html, /ds-rail-toc-head/);
+  assert.match(html, /data-id="section-1" aria-current="location"/);
   assert.match(html, /href="#section-1"/);
   assert.match(html, /href="#section-2"/);
   assert.match(html, /href="#section-2a"/);
@@ -59,5 +60,5 @@ Content 3
     next: null,
   });
 
-  assert.doesNotMatch(html, /ds-rail-toc/);
+  assert.doesNotMatch(html, /<aside class="ds-rail ds-rail-toc"/);
 });

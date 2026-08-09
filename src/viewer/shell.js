@@ -1,5 +1,6 @@
 // Single workbook shell HTML. Light Read-mode layout: soft sidebar rail + open
 // reading column. Server injects pre-rendered article HTML and a small vanilla client script.
+import { parseCitation } from "../lessons/citation-model.js";
 import { CLIENT_SCRIPT } from "./client-script.js";
 
 export function escapeHtml(value) {
@@ -179,7 +180,8 @@ function prefsBootstrapScript() {
     r.setAttribute("data-theme",theme);
     r.setAttribute("data-scale",p.scale||"m");
     r.setAttribute("data-accent",p.accent||"teal");
-    r.setAttribute("data-sidebar",p.sidebarCollapsed?"collapsed":"open");
+    var narrow=window.matchMedia&&window.matchMedia("(max-width: 900px)").matches;
+    r.setAttribute("data-sidebar",narrow?"collapsed":(p.sidebarCollapsed?"collapsed":"open"));
     r.setAttribute("data-focus",p.focusMode?"on":"off");
     var scheme=theme==="dark"?"dark":"light";
     r.style.colorScheme=scheme;
@@ -210,6 +212,7 @@ function renderShell({
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d9488'/%3E%3Cpath d='M10 7h9l4 4v14H10z' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E">
 <title>${escapeHtml(documentTitle)}</title>
 ${prefsBootstrapScript()}
 <link rel="stylesheet" href="/assets/viewer.css">
@@ -218,6 +221,7 @@ ${prefsBootstrapScript()}
 <a class="ds-skip-link" href="#ds-main-content">Skip to content</a>
 <div class="${layoutClass}">
 ${sidebarHtml}
+<button type="button" class="ds-sidebar-scrim" aria-label="Close sidebar" tabindex="-1"></button>
 <main class="ds-main" id="ds-main-content" tabindex="-1">${sidebarToggleButton("ds-sidebar-toggle-float", false)}<div class="ds-main-inner">${mainHtml}</div></main>
 ${rightRailHtml}
 </div>
@@ -240,6 +244,7 @@ export function buildCoveredMapChips(sidebar, progress, items) {
   const nextWritten = written.find((item) => item.state === "written") ?? null;
   const next = nextWritten ?? nextPlanned;
   const nextWhy =
+    next?.outcome ||
     next?.learnerOutcome ||
     next?.why ||
     next?.reason ||
@@ -275,7 +280,8 @@ export function renderHome({ workbookTitle, sidebar, progress }) {
   const chips = buildCoveredMapChips(sidebar, progress, { written, planned });
   const { project } = parseWorkbookBrand(workbookTitle);
   const { counts, total } = sidebar;
-  const readPct = counts.written > 0 ? Math.round((counts.done / counts.written) * 100) : 0;
+  const writtenTotal = counts.done + counts.written;
+  const readPct = writtenTotal > 0 ? Math.round((counts.done / writtenTotal) * 100) : 0;
 
   // One primary CTA. Prefer last-read continue; else first open/next from covered map.
   let primaryCard;
@@ -313,18 +319,11 @@ export function renderHome({ workbookTitle, sidebar, progress }) {
   }
 
   const stats = `<div class="ds-home-stats" aria-label="Workbook progress">
-    <div class="ds-home-stats-row">
-      <span class="ds-home-stat"><strong>${counts.done}</strong> done</span>
-      <span class="ds-home-stat-sep" aria-hidden="true">·</span>
-      <span class="ds-home-stat"><strong>${counts.written}</strong> written</span>
-      <span class="ds-home-stat-sep" aria-hidden="true">·</span>
-      <span class="ds-home-stat"><strong>${counts.planned}</strong> planned</span>
-    </div>
+    <p class="ds-home-progress-summary"><strong>${counts.done} of ${writtenTotal}</strong> written lessons complete${counts.planned ? ` · ${counts.planned} planned` : ""}</p>
     <div class="ds-home-progress">
       <div class="ds-home-progress-track" role="progressbar" aria-valuenow="${readPct}" aria-valuemin="0" aria-valuemax="100" aria-label="Marked done">
         <span class="ds-home-progress-fill" style="width: ${readPct}%"></span>
       </div>
-      <p class="ds-home-progress-note">${counts.done} of ${counts.written} written · ${readPct}%</p>
     </div>
   </div>`;
 
@@ -332,8 +331,10 @@ export function renderHome({ workbookTitle, sidebar, progress }) {
     .slice(0, 12)
     .map((item) => {
       const done = item.state === "done";
+      const outcome = item.outcome || item.learnerOutcome || item.why || "";
       return `<a class="ds-lesson-card${done ? " ds-lesson-card-is-done" : ""}" href="${lessonHref(item.lessonKey)}">
     <span class="ds-lesson-card-title">${escapeHtml(item.title)}</span>
+    ${outcome ? `<span class="ds-lesson-card-outcome">${escapeHtml(outcome)}</span>` : ""}
     <span class="ds-lesson-card-status${done ? " ds-lesson-card-done" : ""}">${done ? "Done" : "Open"}</span>
   </a>`;
     })
@@ -345,6 +346,7 @@ export function renderHome({ workbookTitle, sidebar, progress }) {
       (item) =>
         `<a class="ds-lesson-card ds-lesson-card-planned" href="${plannedHref(item.id)}">
     <span class="ds-lesson-card-title">${escapeHtml(item.title)}</span>
+    ${item.outcome || item.learnerOutcome ? `<span class="ds-lesson-card-outcome">${escapeHtml(item.outcome || item.learnerOutcome)}</span>` : ""}
     <span class="ds-lesson-card-status">Planned</span>
   </a>`,
     )
@@ -454,9 +456,9 @@ export function stripLeadingTitleHtml(html) {
 function renderTocRail(headings) {
   if (headings.filter((h) => h.level === 2).length < 4) return "";
   const listItems = headings
-    .map((h) => {
+    .map((h, index) => {
       const cls = h.level === 3 ? "ds-toc-h3" : "ds-toc-h2";
-      return `<li class="${cls}"><a href="#${escapeHtml(h.id)}" class="ds-toc-link" data-id="${escapeHtml(h.id)}">${h.text}</a></li>`;
+      return `<li class="${cls}"><a href="#${escapeHtml(h.id)}" class="ds-toc-link${index === 0 ? " ds-toc-link-active" : ""}" data-id="${escapeHtml(h.id)}"${index === 0 ? ' aria-current="location"' : ""}>${h.text}</a></li>`;
     })
     .join("\n");
   return `<aside class="ds-rail ds-rail-toc" id="ds-toc-rail" aria-label="On this page">
@@ -474,9 +476,9 @@ function formatLearningStage(stage) {
 }
 
 function citationHref(targetRoot, raw) {
-  const match = String(raw).match(/^(.+?):(\d+)$/);
-  const filePath = match ? match[1] : raw;
-  const line = match ? match[2] : "1";
+  const citation = parseCitation(raw);
+  const filePath = citation?.path ?? String(raw);
+  const line = citation?.startLine ?? 1;
   const abs = filePath.startsWith("/")
     ? filePath
     : `${String(targetRoot ?? "").replace(/\/$/, "")}/${filePath}`;
@@ -516,7 +518,7 @@ export function renderLesson({
 }) {
   const buttonClass = completed ? "ds-mark-done ds-mark-done-complete" : "ds-mark-done";
   const buttonLabel = completed ? "Mark not done" : "Mark as done";
-  const button = `<button type="button" class="${buttonClass}" data-lesson="${escapeHtml(lessonKey)}" data-completed="${completed ? "true" : "false"}" aria-pressed="${completed ? "true" : "false"}"><span class="ds-mark-done-check" aria-hidden="true">✓</span><span class="ds-mark-done-label">${buttonLabel}</span></button>`;
+  const button = `<button type="button" class="${buttonClass}" data-lesson="${escapeHtml(lessonKey)}" data-completed="${completed ? "true" : "false"}" aria-pressed="${completed ? "true" : "false"}" aria-describedby="ds-completion-status"><span class="ds-mark-done-check" aria-hidden="true">✓</span><span class="ds-mark-done-label">${buttonLabel}</span></button><p class="ds-completion-status" id="ds-completion-status" role="status" aria-live="polite"></p>`;
   const footer = `<footer class="ds-lesson-footer">
     ${button}
     <nav class="ds-lesson-footer-nav" aria-label="Lesson navigation" data-lesson-nav>
@@ -547,8 +549,9 @@ export function renderLesson({
     }
   }
 
-  const statusStr = completed ? "Done" : "Open";
-  const orientationStrip = `<div class="ds-orientation-strip">${escapeHtml(currentChapter)} · Lesson ${currentIndex} of ${totalWrittenInChapter} written · ${statusStr}</div>`;
+  const orientationStrip = currentChapter
+    ? `<div class="ds-orientation-strip">${escapeHtml(currentChapter)} · Lesson ${currentIndex} of ${totalWrittenInChapter}</div>`
+    : "";
 
   const headings = [];
   const headingRegex = /<h([23])\s+id="([^"]+)"[^>]*>(.*?)<\/h\1>/g;
@@ -564,9 +567,9 @@ export function renderLesson({
   let jumpList = "";
   if (headings.filter((h) => h.level === 2).length >= 4) {
     const listItems = headings
-      .map((h) => {
+      .map((h, index) => {
         const cls = h.level === 3 ? "ds-toc-h3" : "ds-toc-h2";
-        return `<li class="${cls}"><a href="#${escapeHtml(h.id)}" class="ds-toc-link" data-id="${escapeHtml(h.id)}">${h.text}</a></li>`;
+        return `<li class="${cls}"><a href="#${escapeHtml(h.id)}" class="ds-toc-link${index === 0 ? " ds-toc-link-active" : ""}" data-id="${escapeHtml(h.id)}"${index === 0 ? ' aria-current="location"' : ""}>${h.text}</a></li>`;
       })
       .join("\n");
     jumpList = `<aside class="ds-toc-mobile" aria-label="On this page">

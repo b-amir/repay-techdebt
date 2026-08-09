@@ -23,6 +23,7 @@ function sampleSidebar() {
             title: "Settle path",
             state: "written",
             lessonKey: "lessons/settle.md",
+            outcome: "Follow the settlement handoff safely",
             why: "Next handoff after capture",
           },
           {
@@ -59,6 +60,9 @@ test("renderHome includes primary continue + compact stats", () => {
   });
   assert.match(html, /ds-home-primary/);
   assert.match(html, /ds-home-stats/);
+  assert.match(html, /1 of 3/);
+  assert.match(html, /Follow the settlement handoff safely/);
+  assert.match(html, /Trace refund after settle/);
   assert.match(html, /Continue/);
   assert.match(html, /Settle path/);
   assert.doesNotMatch(html, /ds-covered-map|ds-home-continue|ds-home-next|Next why/);

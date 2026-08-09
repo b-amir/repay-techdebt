@@ -94,8 +94,13 @@ section on the consequence the reader should remember, not on a stray implementa
 
 ## Evidence belongs beside the claim
 
-Use two to four source files in a normal lesson. Cite project-relative paths and line numbers. Show
-at least one small verified fenced snippet from the primary path—not Mermaid alone. After a snippet,
+Use two to four source files in a normal lesson. Cite each location in a self-contained backticked
+form: `` `path/to/file.ts:42` `` or `` `path/to/file.ts:42-47` ``. Repeat the path for every cited
+range; shorthand such as `` `42-47` `` is ambiguous and fails validation. Prefer the behavior,
+function, or module name in the sentence and let the viewer move the full path into a quiet
+numbered source note. Do not make readers parse long file locations as part of the explanation.
+
+Show at least one small verified fenced snippet from the primary path—not Mermaid alone. After a snippet,
 explain what the language/runtime does
 and why that behavior matters here. A filename, an analyzer score, or a generic framework rule is
 not proof. Before persistence, every citation must resolve to a current file and valid line in the
@@ -105,7 +110,9 @@ Follow the lesson plan's `diagramIntent`. Use a verified diagram when it materia
 sequence, state transition, ownership boundary, or multi-part relationship; reduce it to the
 smallest useful subgraph. Prefer a compact portrait or near-square layout that remains legible at
 normal viewer width; default flowcharts to `TD`/`TB`, and avoid both wide layouts and long vertical
-chains. Omit it only with a topic-specific reason. Every Mermaid block must parse successfully
+chains. Use `LR`/`RL` only when horizontal order is essential, keep it narrow, and record that
+exception in the diagram intent. Split or reduce any graph that would run for multiple screens.
+Omit it only with a topic-specific reason. Every Mermaid block must parse successfully
 before save.
 Put tool attempts, failures, fallbacks, and limitations in the workbook-level Tool Use Ledger; do
 not repeat the ledger in every short lesson.

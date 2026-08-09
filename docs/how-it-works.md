@@ -518,19 +518,24 @@ Errors (any → `ok: false` → check CLI **exit 2**):
 | Mermaid: forbidden types / missing accTitle\|accDescr / &gt;30 lines / missing “What this shows” | Fail                                             |
 | External image/diagram sidecars                                                                  | Fail                                             |
 
-Warnings (do not alone fail quality): long paragraphs, missing “you/your”, missing causal
-connective, or a horizontal (`LR`/`RL`) flowchart that should use a compact portrait layout.
+Warnings (do not alone fail quality): long or path-heavy paragraphs, missing “you/your”, missing
+causal connective, or a horizontal (`LR`/`RL`) flowchart that should use a compact portrait layout.
 
 ### 7.2 Citation validity (`verifyLessonCitations`)
 
-For each `path:line`:
+One shared citation model feeds extraction, validity, faithfulness windows, search, viewer notes,
+and editor links. It accepts `path:line` and `path:start-end`; en/em dashes in ranges normalize to an
+ASCII hyphen. Every range must repeat its project-relative path.
 
-| Condition                 | Problem |
-| ------------------------- | ------- |
-| Not `path:line` shape     | Fail    |
-| Resolves outside target   | Fail    |
-| Not a file / missing      | Fail    |
-| Line &gt; file line count | Fail    |
+For each citation:
+
+| Condition                                 | Problem |
+| ----------------------------------------- | ------- |
+| Not `path:line` or `path:start-end` shape | Fail    |
+| Backticked range has no path              | Fail    |
+| Resolves outside target                   | Fail    |
+| Not a file / missing                      | Fail    |
+| Line &gt; file line count                 | Fail    |
 
 ### 7.3 Claim faithfulness
 

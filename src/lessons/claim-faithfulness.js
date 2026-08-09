@@ -1,6 +1,7 @@
 import { readFile, realpath } from "node:fs/promises";
 import { resolve } from "node:path";
 import { extractLessonCitations } from "./lesson-citation-check.js";
+import { parseCitation } from "./citation-model.js";
 
 const CLAIMS_HEADER = /(?:^|\n)CLAIMS:\s*(?:\n|$)/i;
 const CLAIM_LINE =
@@ -189,14 +190,14 @@ async function assessOne(root, claim, citations, minOverlap) {
   const snippets = [];
   const missingCitations = [];
   for (const citation of citations) {
-    const match = citation.match(/^(.*):([1-9]\d*)$/);
-    if (!match) {
+    const parsed = parseCitation(citation);
+    if (!parsed) {
       missingCitations.push(citation);
       continue;
     }
     try {
-      const source = await readFile(resolve(root, match[1]), "utf8");
-      snippets.push(snippetAround(source, Number(match[2])));
+      const source = await readFile(resolve(root, parsed.path), "utf8");
+      snippets.push(snippetAround(source, parsed.startLine));
     } catch {
       missingCitations.push(citation);
     }

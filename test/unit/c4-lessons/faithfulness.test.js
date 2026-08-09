@@ -6,21 +6,56 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { test } from "vite-plus/test";
-import { extractLessonCitations } from "../../../src/lessons/lesson-citation-check.js";
+import {
+  extractLessonCitations,
+  verifyLessonCitations,
+} from "../../../src/lessons/lesson-citation-check.js";
 import {
   assessClaimFaithfulness,
   parseClaimsBlock,
 } from "../../../src/lessons/claim-faithfulness.js";
 import { runTeachFloors } from "../../../src/lessons/save-lesson.js";
 
-test("extractLessonCitations dedupes and keeps path:line only", () => {
-  const md = "See billing/capture.js:4 and billing/capture.js:4 again, plus src/a.js:1-3.";
-  assert.deepEqual(extractLessonCitations(md), ["billing/capture.js:4", "src/a.js:1"]);
+test("extractLessonCitations dedupes and preserves normalized line ranges", () => {
+  const md =
+    "See billing/capture.js:4 and billing/capture.js:4 again, plus src/a.js:1–3 and src/b.js:7—9.";
+  assert.deepEqual(extractLessonCitations(md), [
+    "billing/capture.js:4",
+    "src/a.js:1-3",
+    "src/b.js:7-9",
+  ]);
 });
 
 test("extractLessonCitations ignores bare words and URLs", () => {
   assert.deepEqual(extractLessonCitations("see line 4 and example.com:80 and http://x/y"), []);
   assert.deepEqual(extractLessonCitations("no citations here"), []);
+});
+
+test("verifyLessonCitations rejects ambiguous pathless range shorthand", async () => {
+  const dir = await fixture();
+  try {
+    const result = await verifyLessonCitations(
+      dir,
+      "See `billing/capture.js:1-2`, then `4-5` for the next branch.",
+    );
+    assert.equal(result.ok, false);
+    assert.ok(result.problems.some((problem) => problem.includes("ambiguous source shorthand")));
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("verifyLessonCitations ignores a standalone numeric range", async () => {
+  const dir = await fixture();
+  try {
+    const result = await verifyLessonCitations(
+      dir,
+      "Retry `1-3` times before surfacing the error.",
+    );
+    assert.equal(result.ok, true, result.problems.join("; "));
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
 });
 
 test("parseClaimsBlock reads explicit CLAIMS and tolerates blank input", () => {

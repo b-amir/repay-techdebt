@@ -37,10 +37,18 @@ test("renderMarkdown emits mermaid blocks for client rendering", () => {
   );
   assert.match(html, /ds-mermaid-wrap/);
   assert.match(html, /ds-mermaid-expand/);
-  assert.match(html, /aria-label="Expand diagram"/);
+  assert.match(html, /aria-label="Open larger diagram"/);
   assert.match(html, /<pre class="mermaid">/);
   assert.match(html, /flowchart TD/);
   assert.doesNotMatch(html, /ds-codeblock/);
+});
+
+test("renderMarkdown gives captions and callouts quiet semantic hooks", () => {
+  const html = renderMarkdown(
+    "**What this shows:** Requests cross one boundary.\n\n> **Note:** Tokens stay at the edge.\n",
+  );
+  assert.match(html, /class="ds-figure-caption"/);
+  assert.match(html, /class="ds-callout ds-callout-note"/);
 });
 
 test("renderMarkdown turns path:line citations into footnotes when targetRoot is provided", () => {
@@ -61,6 +69,20 @@ test("renderMarkdown turns path:line citations into footnotes when targetRoot is
   assert.doesNotMatch(html, /ds-fn-ref"><a[^>]*>\d+<\/a><\/sup>\)/);
   // duplicate path:line reuses one note
   assert.equal((html.match(/id="fn-\d+"/g) || []).length, 2);
+});
+
+test("renderMarkdown preserves citation ranges and links to their first line", () => {
+  const html = renderMarkdown(
+    "See (`src/auth.js:42–47`) and (`src/auth.js:60-62`) for the complete guard.",
+    { targetRoot: "/work/app" },
+  );
+
+  assert.match(html, /<sup class="ds-fn-ref">/);
+  assert.match(html, /src\/auth\.js:42-47/);
+  assert.match(html, /42-47, 60-62/);
+  assert.match(html, /vscode:\/\/file\/\/work\/app\/src\/auth\.js:42/);
+  assert.doesNotMatch(html, /42–47/);
+  assert.equal((html.match(/id="fn-\d+"/g) || []).length, 1);
 });
 
 test("prepareLessonMarkdown drops craft frontmatter and leading H1", () => {

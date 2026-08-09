@@ -4,6 +4,7 @@
 import MarkdownIt from "markdown-it";
 import markdownItMultimdTable from "markdown-it-multimd-table";
 import hljs from "highlight.js/lib/common";
+import { parseCitation } from "../lessons/citation-model.js";
 import { parseLessonFrontmatter } from "../lessons/lesson-frontmatter.js";
 
 const LANG_ALIASES = {
@@ -79,7 +80,7 @@ md.renderer.rules.fence = function renderFence(tokens, idx) {
   const code = token.content;
 
   if (info.split(/\s+/)[0].toLowerCase() === "mermaid") {
-    return `<div class="ds-mermaid-wrap"><button type="button" class="ds-mermaid-expand" aria-label="Expand diagram" title="Expand diagram"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M9.5 2.5H13.5V6.5M6.5 13.5H2.5V9.5M13.5 2.5L9 7M2.5 13.5L7 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><pre class="mermaid">${escapeFenceText(code)}</pre></div>\n`;
+    return `<figure class="ds-mermaid-wrap"><button type="button" class="ds-mermaid-expand" aria-label="Open larger diagram" title="Open larger diagram"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M9.5 2.5H13.5V6.5M6.5 13.5H2.5V9.5M13.5 2.5L9 7M2.5 13.5L7 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>View</span></button><pre class="mermaid">${escapeFenceText(code)}</pre></figure>\n`;
   }
 
   const lang = resolveLanguage(info);
@@ -122,13 +123,13 @@ export function stripAgentMetaMarkdown(markdown) {
   const fences = [];
   let text = String(markdown ?? "").replace(/```[\s\S]*?```/g, (block) => {
     fences.push(block);
-    return `\0FENCE${fences.length - 1}\0`;
+    return `\uE000FENCE${fences.length - 1}\uE001`;
   });
   // HTML comments (CLAIMS ledger lives here in real workbooks).
   text = text.replace(/<!--[\s\S]*?-->/g, "");
   // Bare CLAIMS: block + consecutive numbered entries.
   text = text.replace(/(?:^|\n)CLAIMS:\s*\n(?:[ \t]*\d+\.[^\n]*(?:\n|$))*/gi, "\n");
-  text = text.replace(/\0FENCE(\d+)\0/g, (_, i) => fences[Number(i)] ?? "");
+  text = text.replace(/\uE000FENCE(\d+)\uE001/g, (_, i) => fences[Number(i)] ?? "");
   return text.replace(/\n{3,}/g, "\n\n").trimEnd();
 }
 
@@ -137,8 +138,21 @@ export function stripAgentMetaMarkdown(markdown) {
  * @param {{ targetRoot?: string }} [options]
  */
 export function renderMarkdown(source, { targetRoot } = {}) {
-  const html = md.render(String(source ?? ""));
+  const html = enhanceEditorialPatterns(md.render(String(source ?? "")));
   return linkifyCitations(html, targetRoot);
+}
+
+function enhanceEditorialPatterns(html) {
+  return String(html)
+    .replace(
+      /<p><strong>What this shows:<\/strong>\s*/gi,
+      '<p class="ds-figure-caption"><span class="ds-figure-caption-label">What this shows</span> ',
+    )
+    .replace(
+      /<blockquote>\s*<p><strong>(Note|Tip|Warning):<\/strong>/gi,
+      (_, kind) =>
+        `<blockquote class="ds-callout ds-callout-${kind.toLowerCase()}"><p><strong class="ds-callout-label">${kind}</strong>`,
+    );
 }
 
 /**
@@ -170,25 +184,42 @@ function escapeAttr(value) {
 function linkifyCitations(html, targetRoot) {
   if (!targetRoot) return html;
   const root = String(targetRoot).replace(/\/$/, "");
-  /** @type {{ num: number, label: string, href: string }[]} */
+  /** @type {{ num: number, path: string, ranges: string[], label: string, href: string }[]} */
   const notes = [];
   /** @type {Map<string, number>} */
   const keyToNum = new Map();
 
   // Eat optional surrounding parens/spaces so prose (`path:line`) → bare footnote number.
   const body = html.replace(
-    /(?:\(|（)?\s*<code>([^<]+?):(\d+)<\/code>\s*(?:\)|）)?/g,
-    (match, filePath, line) => {
-      if (!/^[\w./@-]+$/.test(filePath)) return match;
-      const key = `${filePath}:${line}`;
+    /(?:\(|（)?\s*<code>([^<]+)<\/code>\s*(?:\)|）)?/g,
+    (match, rawCitation) => {
+      const citation = parseCitation(rawCitation);
+      if (!citation) return match;
+      const key = citation.path;
+      const range =
+        citation.startLine === citation.endLine
+          ? String(citation.startLine)
+          : `${citation.startLine}-${citation.endLine}`;
       let num = keyToNum.get(key);
       let first = false;
       if (!num) {
         num = notes.length + 1;
         keyToNum.set(key, num);
         first = true;
-        const abs = filePath.startsWith("/") ? filePath : `${root}/${filePath}`;
-        notes.push({ num, label: key, href: `vscode://file/${abs}:${line}` });
+        const abs = citation.path.startsWith("/") ? citation.path : `${root}/${citation.path}`;
+        notes.push({
+          num,
+          path: citation.path,
+          ranges: [range],
+          label: citation.label,
+          href: `vscode://file/${abs}:${citation.startLine}`,
+        });
+      } else {
+        const note = notes[num - 1];
+        if (note && !note.ranges.includes(range)) {
+          note.ranges.push(range);
+          note.label = `${note.path}:${note.ranges.join(", ")}`;
+        }
       }
       const idAttr = first ? ` id="fnref-${num}"` : "";
       return `<sup class="ds-fn-ref"><a href="#fn-${num}"${idAttr} aria-describedby="fn-${num}">${num}</a></sup>`;
@@ -200,7 +231,7 @@ function linkifyCitations(html, targetRoot) {
   const list = notes
     .map(
       (n) =>
-        `<li id="fn-${n.num}" class="ds-fn-item"><a class="ds-citation" href="${escapeAttr(n.href)}" title="Open in editor"><code>${escapeAttr(n.label)}</code></a> <a class="ds-fn-back" href="#fnref-${n.num}" aria-label="Back to reference ${n.num}">↩</a></li>`,
+        `<li id="fn-${n.num}" class="ds-fn-item"><a class="ds-citation" href="${escapeAttr(n.href)}" title="Open in editor"><code><bdi>${escapeAttr(n.label)}</bdi></code></a> <a class="ds-fn-back" href="#fnref-${n.num}" aria-label="Back to reference ${n.num}">↩</a></li>`,
     )
     .join("");
   return `${body}<footer class="ds-footnotes" aria-label="Source references"><h2 class="ds-footnotes-title">Sources</h2><ol class="ds-fn-list">${list}</ol></footer>`;

@@ -56,6 +56,7 @@ export function selectDiagramType(topic, packet) {
               : "flowchart";
       return {
         type,
+        orientation: type === "flowchart" ? "portrait" : "intrinsic",
         decision: "recommended",
         teachingQuestion:
           type === "sequence"
@@ -72,6 +73,7 @@ export function selectDiagramType(topic, packet) {
     }
     return {
       type: "none",
+      orientation: "intrinsic",
       decision: "omit",
       reason: "No verified relationship or transition would make a diagram more useful than prose.",
       nodes: [],
@@ -103,6 +105,7 @@ export function selectDiagramType(topic, packet) {
       : "recommended";
   return {
     type,
+    orientation: type === "flowchart" ? "portrait" : "intrinsic",
     decision,
     teachingQuestion,
     reason:

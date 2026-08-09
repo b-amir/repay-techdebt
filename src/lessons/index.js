@@ -7,6 +7,11 @@ export {
   extractLessonCitations,
   verifyLessonCitations,
 } from "./lesson-citation-check.js";
+export {
+  parseCitation,
+  extractCitationReferences,
+  extractAmbiguousCitationShorthand,
+} from "./citation-model.js";
 
 export { parseClaimsBlock, assessClaimFaithfulness } from "./claim-faithfulness.js";
 export {

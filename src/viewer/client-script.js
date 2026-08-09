@@ -4,6 +4,8 @@ export const CLIENT_SCRIPT = `
   var PREFS_KEY = "repay-viewer-prefs";
   var RECENT_KEY = "repay-viewer-recent";
   var HINTS_KEY = "repay-viewer-hints-seen";
+  var mobileSidebarOpen = false;
+  var sidebarReturnFocus = null;
   var DEFAULT_PREFS = {
     theme: "paper",
     scale: "m",
@@ -51,13 +53,18 @@ export const CLIENT_SCRIPT = `
     return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
   }
 
+  function isNarrowViewport() {
+    return Boolean(window.matchMedia && window.matchMedia("(max-width: 900px)").matches);
+  }
+
   function applyPrefs(prefs) {
     var root = document.documentElement;
     var theme = effectiveTheme(prefs);
     root.setAttribute("data-theme", theme);
     root.setAttribute("data-scale", prefs.scale || "m");
     root.setAttribute("data-accent", prefs.accent || "teal");
-    root.setAttribute("data-sidebar", prefs.sidebarCollapsed ? "collapsed" : "open");
+    var sidebarOpen = isNarrowViewport() ? mobileSidebarOpen : !prefs.sidebarCollapsed;
+    root.setAttribute("data-sidebar", sidebarOpen ? "open" : "collapsed");
     root.setAttribute("data-focus", prefs.focusMode ? "on" : "off");
     var scheme = theme === "dark" ? "dark" : "light";
     root.style.colorScheme = scheme;
@@ -70,10 +77,9 @@ export const CLIENT_SCRIPT = `
       btn.classList.toggle("ds-seg-btn-active", active);
       btn.setAttribute("aria-pressed", active ? "true" : "false");
     });
-    var collapsed = Boolean(prefs.sidebarCollapsed);
     document.querySelectorAll(".ds-sidebar-toggle").forEach(function (btn) {
-      btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
-      btn.setAttribute("aria-label", collapsed ? "Show sidebar" : "Hide sidebar");
+      btn.setAttribute("aria-expanded", sidebarOpen ? "true" : "false");
+      btn.setAttribute("aria-label", sidebarOpen ? "Hide sidebar" : "Show sidebar");
     });
     var exit = document.querySelector(".ds-focus-exit");
     if (exit) exit.hidden = !prefs.focusMode;
@@ -137,11 +143,33 @@ export const CLIENT_SCRIPT = `
         return mermaid.run({ nodes: nodes }).then(function () {
           nodes.forEach(function (node) {
             node.setAttribute("data-processed", "true");
+            var wrap = node.closest(".ds-mermaid-wrap");
+            var svg = node.querySelector("svg");
+            if (!wrap || !svg) return;
+            wrap.querySelectorAll(".ds-mermaid-error").forEach(function (error) { error.remove(); });
+            wrap.classList.remove("ds-mermaid-portrait", "ds-mermaid-landscape", "ds-mermaid-tall");
+            var box = svg.viewBox && svg.viewBox.baseVal;
+            var width = box && box.width ? box.width : svg.getBoundingClientRect().width;
+            var height = box && box.height ? box.height : svg.getBoundingClientRect().height;
+            var ratio = height > 0 ? width / height : 1;
+            wrap.classList.add(ratio > 1.25 ? "ds-mermaid-landscape" : "ds-mermaid-portrait");
+            if (height > width * 2.6) wrap.classList.add("ds-mermaid-tall");
           });
         });
       })
       .catch(function (err) {
         console.error("mermaid render failed", err);
+        nodes.forEach(function (node) {
+          var wrap = node.closest(".ds-mermaid-wrap");
+          if (!wrap || wrap.querySelector(".ds-mermaid-error")) return;
+          var error = document.createElement("div");
+          error.className = "ds-mermaid-error";
+          error.setAttribute("role", "status");
+          error.innerHTML =
+            '<p>Diagram unavailable.</p><div class="ds-mermaid-error-actions"><button type="button" data-mermaid-retry>Retry</button><button type="button" data-mermaid-source-toggle aria-expanded="false">Show source</button></div><pre hidden></pre>';
+          error.querySelector("pre").textContent = node.dataset.mermaidSource || node.textContent || "";
+          wrap.appendChild(error);
+        });
       });
   }
 
@@ -159,14 +187,21 @@ export const CLIENT_SCRIPT = `
     dialog.id = "ds-mermaid-dialog";
     dialog.className = "ds-mermaid-dialog";
     dialog.setAttribute("aria-label", "Expanded diagram");
+    var sourceTitle = wrap.querySelector("svg title");
+    var diagramTitle = sourceTitle && sourceTitle.textContent ? sourceTitle.textContent : "Diagram";
     dialog.innerHTML =
       '<div class="ds-mermaid-dialog-chrome">' +
-      '<p class="ds-mermaid-dialog-title">Diagram</p>' +
+      '<p class="ds-mermaid-dialog-title"></p>' +
+      '<div class="ds-mermaid-dialog-sizes" role="group" aria-label="Diagram size">' +
+      '<button type="button" data-diagram-size="width" aria-pressed="true">Fit width</button>' +
+      '<button type="button" data-diagram-size="height" aria-pressed="false">Fit height</button>' +
+      '<button type="button" data-diagram-size="actual" aria-pressed="false">100%</button></div>' +
       '<button type="button" class="ds-mermaid-dialog-close" aria-label="Close diagram" title="Close">' +
       '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">' +
       '<path d="M3 3l8 8M11 3L3 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
       "</svg></button></div>" +
       '<div class="ds-mermaid-dialog-body"></div>';
+    dialog.querySelector(".ds-mermaid-dialog-title").textContent = diagramTitle;
 
     var body = dialog.querySelector(".ds-mermaid-dialog-body");
     // Diagram lives under .mermaid — never wrap.querySelector("svg") (expand icon is first SVG).
@@ -177,10 +212,6 @@ export const CLIENT_SCRIPT = `
       // Inline mermaid bakes plaque-sized width/height — drop so CSS can scale large.
       clone.removeAttribute("width");
       clone.removeAttribute("height");
-      clone.style.width = "100%";
-      clone.style.maxWidth = "100%";
-      clone.style.height = "auto";
-      clone.style.maxHeight = "calc(88vh - 120px)";
       if (!clone.getAttribute("viewBox")) {
         try {
           var box = svg.viewBox && svg.viewBox.baseVal;
@@ -207,6 +238,23 @@ export const CLIENT_SCRIPT = `
     }
 
     document.body.appendChild(dialog);
+    dialog.querySelectorAll("[data-diagram-size]").forEach(function (sizeBtn) {
+      sizeBtn.addEventListener("click", function () {
+        var mode = sizeBtn.getAttribute("data-diagram-size") || "width";
+        dialog.classList.remove(
+          "ds-mermaid-dialog-fit-height",
+          "ds-mermaid-dialog-actual",
+        );
+        if (mode === "height") dialog.classList.add("ds-mermaid-dialog-fit-height");
+        if (mode === "actual") dialog.classList.add("ds-mermaid-dialog-actual");
+        dialog.querySelectorAll("[data-diagram-size]").forEach(function (button) {
+          button.setAttribute(
+            "aria-pressed",
+            button.getAttribute("data-diagram-size") === mode ? "true" : "false",
+          );
+        });
+      });
+    });
     dialog.querySelector(".ds-mermaid-dialog-close").addEventListener("click", function () {
       closeMermaidDialog(dialog);
     });
@@ -252,6 +300,27 @@ export const CLIENT_SCRIPT = `
       e.preventDefault();
       openMermaidDialog(wrap);
     });
+    document.addEventListener("click", function (e) {
+      var retry = e.target.closest && e.target.closest("[data-mermaid-retry]");
+      if (!retry) return;
+      var wrap = retry.closest(".ds-mermaid-wrap");
+      var node = wrap && wrap.querySelector(".mermaid");
+      if (!node) return;
+      retry.disabled = true;
+      node.removeAttribute("data-processed");
+      renderMermaid(true);
+    });
+    document.addEventListener("click", function (e) {
+      var toggle = e.target.closest && e.target.closest("[data-mermaid-source-toggle]");
+      if (!toggle) return;
+      var error = toggle.closest(".ds-mermaid-error");
+      var source = error && error.querySelector("pre");
+      if (!source) return;
+      var expanded = source.hidden;
+      source.hidden = !expanded;
+      toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+      toggle.textContent = expanded ? "Hide source" : "Show source";
+    });
   }
 
   function bindPrefs() {
@@ -287,12 +356,16 @@ export const CLIENT_SCRIPT = `
     var panel = document.querySelector(".ds-settings-panel");
     if (!gear || !panel) return;
     function close() {
+      if (!panel.classList.contains("ds-settings-panel-open")) return;
       panel.classList.remove("ds-settings-panel-open");
       gear.setAttribute("aria-expanded", "false");
+      gear.focus();
     }
     function open() {
       panel.classList.add("ds-settings-panel-open");
       gear.setAttribute("aria-expanded", "true");
+      var first = panel.querySelector("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+      if (first) first.focus();
     }
     gear.addEventListener("click", function (e) {
       e.stopPropagation();
@@ -309,10 +382,33 @@ export const CLIENT_SCRIPT = `
     });
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") close();
+      if (e.key !== "Tab" || !panel.classList.contains("ds-settings-panel-open")) return;
+      var focusables = Array.from(panel.querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"));
+      if (!focusables.length) return;
+      var first = focusables[0];
+      var last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     });
   }
 
   function toggleSidebar() {
+    if (isNarrowViewport()) {
+      mobileSidebarOpen = !mobileSidebarOpen;
+      applyPrefs(readPrefs());
+      if (mobileSidebarOpen) {
+        var first = document.querySelector("#ds-rail a, #ds-rail button");
+        if (first) first.focus();
+      } else if (sidebarReturnFocus && typeof sidebarReturnFocus.focus === "function") {
+        sidebarReturnFocus.focus();
+      }
+      return;
+    }
     var prefs = readPrefs();
     prefs.sidebarCollapsed = !prefs.sidebarCollapsed;
     writePrefs(prefs);
@@ -322,8 +418,36 @@ export const CLIENT_SCRIPT = `
   function bindSidebarToggle() {
     document.querySelectorAll(".ds-sidebar-toggle").forEach(function (btn) {
       btn.addEventListener("click", function () {
+        sidebarReturnFocus = btn;
         toggleSidebar();
       });
+    });
+    var scrim = document.querySelector(".ds-sidebar-scrim");
+    if (scrim) {
+      scrim.addEventListener("click", function () {
+        if (!mobileSidebarOpen) return;
+        mobileSidebarOpen = false;
+        applyPrefs(readPrefs());
+        if (sidebarReturnFocus) sidebarReturnFocus.focus();
+      });
+    }
+    document.querySelectorAll("#ds-rail a[href]").forEach(function (link) {
+      link.addEventListener("click", function () {
+        if (!isNarrowViewport()) return;
+        mobileSidebarOpen = false;
+        applyPrefs(readPrefs());
+      });
+    });
+    window.addEventListener("resize", function () {
+      if (!isNarrowViewport()) mobileSidebarOpen = false;
+      applyPrefs(readPrefs());
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape" || !isNarrowViewport() || !mobileSidebarOpen) return;
+      e.preventDefault();
+      mobileSidebarOpen = false;
+      applyPrefs(readPrefs());
+      if (sidebarReturnFocus) sidebarReturnFocus.focus();
     });
   }
 
@@ -533,7 +657,7 @@ export const CLIENT_SCRIPT = `
 
     var headings = Array.from(document.querySelectorAll(".ds-section-heading"));
     var links = document.querySelectorAll(".ds-toc-link");
-    var activeId = "";
+    var activeId = headings.length ? headings[0].id : "";
 
     function updateScroll() {
       var bar = document.querySelector(".ds-reading-progress-bar");
@@ -557,14 +681,18 @@ export const CLIENT_SCRIPT = `
           if (rect.top <= scrollOffset) found = headings[i];
         }
       }
-      var currentId = found ? found.id : "";
+      var currentId = found ? found.id : (headings[0] ? headings[0].id : "");
       if (currentId !== activeId) {
         activeId = currentId;
         links.forEach(function(l) {
           if (l.getAttribute("data-id") === activeId) {
             l.classList.add("ds-toc-link-active");
+            l.setAttribute("aria-current", "location");
+            var rail = l.closest(".ds-rail-toc-inner");
+            if (rail) l.scrollIntoView({ block: "nearest" });
           } else {
             l.classList.remove("ds-toc-link-active");
+            l.removeAttribute("aria-current");
           }
         });
       }
@@ -606,10 +734,8 @@ export const CLIENT_SCRIPT = `
     if (label) label.textContent = completed ? "Mark not done" : "Mark as done";
     btn.className = completed ? "ds-mark-done ds-mark-done-complete" : "ds-mark-done";
     btn.disabled = false;
-    var strip = document.querySelector(".ds-orientation-strip");
-    if (strip) {
-      strip.textContent = strip.textContent.replace(/· (Open|Done)\\b/, "· " + (completed ? "Done" : "Open"));
-    }
+    var status = document.querySelector(".ds-completion-status");
+    if (status) status.textContent = completed ? "Marked done." : "Marked not done.";
     var nav = document.querySelector(".ds-nav-current");
     if (nav) {
       nav.classList.toggle("ds-nav-done", completed);
@@ -736,11 +862,13 @@ export const CLIENT_SCRIPT = `
     var results = root.querySelector(".ds-search-results");
     var backdrop = root.querySelector(".ds-search-backdrop");
     var timer = null;
+    var requestId = 0;
     var activeIndex = -1;
     var rows = [];
     var lastFocus = null;
 
     function close() {
+      requestId += 1;
       root.classList.remove("ds-search-open");
       input.value = "";
       results.innerHTML = "";
@@ -828,6 +956,8 @@ export const CLIENT_SCRIPT = `
     }
 
     function renderEmptyQuery() {
+      requestId += 1;
+      results.removeAttribute("aria-busy");
       results.innerHTML = "";
       rows = [];
       activeIndex = -1;
@@ -880,9 +1010,19 @@ export const CLIENT_SCRIPT = `
         return;
       }
       var catalog = navCatalog();
+      var thisRequest = ++requestId;
+      results.setAttribute("aria-busy", "true");
+      results.innerHTML = '<li class="ds-search-empty ds-search-loading" role="status">Searching…</li>';
+      rows = [];
+      activeIndex = -1;
       fetch("/api/search?q=" + encodeURIComponent(query))
-        .then(function(r) { return r.ok ? r.json() : { results: [], claimHits: [] }; })
+        .then(function(r) {
+          if (!r.ok) throw new Error("search failed");
+          return r.json();
+        })
         .then(function(data) {
+          if (thisRequest !== requestId) return;
+          results.removeAttribute("aria-busy");
           results.innerHTML = "";
           rows = [];
           activeIndex = -1;
@@ -947,7 +1087,21 @@ export const CLIENT_SCRIPT = `
           appendGroup("Planned", plannedHits.slice(0, 8));
           setActive(0);
         })
-        .catch(function() {});
+        .catch(function() {
+          if (thisRequest !== requestId) return;
+          results.removeAttribute("aria-busy");
+          results.innerHTML = "";
+          rows = [];
+          activeIndex = -1;
+          var error = document.createElement("li");
+          error.className = "ds-search-empty ds-search-error";
+          error.setAttribute("role", "status");
+          error.innerHTML = 'Search unavailable. <button type="button">Retry</button>';
+          error.querySelector("button").addEventListener("click", function () {
+            runSearch(input.value);
+          });
+          results.appendChild(error);
+        });
     }
 
     function trapTab(e) {
@@ -1053,11 +1207,25 @@ export const CLIENT_SCRIPT = `
     }
     var backdrop = root.querySelector(".ds-shortcuts-backdrop");
     var closeBtn = root.querySelector(".ds-shortcuts-close");
-    function close() { root.classList.remove("ds-shortcuts-open"); }
-    function open() { root.classList.add("ds-shortcuts-open"); }
+    var lastFocus = null;
+    function close() {
+      root.classList.remove("ds-shortcuts-open");
+      if (lastFocus && typeof lastFocus.focus === "function") lastFocus.focus();
+      lastFocus = null;
+    }
+    function open() {
+      lastFocus = document.activeElement;
+      root.classList.add("ds-shortcuts-open");
+      closeBtn.focus();
+    }
     function isOpen() { return root.classList.contains("ds-shortcuts-open"); }
     backdrop.addEventListener("click", close);
     closeBtn.addEventListener("click", close);
+    root.querySelector(".ds-shortcuts-panel").addEventListener("keydown", function (e) {
+      if (e.key !== "Tab") return;
+      e.preventDefault();
+      closeBtn.focus();
+    });
     return { open: open, close: close, isOpen: isOpen };
   }
 
@@ -1082,6 +1250,8 @@ export const CLIENT_SCRIPT = `
 
   function bindHints() {
     if (!document.querySelector(".ds-mark-done")) return;
+    if (isNarrowViewport()) return;
+    if (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) return;
     try {
       if (localStorage.getItem(HINTS_KEY) === "1") return;
     } catch (e) { /* ignore */ }
@@ -1203,6 +1373,10 @@ export const CLIENT_SCRIPT = `
         var lesson = btn.getAttribute("data-lesson");
         var completed = btn.getAttribute("data-completed") === "true";
         btn.disabled = true;
+        var completionLabel = btn.querySelector(".ds-mark-done-label");
+        if (completionLabel) completionLabel.textContent = "Saving…";
+        var completionStatus = document.querySelector(".ds-completion-status");
+        if (completionStatus) completionStatus.textContent = "Saving…";
         saveNavScroll();
         fetch("/api/completion", {
           method: "POST",
@@ -1215,7 +1389,12 @@ export const CLIENT_SCRIPT = `
           .then(function (data) {
             updateCompletionUi(btn, data.completed, data.counts);
           })
-          .catch(function () { btn.disabled = false; });
+          .catch(function () {
+            btn.disabled = false;
+            if (completionLabel)
+              completionLabel.textContent = completed ? "Mark not done" : "Mark as done";
+            if (completionStatus) completionStatus.textContent = "Could not save. Try again.";
+          });
       });
     }
   });

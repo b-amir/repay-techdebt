@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { test } from "vite-plus/test";
-import { renderHome, renderEmpty } from "../../../src/viewer/shell.js";
+import { renderHome, renderEmpty, renderLesson } from "../../../src/viewer/shell.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 
@@ -17,6 +17,8 @@ test("shell HTML has skip link and main landmark id", () => {
   assert.match(html, /href="#ds-main-content"/);
   assert.match(html, /id="ds-main-content"/);
   assert.match(html, /lang="en"/);
+  assert.match(html, /class="ds-sidebar-scrim"/);
+  assert.match(html, /aria-label="Close sidebar"/);
 });
 
 test("home render keeps skip link with compact home", () => {
@@ -53,6 +55,29 @@ test("home render keeps skip link with compact home", () => {
   assert.doesNotMatch(html, /fonts\.googleapis\.com/);
   // mermaid only lazy-loads when diagrams exist — no blocking <script src=...>
   assert.doesNotMatch(html, /<script[^>]+src=["']https:\/\/cdn\.jsdelivr\.net\/npm\/mermaid/);
+  assert.match(html, /Searching…/);
+  assert.match(html, /Search unavailable/);
+  assert.match(html, /data-diagram-size="width"/);
+  assert.match(html, /data-diagram-size="height"/);
+  assert.match(html, /data-mermaid-source-toggle/);
+});
+
+test("lesson completion exposes pending and announced result states", () => {
+  const html = renderLesson({
+    workbookTitle: "Demo workbook",
+    sidebar: { chapters: [], counts: { written: 0, done: 0, planned: 0 } },
+    title: "A lesson",
+    bodyHtml: "<p>Body</p>",
+    lessonKey: "lessons/a.md",
+    completed: false,
+    progress: {},
+    prev: null,
+    next: null,
+  });
+  assert.match(html, /id="ds-completion-status" role="status" aria-live="polite"/);
+  assert.match(html, /aria-describedby="ds-completion-status"/);
+  assert.match(html, /Saving…/);
+  assert.match(html, /Could not save\. Try again\./);
 });
 
 test("a11y checklist fixture exists", async () => {
